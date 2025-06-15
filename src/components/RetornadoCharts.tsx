@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Maximize2 } from 'lucide-react';
+import { ChartModal } from './ChartModal';
 
 export const RetornadoCharts: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
@@ -12,13 +13,13 @@ export const RetornadoCharts: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
 
-  const pieColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+  const pieColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
   const loadChartData = async () => {
     try {
       setIsLoading(true);
       
-      // Dados de exemplo - substitua pela chamada real do serviço
+      // Dados de exemplo com os destinos corretos
       const mockMonthlyData = [
         { month: 'Jan/24', quantidade: 25, valor: 2500 },
         { month: 'Fev/24', quantidade: 30, valor: 3200 },
@@ -31,7 +32,8 @@ export const RetornadoCharts: React.FC = () => {
       const mockDestinoData = [
         { name: 'Estoque', value: 45 },
         { name: 'Descarte', value: 30 },
-        { name: 'Manutenção', value: 25 }
+        { name: 'Garantia', value: 15 },
+        { name: 'Uso Interno', value: 10 }
       ];
 
       setMonthlyData(mockMonthlyData);
@@ -46,10 +48,6 @@ export const RetornadoCharts: React.FC = () => {
   useEffect(() => {
     loadChartData();
   }, []);
-
-  const handleExpandChart = (chartType: string) => {
-    setExpandedChart(expandedChart === chartType ? null : chartType);
-  };
 
   const chartConfig = {
     quantidade: {
@@ -77,71 +75,110 @@ export const RetornadoCharts: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Gráficos de Retornados</h2>
       
-      <div className={`grid gap-6 ${expandedChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Gráfico de Quantidade por Mês */}
-        {(!expandedChart || expandedChart === 'quantidade') && (
-          <Card className={`bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 ${expandedChart === 'quantidade' ? 'col-span-full' : ''}`}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Quantidade de Retornados por Mês</CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExpandChart('quantidade')}
-              >
-                <Maximize2 className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className={expandedChart === 'quantidade' ? 'h-96' : 'h-64'}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Quantidade de Retornados por Mês</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExpandedChart('quantidade')}
+            >
+              <Maximize2 className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-64">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
         {/* Gráfico Pizza - Destino Final */}
-        {(!expandedChart || expandedChart === 'destino') && (
-          <Card className={`bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 ${expandedChart === 'destino' ? 'col-span-full' : ''}`}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Destino Final dos Retornados</CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExpandChart('destino')}
-              >
-                <Maximize2 className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className={expandedChart === 'destino' ? 'h-96' : 'h-64'}>
-                <PieChart>
-                  <Pie
-                    data={destinoData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {destinoData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Destino Final dos Retornados</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExpandedChart('destino')}
+            >
+              <Maximize2 className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-64">
+              <PieChart>
+                <Pie
+                  data={destinoData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {destinoData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Modal para Gráfico Expandido */}
+      <ChartModal
+        isOpen={expandedChart === 'quantidade'}
+        onClose={() => setExpandedChart(null)}
+        title="Quantidade de Retornados por Mês"
+      >
+        <ChartContainer config={chartConfig} className="h-96">
+          <BarChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
+          </BarChart>
+        </ChartContainer>
+      </ChartModal>
+
+      <ChartModal
+        isOpen={expandedChart === 'destino'}
+        onClose={() => setExpandedChart(null)}
+        title="Destino Final dos Retornados"
+      >
+        <ChartContainer config={chartConfig} className="h-96">
+          <PieChart>
+            <Pie
+              data={destinoData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              outerRadius={120}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {destinoData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+              ))}
+            </Pie>
+            <ChartTooltip content={<ChartTooltipContent />} />
+          </PieChart>
+        </ChartContainer>
+      </ChartModal>
 
       {monthlyData.length === 0 && destinoData.length === 0 && (
         <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">

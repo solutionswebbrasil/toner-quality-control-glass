@@ -19,7 +19,7 @@ export interface Retornado {
   id_modelo: number;
   id_cliente: number;
   peso: number;
-  destino_final: 'Estoque' | 'Descarte' | 'Manutencao';
+  destino_final: 'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno';
   filial: string;
   data_registro: Date;
   valor_recuperado?: number;
@@ -27,12 +27,11 @@ export interface Retornado {
 }
 
 export interface RetornadoCSV {
-  modelo: string;
   id_cliente: number;
-  peso: number;
-  destino_final: 'Estoque' | 'Descarte' | 'Manutencao';
+  modelo: string;
+  destino_final: 'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno';
+  data_registro: string;
   filial: string;
-  valor_recuperado?: number;
 }
 
 export interface Fornecedor {

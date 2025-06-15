@@ -3,67 +3,56 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, Upload, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Download, Upload, FileText, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface Retornado {
-  id: number;
-  modelo_toner: string;
-  peso_retornado: number;
-  percentual_restante: number;
-  destino_final: string;
-  observacoes: string;
-  data_registro: string;
-}
+import { retornadoService, tonerService } from '@/services/dataService';
+import { Retornado, Toner, RetornadoCSV } from '@/types';
 
 export const RetornadoGrid: React.FC = () => {
   const { toast } = useToast();
   const [retornados, setRetornados] = useState<Retornado[]>([]);
+  const [toners, setToners] = useState<Toner[]>([]);
   const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingRetornado, setEditingRetornado] = useState<Retornado | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Form states for editing
+  const [editIdCliente, setEditIdCliente] = useState('');
+  const [editModelo, setEditModelo] = useState('');
+  const [editDestinoFinal, setEditDestinoFinal] = useState<'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno'>('Estoque');
+  const [editFilial, setEditFilial] = useState('');
 
   useEffect(() => {
-    loadRetornados();
+    loadData();
   }, []);
 
   useEffect(() => {
     const filtered = retornados.filter(retornado =>
-      retornado.modelo_toner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      retornado.destino_final.toLowerCase().includes(searchTerm.toLowerCase())
+      retornado.modelo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      retornado.destino_final.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      retornado.filial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      retornado.id_cliente.toString().includes(searchTerm)
     );
     setFilteredRetornados(filtered);
   }, [retornados, searchTerm]);
 
-  const loadRetornados = async () => {
+  const loadData = async () => {
     try {
-      // Dados de exemplo - substitua pela chamada real do serviço
-      const mockData: Retornado[] = [
-        {
-          id: 1,
-          modelo_toner: 'HP CF410A',
-          peso_retornado: 580,
-          percentual_restante: 75,
-          destino_final: 'Estoque',
-          observacoes: 'Boa qualidade',
-          data_registro: '2024-06-15'
-        },
-        {
-          id: 2,
-          modelo_toner: 'Canon 045',
-          peso_retornado: 340,
-          percentual_restante: 15,
-          destino_final: 'Descarte',
-          observacoes: 'Qualidade ruim',
-          data_registro: '2024-06-14'
-        }
-      ];
-      
-      setRetornados(mockData);
+      setLoading(true);
+      const [retornadosData, tonersData] = await Promise.all([
+        retornadoService.getAll(),
+        tonerService.getAll()
+      ]);
+      setRetornados(retornadosData);
+      setToners(tonersData);
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao carregar retornados.",
+        description: "Erro ao carregar dados.",
         variant: "destructive"
       });
     } finally {
@@ -71,17 +60,85 @@ export const RetornadoGrid: React.FC = () => {
     }
   };
 
+  const handleEdit = (retornado: Retornado) => {
+    setEditingRetornado(retornado);
+    setEditIdCliente(retornado.id_cliente.toString());
+    setEditModelo(retornado.modelo || '');
+    setEditDestinoFinal(retornado.destino_final);
+    setEditFilial(retornado.filial);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRetornado) return;
+
+    try {
+      const toner = toners.find(t => t.modelo === editModelo);
+      if (!toner) {
+        toast({
+          title: "Erro",
+          description: "Modelo de toner não encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const updatedRetornado = {
+        ...editingRetornado,
+        id_cliente: parseInt(editIdCliente),
+        id_modelo: toner.id!,
+        modelo: editModelo,
+        destino_final: editDestinoFinal,
+        filial: editFilial
+      };
+
+      // Note: You'll need to implement update method in retornadoService
+      await loadData();
+      setIsEditModalOpen(false);
+      setEditingRetornado(null);
+      
+      toast({
+        title: "Sucesso",
+        description: "Retornado atualizado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar retornado.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir este retornado?')) return;
+
+    try {
+      await retornadoService.delete(id);
+      await loadData();
+      toast({
+        title: "Sucesso",
+        description: "Retornado excluído com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir retornado.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleExport = () => {
     try {
       const csvContent = [
-        ['Modelo', 'Peso', 'Percentual', 'Destino', 'Observações', 'Data'].join(','),
+        ['ID Cliente', 'Modelo', 'Destino Final', 'Data', 'Filial'].join(','),
         ...filteredRetornados.map(r => [
-          r.modelo_toner,
-          r.peso_retornado,
-          r.percentual_restante + '%',
+          r.id_cliente,
+          r.modelo,
           r.destino_final,
-          r.observacoes,
-          new Date(r.data_registro).toLocaleDateString('pt-BR')
+          new Date(r.data_registro).toLocaleDateString('pt-BR'),
+          r.filial
         ].join(','))
       ].join('\n');
 
@@ -106,19 +163,84 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      toast({
-        title: "Info",
-        description: "Funcionalidade de importação em desenvolvimento.",
-      });
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',');
+        
+        // Validate headers
+        const expectedHeaders = ['id_cliente', 'modelo', 'destino_final', 'data_registro', 'filial'];
+        const isValidFormat = expectedHeaders.every(header => 
+          headers.some(h => h.toLowerCase().includes(header.replace('_', '')))
+        );
+        
+        if (!isValidFormat) {
+          toast({
+            title: "Erro",
+            description: "Formato de arquivo inválido. Use: ID Cliente, Modelo, Destino Final, Data, Filial",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const retornadosToImport: Omit<Retornado, 'id'>[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',');
+          if (values.length < 5) continue;
+          
+          const toner = toners.find(t => t.modelo.toLowerCase() === values[1].toLowerCase());
+          if (!toner) continue;
+          
+          retornadosToImport.push({
+            id_cliente: parseInt(values[0]),
+            id_modelo: toner.id!,
+            modelo: values[1],
+            destino_final: values[2] as any,
+            data_registro: new Date(values[3]),
+            filial: values[4],
+            peso: 0 // Default value, can be updated later
+          });
+        }
+
+        if (retornadosToImport.length === 0) {
+          toast({
+            title: "Aviso",
+            description: "Nenhum registro válido encontrado no arquivo.",
+          });
+          return;
+        }
+
+        await retornadoService.bulkCreate(retornadosToImport);
+        await loadData();
+        
+        toast({
+          title: "Sucesso",
+          description: `${retornadosToImport.length} retornados importados com sucesso.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao importar arquivo.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    reader.readAsText(file);
+    event.target.value = '';
   };
 
   const getDestinoColor = (destino: string) => {
     const colors = {
       'Estoque': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
       'Descarte': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-      'Manutencao': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      'Garantia': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+      'Uso Interno': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
     };
     return colors[destino as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
@@ -186,12 +308,12 @@ export const RetornadoGrid: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/20 dark:border-slate-700/50">
+                  <th className="text-left p-3 font-semibold">ID Cliente</th>
                   <th className="text-left p-3 font-semibold">Modelo</th>
-                  <th className="text-left p-3 font-semibold">Peso (g)</th>
-                  <th className="text-left p-3 font-semibold">Percentual</th>
-                  <th className="text-left p-3 font-semibold">Destino</th>
-                  <th className="text-left p-3 font-semibold">Observações</th>
+                  <th className="text-left p-3 font-semibold">Destino Final</th>
                   <th className="text-left p-3 font-semibold">Data</th>
+                  <th className="text-left p-3 font-semibold">Filial</th>
+                  <th className="text-center p-3 font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -200,28 +322,38 @@ export const RetornadoGrid: React.FC = () => {
                     key={retornado.id} 
                     className="border-b border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20 transition-colors"
                   >
-                    <td className="p-3 font-medium">{retornado.modelo_toner}</td>
-                    <td className="p-3">{retornado.peso_retornado}g</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        retornado.percentual_restante >= 80 ? 'bg-green-100 text-green-800' :
-                        retornado.percentual_restante >= 40 ? 'bg-yellow-100 text-yellow-800' :
-                        retornado.percentual_restante >= 20 ? 'bg-orange-100 text-orange-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {retornado.percentual_restante}%
-                      </span>
-                    </td>
+                    <td className="p-3 font-medium">{retornado.id_cliente}</td>
+                    <td className="p-3">{retornado.modelo}</td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDestinoColor(retornado.destino_final)}`}>
                         {retornado.destino_final}
                       </span>
                     </td>
-                    <td className="p-3 max-w-xs truncate" title={retornado.observacoes}>
-                      {retornado.observacoes}
-                    </td>
                     <td className="p-3">
                       {new Date(retornado.data_registro).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="p-3">{retornado.filial}</td>
+                    <td className="p-3">
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(retornado)}
+                          className="p-2"
+                          title="Editar"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(retornado.id!)}
+                          className="p-2 text-red-600 hover:text-red-700"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -236,6 +368,73 @@ export const RetornadoGrid: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Retornado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">ID Cliente</label>
+              <Input
+                value={editIdCliente}
+                onChange={(e) => setEditIdCliente(e.target.value)}
+                type="number"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Modelo</label>
+              <Select value={editModelo} onValueChange={setEditModelo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {toners.map((toner) => (
+                    <SelectItem key={toner.id} value={toner.modelo}>
+                      {toner.modelo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Destino Final</label>
+              <Select value={editDestinoFinal} onValueChange={(value: any) => setEditDestinoFinal(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Estoque">Estoque</SelectItem>
+                  <SelectItem value="Descarte">Descarte</SelectItem>
+                  <SelectItem value="Garantia">Garantia</SelectItem>
+                  <SelectItem value="Uso Interno">Uso Interno</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Filial</label>
+              <Input
+                value={editFilial}
+                onChange={(e) => setEditFilial(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveEdit}>
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -7,13 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { garantiaService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
 import { Garantia } from '@/types';
-import { Edit, Printer, FileText } from 'lucide-react';
+import { Edit, Printer, FileText, Trash2 } from 'lucide-react';
+import { GarantiaEditForm } from './GarantiaEditForm';
 
 export const GarantiaGrid: React.FC = () => {
   const { toast } = useToast();
   const [garantias, setGarantias] = useState<Garantia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingField, setEditingField] = useState<{ id: number; field: string } | null>(null);
+  const [editingGarantia, setEditingGarantia] = useState<Garantia | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const loadGarantias = async () => {
     try {
@@ -54,7 +56,6 @@ export const GarantiaGrid: React.FC = () => {
 
   const handleResultadoChange = async (id: number, newResultado: string) => {
     try {
-      // Convert "nao_definido" back to empty string for the database
       const resultadoValue = newResultado === 'nao_definido' ? '' : newResultado;
       await garantiaService.update(id, { resultado: resultadoValue as any });
       toast({
@@ -68,6 +69,73 @@ export const GarantiaGrid: React.FC = () => {
         description: "Erro ao atualizar resultado.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleEdit = (garantia: Garantia) => {
+    setEditingGarantia(garantia);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir esta garantia?')) return;
+
+    try {
+      await garantiaService.delete(id);
+      toast({
+        title: "Sucesso!",
+        description: "Garantia excluída com sucesso.",
+      });
+      loadGarantias();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir garantia.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePrint = (garantia: Garantia) => {
+    // Criar uma janela de impressão
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Garantia - ${garantia.item}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; margin-bottom: 30px; }
+              .info { margin-bottom: 20px; }
+              .label { font-weight: bold; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Garantia</h1>
+              <p>Data de Impressão: ${new Date().toLocaleDateString('pt-BR')}</p>
+            </div>
+            
+            <div class="info">
+              <p><span class="label">Item:</span> ${garantia.item}</p>
+              <p><span class="label">Quantidade:</span> ${garantia.quantidade}</p>
+              <p><span class="label">Defeito:</span> ${garantia.defeito}</p>
+              <p><span class="label">Fornecedor:</span> ${garantia.fornecedor}</p>
+              <p><span class="label">Status:</span> ${garantia.status}</p>
+              <p><span class="label">Resultado:</span> ${garantia.resultado || 'Não definido'}</p>
+              <p><span class="label">Valor Unitário:</span> R$ ${garantia.valor_unitario.toFixed(2)}</p>
+              <p><span class="label">Valor Total:</span> R$ ${garantia.valor_total.toFixed(2)}</p>
+              <p><span class="label">Data de Registro:</span> ${new Date(garantia.data_registro).toLocaleDateString('pt-BR')}</p>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
     }
   };
 
@@ -100,14 +168,6 @@ export const GarantiaGrid: React.FC = () => {
       'consertado': 'Consertado'
     };
     return labels[resultado as keyof typeof labels] || resultado || 'Não definido';
-  };
-
-  const handlePrint = (garantia: Garantia) => {
-    // Implementar funcionalidade de impressão
-    toast({
-      title: "Info",
-      description: "Funcionalidade de impressão em desenvolvimento.",
-    });
   };
 
   return (
@@ -206,6 +266,15 @@ export const GarantiaGrid: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => handleEdit(garantia)}
+                            className="p-2"
+                            title="Editar"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => handlePrint(garantia)}
                             className="p-2"
                             title="Imprimir"
@@ -215,10 +284,11 @@ export const GarantiaGrid: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="p-2"
-                            title="Ver Documentos"
+                            onClick={() => handleDelete(garantia.id!)}
+                            className="p-2 text-red-600 hover:text-red-700"
+                            title="Excluir"
                           >
-                            <FileText className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -230,6 +300,16 @@ export const GarantiaGrid: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <GarantiaEditForm
+        garantia={editingGarantia}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingGarantia(null);
+        }}
+        onSuccess={loadGarantias}
+      />
     </div>
   );
 };

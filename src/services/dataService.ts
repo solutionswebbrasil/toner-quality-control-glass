@@ -162,6 +162,21 @@ export const retornadoService = {
     return Promise.resolve(newRetornado);
   },
 
+  update: (id: number, retornado: Partial<Retornado>): Promise<Retornado | null> => {
+    const index = retornados.findIndex(r => r.id === id);
+    if (index === -1) return Promise.resolve(null);
+    
+    retornados[index] = { ...retornados[index], ...retornado };
+    
+    // Update modelo if id_modelo changed
+    if (retornado.id_modelo !== undefined) {
+      const toner = toners.find(t => t.id === retornado.id_modelo);
+      retornados[index].modelo = toner?.modelo || 'N/A';
+    }
+    
+    return Promise.resolve(retornados[index]);
+  },
+
   bulkCreate: (retornadosList: Omit<Retornado, 'id'>[]): Promise<Retornado[]> => {
     const newRetornados = retornadosList.map(retornado => {
       const toner = toners.find(t => t.modelo === retornado.modelo);
