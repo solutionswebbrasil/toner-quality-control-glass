@@ -5,6 +5,11 @@ import { Dashboard } from '@/components/Dashboard';
 import { TonerForm } from '@/components/TonerForm';
 import { TonerGrid } from '@/components/TonerGrid';
 import { RetornadoForm } from '@/components/RetornadoForm';
+import { FornecedorForm } from '@/components/FornecedorForm';
+import { FornecedorGrid } from '@/components/FornecedorGrid';
+import { GarantiaForm } from '@/components/GarantiaForm';
+import { GarantiaGrid } from '@/components/GarantiaGrid';
+import { GarantiaCharts } from '@/components/GarantiaCharts';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -41,6 +46,16 @@ const Index = () => {
             </div>
           </div>
         );
+      case 'garantias-fornecedores-cadastro':
+        return <FornecedorForm onSuccess={() => console.log('Fornecedor cadastrado!')} />;
+      case 'garantias-fornecedores-consulta':
+        return <FornecedorGrid />;
+      case 'garantias-registro':
+        return <GarantiaForm onSuccess={() => console.log('Garantia registrada!')} />;
+      case 'garantias-consulta':
+        return <GarantiaGrid />;
+      case 'garantias-graficos':
+        return <GarantiaCharts />;
       default:
         return <Dashboard />;
     }

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, Package, BarChart3, FileText, Home } from 'lucide-react';
+import { Menu, Sun, Moon, Package, BarChart3, FileText, Home, Shield } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
@@ -20,12 +20,19 @@ const menuItems = [
     { id: 'retornados-registro', label: 'Registro' },
     { id: 'retornados-consulta', label: 'Consulta' },
     { id: 'retornados-graficos', label: 'Gráficos' }
+  ]},
+  { id: 'garantias', label: 'Garantias', icon: Shield, subItems: [
+    { id: 'garantias-fornecedores-cadastro', label: 'Cadastro Fornecedores' },
+    { id: 'garantias-fornecedores-consulta', label: 'Consulta Fornecedores' },
+    { id: 'garantias-registro', label: 'Registro Garantias' },
+    { id: 'garantias-consulta', label: 'Consulta Garantias' },
+    { id: 'garantias-graficos', label: 'Gráficos' }
   ]}
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboard', onPageChange }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados', 'garantias']);
   const { theme, toggleTheme } = useTheme();
 
   const toggleSubmenu = (menuId: string) => {

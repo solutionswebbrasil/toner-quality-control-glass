@@ -34,3 +34,28 @@ export interface RetornadoCSV {
   filial: string;
   valor_recuperado?: number;
 }
+
+export interface Fornecedor {
+  id?: number;
+  nome: string;
+  telefone: string;
+  link_rma: string;
+  data_cadastro: Date;
+}
+
+export interface Garantia {
+  id?: number;
+  item: string;
+  quantidade: number;
+  defeito: string;
+  fornecedor_id: number;
+  fornecedor?: string; // Para joins
+  nf_compra_pdf?: File | string;
+  nf_remessa_pdf?: File | string;
+  nf_devolucao_pdf?: File | string;
+  status: 'aberta' | 'em_analise' | 'concluida' | 'recusada' | 'aguardando_fornecedor';
+  resultado?: 'devolucao_credito' | 'trocado' | 'consertado' | '';
+  valor_unitario: number;
+  valor_total: number;
+  data_registro: Date;
+}
