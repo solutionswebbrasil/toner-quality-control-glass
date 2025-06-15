@@ -54,7 +54,9 @@ export const GarantiaGrid: React.FC = () => {
 
   const handleResultadoChange = async (id: number, newResultado: string) => {
     try {
-      await garantiaService.update(id, { resultado: newResultado as any });
+      // Convert "nao_definido" back to empty string for the database
+      const resultadoValue = newResultado === 'nao_definido' ? '' : newResultado;
+      await garantiaService.update(id, { resultado: resultadoValue as any });
       toast({
         title: "Sucesso!",
         description: "Resultado atualizado com sucesso.",
@@ -176,7 +178,7 @@ export const GarantiaGrid: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Select
-                          value={garantia.resultado || ''}
+                          value={garantia.resultado || 'nao_definido'}
                           onValueChange={(value) => handleResultadoChange(garantia.id!, value)}
                         >
                           <SelectTrigger className="w-full">
@@ -187,7 +189,7 @@ export const GarantiaGrid: React.FC = () => {
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Não definido</SelectItem>
+                            <SelectItem value="nao_definido">Não definido</SelectItem>
                             <SelectItem value="devolucao_credito">Devolução em Crédito</SelectItem>
                             <SelectItem value="trocado">Trocado</SelectItem>
                             <SelectItem value="consertado">Consertado</SelectItem>
