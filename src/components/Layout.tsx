@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Menu, Sun, Moon, Package, BarChart3, FileText, Home, Shield } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -47,11 +48,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboa
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
       {/* Sidebar */}
       <div className={cn(
-        "fixed left-0 top-0 h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transition-all duration-300 z-50",
+        "fixed left-0 top-0 h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transition-all duration-300 z-50 flex flex-col",
         sidebarCollapsed ? "w-16" : "w-64"
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-slate-700/50">
+        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-slate-700/50 flex-shrink-0">
           {!sidebarCollapsed && (
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -70,59 +71,61 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboa
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item) => (
-            <div key={item.id}>
-              <button
-                onClick={() => {
-                  if (item.subItems) {
-                    toggleSubmenu(item.id);
-                  } else {
-                    onPageChange?.(item.id);
-                  }
-                }}
-                className={cn(
-                  "w-full flex items-center space-x-3 p-3 rounded-xl transition-all duration-200",
-                  "hover:bg-white/50 dark:hover:bg-slate-800/50",
-                  currentPage.startsWith(item.id) && "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-200/50 dark:border-blue-800/50"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                {!sidebarCollapsed && (
-                  <>
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {item.subItems && (
-                      <BarChart3 className={cn(
-                        "w-4 h-4 transition-transform",
-                        expandedMenus.includes(item.id) && "rotate-90"
-                      )} />
-                    )}
-                  </>
-                )}
-              </button>
-
-              {/* Submenu */}
-              {item.subItems && !sidebarCollapsed && expandedMenus.includes(item.id) && (
-                <div className="ml-8 mt-2 space-y-1">
-                  {item.subItems.map((subItem) => (
-                    <button
-                      key={subItem.id}
-                      onClick={() => onPageChange?.(subItem.id)}
-                      className={cn(
-                        "w-full text-left p-2 rounded-lg transition-colors text-sm",
-                        "hover:bg-white/30 dark:hover:bg-slate-800/30",
-                        currentPage === subItem.id && "bg-white/40 dark:bg-slate-800/40 font-medium"
+        {/* Navigation with ScrollArea */}
+        <ScrollArea className="flex-1 p-4">
+          <nav className="space-y-2">
+            {menuItems.map((item) => (
+              <div key={item.id}>
+                <button
+                  onClick={() => {
+                    if (item.subItems) {
+                      toggleSubmenu(item.id);
+                    } else {
+                      onPageChange?.(item.id);
+                    }
+                  }}
+                  className={cn(
+                    "w-full flex items-center space-x-3 p-3 rounded-xl transition-all duration-200",
+                    "hover:bg-white/50 dark:hover:bg-slate-800/50",
+                    currentPage.startsWith(item.id) && "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-200/50 dark:border-blue-800/50"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {item.subItems && (
+                        <BarChart3 className={cn(
+                          "w-4 h-4 transition-transform",
+                          expandedMenus.includes(item.id) && "rotate-90"
+                        )} />
                       )}
-                    >
-                      {subItem.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </nav>
+                    </>
+                  )}
+                </button>
+
+                {/* Submenu */}
+                {item.subItems && !sidebarCollapsed && expandedMenus.includes(item.id) && (
+                  <div className="ml-8 mt-2 space-y-1">
+                    {item.subItems.map((subItem) => (
+                      <button
+                        key={subItem.id}
+                        onClick={() => onPageChange?.(subItem.id)}
+                        className={cn(
+                          "w-full text-left p-2 rounded-lg transition-colors text-sm",
+                          "hover:bg-white/30 dark:hover:bg-slate-800/30",
+                          currentPage === subItem.id && "bg-white/40 dark:bg-slate-800/40 font-medium"
+                        )}
+                      >
+                        {subItem.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </ScrollArea>
       </div>
 
       {/* Main Content */}

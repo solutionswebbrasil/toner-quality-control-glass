@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -131,14 +130,13 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleExport = () => {
     try {
-      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial', 'Peso'];
+      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
       const csvData = filteredRetornados.map(r => [
         r.id_cliente,
         r.modelo || '',
         r.destino_final,
         new Date(r.data_registro).toLocaleDateString('pt-BR'),
-        r.filial,
-        r.peso.toString().replace('.', ',')
+        r.filial
       ]);
 
       const csvContent = [
@@ -169,11 +167,11 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleExportTemplate = () => {
     try {
-      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial', 'Peso'];
+      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
       const exampleData = [
-        ['101', 'HP 85A', 'Estoque', '01/02/2024', 'Matriz', '125,5'],
-        ['102', 'Canon 725', 'Descarte', '03/02/2024', 'Filial 1', '115,0'],
-        ['103', 'HP 85A', 'Garantia', '05/02/2024', 'Filial 2', '130,2']
+        ['101', 'HP 85A', 'Estoque', '01/02/2024', 'Matriz'],
+        ['102', 'Canon 725', 'Descarte', '03/02/2024', 'Filial 1'],
+        ['103', 'HP 85A', 'Garantia', '05/02/2024', 'Filial 2']
       ];
 
       const csvContent = [
@@ -223,8 +221,8 @@ export const RetornadoGrid: React.FC = () => {
 
         const headers = lines[0].split(';').map(h => h.trim());
         
-        // Validar cabeçalhos esperados
-        const expectedHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial', 'Peso'];
+        // Validar cabeçalhos esperados (removido "Peso")
+        const expectedHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
         const hasValidHeaders = expectedHeaders.every(expected => 
           headers.some(header => header.toLowerCase().includes(expected.toLowerCase().replace(' ', '')))
         );
@@ -242,7 +240,7 @@ export const RetornadoGrid: React.FC = () => {
         
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(';').map(v => v.trim());
-          if (values.length < 6) continue;
+          if (values.length < 5) continue; // Agora são 5 campos ao invés de 6
           
           const modelo = values[1];
           const toner = toners.find(t => t.modelo.toLowerCase() === modelo.toLowerCase());
@@ -258,8 +256,8 @@ export const RetornadoGrid: React.FC = () => {
             dataRegistro = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
           }
 
-          // Converter peso (trocar vírgula por ponto)
-          const peso = parseFloat(values[5].replace(',', '.')) || 0;
+          // Peso padrão ou calculado baseado no toner
+          const pesoDefault = toner.peso_vazio || 100; // Usar peso vazio do toner como padrão
           
           retornadosToImport.push({
             id_cliente: parseInt(values[0]) || 0,
@@ -268,7 +266,7 @@ export const RetornadoGrid: React.FC = () => {
             destino_final: values[2] as any,
             data_registro: dataRegistro,
             filial: values[4],
-            peso: peso
+            peso: pesoDefault // Peso padrão baseado no toner
           });
         }
 
