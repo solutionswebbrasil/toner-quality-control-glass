@@ -11,6 +11,8 @@ import { FornecedorGrid } from '@/components/FornecedorGrid';
 import { GarantiaForm } from '@/components/GarantiaForm';
 import { GarantiaGrid } from '@/components/GarantiaGrid';
 import { GarantiaCharts } from '@/components/GarantiaCharts';
+import { AuditoriaForm } from '@/components/AuditoriaForm';
+import { AuditoriaGrid } from '@/components/AuditoriaGrid';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
@@ -37,6 +39,10 @@ const Index = () => {
         return <GarantiaGrid />;
       case 'garantias-graficos':
         return <GarantiaCharts />;
+      case 'auditorias-registro':
+        return <AuditoriaForm onSuccess={() => console.log('Auditoria registrada!')} />;
+      case 'auditorias-consulta':
+        return <AuditoriaGrid />;
       default:
         return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
     }

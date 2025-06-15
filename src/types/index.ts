@@ -58,3 +58,12 @@ export interface Garantia {
   valor_total: number;
   data_registro: Date;
 }
+
+export interface Auditoria {
+  id?: number;
+  data_inicio: Date;
+  data_fim: Date;
+  unidade_auditada: string;
+  formulario_pdf?: File | string;
+  data_registro: Date;
+}
