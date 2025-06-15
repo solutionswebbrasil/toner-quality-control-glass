@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { Dashboard } from '@/components/Dashboard';
 import { TonerForm } from '@/components/TonerForm';
 import { TonerGrid } from '@/components/TonerGrid';
 import { RetornadoForm } from '@/components/RetornadoForm';
@@ -14,12 +13,10 @@ import { GarantiaGrid } from '@/components/GarantiaGrid';
 import { GarantiaCharts } from '@/components/GarantiaCharts';
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentPage, setCurrentPage] = useState('toners-cadastro');
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
       case 'toners-cadastro':
         return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
       case 'toners-consulta':
@@ -41,7 +38,7 @@ const Index = () => {
       case 'garantias-graficos':
         return <GarantiaCharts />;
       default:
-        return <Dashboard />;
+        return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
     }
   };
 

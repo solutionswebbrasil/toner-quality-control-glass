@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, Package, BarChart3, FileText, Home, Shield } from 'lucide-react';
+import { Menu, Sun, Moon, Package, BarChart3, FileText, Shield } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,7 +12,6 @@ interface LayoutProps {
 }
 
 const menuItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'toners', label: 'Toners', icon: Package, subItems: [
     { id: 'toners-cadastro', label: 'Cadastro' },
     { id: 'toners-consulta', label: 'Consulta' }
@@ -31,7 +30,7 @@ const menuItems = [
   ]}
 ];
 
-export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboard', onPageChange }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'toners-cadastro', onPageChange }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados', 'garantias']);
   const { theme, toggleTheme } = useTheme();
