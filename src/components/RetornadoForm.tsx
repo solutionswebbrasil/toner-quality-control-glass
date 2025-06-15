@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +20,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     id_modelo: '',
     id_cliente: '',
     peso: '',
-    destino_final: null as 'Estoque' | 'Descarte' | 'Manutencao' | null,
+    destino_final: null as 'Estoque' | 'Descarte' | 'Garantia' | 'Uso Interno' | null,
     filial: '',
     valor_recuperado: ''
   });
@@ -72,15 +71,15 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
       alertType = 'error';
     } else if (percentage >= 21 && percentage <= 39) {
       recommendation = 'Sistema recomenda: TESTE O TONER - Se a qualidade estiver boa, pode usar internamente. Se estiver ruim, descarte.';
-      options = ['Descarte', 'Manutencao'];
+      options = ['Descarte', 'Uso Interno'];
       alertType = 'warning';
     } else if (percentage >= 40 && percentage <= 80) {
       recommendation = 'Sistema recomenda: TESTE O TONER - Se a qualidade estiver boa, pode enviar para estoque como semi-novo. Se estiver ruim, envie para garantia.';
-      options = ['Estoque', 'Manutencao'];
+      options = ['Estoque', 'Garantia'];
       alertType = 'info';
     } else if (percentage >= 81 && percentage <= 100) {
       recommendation = 'Sistema recomenda: TESTE O TONER - Se a qualidade estiver boa, pode enviar para estoque como novo. Se estiver ruim, envie para garantia.';
-      options = ['Estoque', 'Manutencao'];
+      options = ['Estoque', 'Garantia'];
       alertType = 'success';
     }
 
@@ -151,7 +150,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   };
 
   const handleDestinoSelect = (value: string) => {
-    setFormData(prev => ({ ...prev, destino_final: value as 'Estoque' | 'Descarte' | 'Manutencao' }));
+    setFormData(prev => ({ ...prev, destino_final: value as 'Estoque' | 'Descarte' | 'Garantia' | 'Uso Interno' }));
   };
 
   const getAlertIcon = () => {
@@ -281,7 +280,8 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
                       {analysis.options.map((option) => (
                         <SelectItem key={option} value={option}>
                           {option === 'Estoque' ? 'Estoque' : 
-                           option === 'Descarte' ? 'Descarte' : 'Manutenção'}
+                           option === 'Descarte' ? 'Descarte' : 
+                           option === 'Garantia' ? 'Garantia' : 'Uso Interno'}
                         </SelectItem>
                       ))}
                     </SelectContent>
