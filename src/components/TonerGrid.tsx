@@ -6,13 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/dataService';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { TonerEditForm } from './TonerEditForm';
 
 export const TonerGrid: React.FC = () => {
+  const { toast } = useToast();
   const [toners, setToners] = useState<Toner[]>([]);
   const [filteredToners, setFilteredToners] = useState<Toner[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingToner, setEditingToner] = useState<Toner | null>(null);
 
   useEffect(() => {
     loadToners();
@@ -42,6 +45,15 @@ export const TonerGrid: React.FC = () => {
     }
   };
 
+  const handleEdit = (toner: Toner) => {
+    setEditingToner(toner);
+  };
+
+  const handleEditSuccess = () => {
+    setEditingToner(null);
+    loadToners();
+  };
+
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este toner?')) {
       try {
@@ -60,6 +72,16 @@ export const TonerGrid: React.FC = () => {
       }
     }
   };
+
+  if (editingToner) {
+    return (
+      <TonerEditForm
+        toner={editingToner}
+        onSuccess={handleEditSuccess}
+        onCancel={() => setEditingToner(null)}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -137,6 +159,7 @@ export const TonerGrid: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => handleEdit(toner)}
                         className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800"
                       >
                         <Edit className="w-4 h-4" />

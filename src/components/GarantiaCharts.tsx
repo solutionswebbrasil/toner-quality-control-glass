@@ -6,7 +6,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { garantiaService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
-import { Maximize2 } from 'lucide-react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 export const GarantiaCharts: React.FC = () => {
   const { toast } = useToast();
@@ -85,10 +85,105 @@ export const GarantiaCharts: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Gráficos de Garantia</h2>
       
-      <div className={`grid gap-6 ${expandedChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-        {/* Gráfico de Quantidade por Mês */}
-        {(!expandedChart || expandedChart === 'quantidade') && (
-          <Card className={`bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 ${expandedChart === 'quantidade' ? 'col-span-full' : ''}`}>
+      {expandedChart ? (
+        // Modo expandido - mostrar apenas um gráfico em tela cheia
+        <div className="w-full">
+          {expandedChart === 'quantidade' && (
+            <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 w-full">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Quantidade de Garantias por Mês</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExpandedChart(null)}
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[500px] w-full">
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {expandedChart === 'valor' && (
+            <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 w-full">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Valor de Garantias por Mês (R$)</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExpandedChart(null)}
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[500px] w-full">
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip 
+                      content={<ChartTooltipContent />}
+                      formatter={(value: any) => [`R$ ${value.toFixed(2)}`, 'Valor']}
+                    />
+                    <Bar dataKey="valor" fill="var(--color-valor)" />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {expandedChart === 'fornecedor' && (
+            <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 w-full">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Quantidade por Fornecedor (Mês Atual)</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExpandedChart(null)}
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[500px] w-full">
+                  <PieChart>
+                    <Pie
+                      data={fornecedorData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={150}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {fornecedorData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : (
+        // Modo normal - mostrar todos os gráficos em grid
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          {/* Gráfico de Quantidade por Mês */}
+          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Quantidade de Garantias por Mês</CardTitle>
               <Button
@@ -100,7 +195,7 @@ export const GarantiaCharts: React.FC = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className={expandedChart === 'quantidade' ? 'h-96' : 'h-64'}>
+              <ChartContainer config={chartConfig} className="h-64">
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -111,11 +206,9 @@ export const GarantiaCharts: React.FC = () => {
               </ChartContainer>
             </CardContent>
           </Card>
-        )}
 
-        {/* Gráfico de Valor por Mês */}
-        {(!expandedChart || expandedChart === 'valor') && (
-          <Card className={`bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 ${expandedChart === 'valor' ? 'col-span-full' : ''}`}>
+          {/* Gráfico de Valor por Mês */}
+          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Valor de Garantias por Mês (R$)</CardTitle>
               <Button
@@ -127,7 +220,7 @@ export const GarantiaCharts: React.FC = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className={expandedChart === 'valor' ? 'h-96' : 'h-64'}>
+              <ChartContainer config={chartConfig} className="h-64">
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -141,11 +234,9 @@ export const GarantiaCharts: React.FC = () => {
               </ChartContainer>
             </CardContent>
           </Card>
-        )}
 
-        {/* Gráfico Pizza - Quantidade por Fornecedor */}
-        {(!expandedChart || expandedChart === 'fornecedor') && (
-          <Card className={`bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 ${expandedChart === 'fornecedor' ? 'col-span-full' : 'lg:col-span-2'}`}>
+          {/* Gráfico Pizza - Quantidade por Fornecedor */}
+          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Quantidade por Fornecedor (Mês Atual)</CardTitle>
               <Button
@@ -157,7 +248,7 @@ export const GarantiaCharts: React.FC = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className={expandedChart === 'fornecedor' ? 'h-96' : 'h-64'}>
+              <ChartContainer config={chartConfig} className="h-64">
                 <PieChart>
                   <Pie
                     data={fornecedorData}
@@ -178,8 +269,8 @@ export const GarantiaCharts: React.FC = () => {
               </ChartContainer>
             </CardContent>
           </Card>
-        )}
-      </div>
+        </div>
+      )}
 
       {monthlyData.length === 0 && fornecedorData.length === 0 && (
         <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">

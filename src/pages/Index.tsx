@@ -5,6 +5,8 @@ import { Dashboard } from '@/components/Dashboard';
 import { TonerForm } from '@/components/TonerForm';
 import { TonerGrid } from '@/components/TonerGrid';
 import { RetornadoForm } from '@/components/RetornadoForm';
+import { RetornadoGrid } from '@/components/RetornadoGrid';
+import { RetornadoCharts } from '@/components/RetornadoCharts';
 import { FornecedorForm } from '@/components/FornecedorForm';
 import { FornecedorGrid } from '@/components/FornecedorGrid';
 import { GarantiaForm } from '@/components/GarantiaForm';
@@ -25,27 +27,9 @@ const Index = () => {
       case 'retornados-registro':
         return <RetornadoForm onSuccess={() => console.log('Retornado registrado!')} />;
       case 'retornados-consulta':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Consulta de Retornados</h2>
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-xl p-6">
-              <p className="text-center text-slate-500">
-                Funcionalidade de consulta e importação CSV em desenvolvimento...
-              </p>
-            </div>
-          </div>
-        );
+        return <RetornadoGrid />;
       case 'retornados-graficos':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Gráficos de Retornados</h2>
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-xl p-6">
-              <p className="text-center text-slate-500">
-                Gráficos analíticos em desenvolvimento...
-              </p>
-            </div>
-          </div>
-        );
+        return <RetornadoCharts />;
       case 'garantias-fornecedores-cadastro':
         return <FornecedorForm onSuccess={() => console.log('Fornecedor cadastrado!')} />;
       case 'garantias-fornecedores-consulta':
