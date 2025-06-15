@@ -44,7 +44,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         setDefeito(garantia.defeito);
         setFornecedorId(garantia.fornecedor_id.toString());
         setStatus(garantia.status);
-        setResultado(garantia.resultado || 'nao_definido');
+        setResultado(garantia.resultado === '' ? 'nao_definido' : garantia.resultado as any || 'nao_definido');
         setValorUnitario(garantia.valor_unitario);
       }
     }
@@ -109,7 +109,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Garantia</DialogTitle>
         </DialogHeader>
@@ -125,15 +125,28 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Quantidade *</label>
-            <Input
-              type="number"
-              value={quantidade}
-              onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
-              min="1"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Quantidade *</label>
+              <Input
+                type="number"
+                value={quantidade}
+                onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+                min="1"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Valor Unitário (R$)</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={valorUnitario}
+                onChange={(e) => setValorUnitario(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
           </div>
 
           <div>
@@ -142,6 +155,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
               value={defeito}
               onChange={(e) => setDefeito(e.target.value)}
               placeholder="Descreva o defeito..."
+              className="min-h-[80px]"
               required
             />
           </div>
@@ -152,7 +166,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o fornecedor" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-slate-900 border shadow-lg z-50">
                 {fornecedores.map((fornecedor) => (
                   <SelectItem key={fornecedor.id} value={fornecedor.id!.toString()}>
                     {fornecedor.nome}
@@ -162,49 +176,40 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
             </Select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Status</label>
-            <Select value={status} onValueChange={(value: any) => setStatus(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="aberta">Aberta</SelectItem>
-                <SelectItem value="em_analise">Em Análise</SelectItem>
-                <SelectItem value="concluida">Concluída</SelectItem>
-                <SelectItem value="recusada">Recusada</SelectItem>
-                <SelectItem value="aguardando_fornecedor">Aguardando Fornecedor</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Status</label>
+              <Select value={status} onValueChange={(value: any) => setStatus(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-slate-900 border shadow-lg z-50">
+                  <SelectItem value="aberta">Aberta</SelectItem>
+                  <SelectItem value="em_analise">Em Análise</SelectItem>
+                  <SelectItem value="concluida">Concluída</SelectItem>
+                  <SelectItem value="recusada">Recusada</SelectItem>
+                  <SelectItem value="aguardando_fornecedor">Aguardando Fornecedor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Resultado</label>
+              <Select value={resultado} onValueChange={(value: any) => setResultado(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o resultado" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-slate-900 border shadow-lg z-50">
+                  <SelectItem value="nao_definido">Não definido</SelectItem>
+                  <SelectItem value="devolucao_credito">Devolução em Crédito</SelectItem>
+                  <SelectItem value="trocado">Trocado</SelectItem>
+                  <SelectItem value="consertado">Consertado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Resultado</label>
-            <Select value={resultado} onValueChange={(value: any) => setResultado(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o resultado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="nao_definido">Não definido</SelectItem>
-                <SelectItem value="devolucao_credito">Devolução em Crédito</SelectItem>
-                <SelectItem value="trocado">Trocado</SelectItem>
-                <SelectItem value="consertado">Consertado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Valor Unitário (R$)</label>
-            <Input
-              type="number"
-              step="0.01"
-              value={valorUnitario}
-              onChange={(e) => setValorUnitario(parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

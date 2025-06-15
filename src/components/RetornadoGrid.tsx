@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Download, Upload, FileText, Edit, Trash2 } from 'lucide-react';
+import { Search, Download, Upload, FileText, Edit, Trash2, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { retornadoService, tonerService } from '@/services/dataService';
 import { Retornado, Toner, RetornadoCSV } from '@/types';
@@ -131,18 +131,24 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleExport = () => {
     try {
+      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial', 'Peso'];
+      const csvData = filteredRetornados.map(r => [
+        r.id_cliente,
+        r.modelo || '',
+        r.destino_final,
+        new Date(r.data_registro).toLocaleDateString('pt-BR'),
+        r.filial,
+        r.peso.toString().replace('.', ',')
+      ]);
+
       const csvContent = [
-        ['ID Cliente', 'Modelo', 'Destino Final', 'Data', 'Filial'].join(','),
-        ...filteredRetornados.map(r => [
-          r.id_cliente,
-          r.modelo,
-          r.destino_final,
-          new Date(r.data_registro).toLocaleDateString('pt-BR'),
-          r.filial
-        ].join(','))
+        csvHeaders.join(';'),
+        ...csvData.map(row => row.join(';'))
       ].join('\n');
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      // Adicionar BOM para UTF-8
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `retornados_${new Date().toISOString().split('T')[0]}.csv`;
@@ -161,6 +167,41 @@ export const RetornadoGrid: React.FC = () => {
     }
   };
 
+  const handleExportTemplate = () => {
+    try {
+      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial', 'Peso'];
+      const exampleData = [
+        ['101', 'HP 85A', 'Estoque', '01/02/2024', 'Matriz', '125,5'],
+        ['102', 'Canon 725', 'Descarte', '03/02/2024', 'Filial 1', '115,0'],
+        ['103', 'HP 85A', 'Garantia', '05/02/2024', 'Filial 2', '130,2']
+      ];
+
+      const csvContent = [
+        csvHeaders.join(';'),
+        ...exampleData.map(row => row.join(';'))
+      ].join('\n');
+
+      // Adicionar BOM para UTF-8
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'template_importacao_retornados.csv';
+      link.click();
+      
+      toast({
+        title: "Sucesso",
+        description: "Template de importação baixado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao baixar template.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -170,18 +211,28 @@ export const RetornadoGrid: React.FC = () => {
       try {
         const text = e.target?.result as string;
         const lines = text.split('\n').filter(line => line.trim());
-        const headers = lines[0].split(',');
         
-        // Validate headers
-        const expectedHeaders = ['id_cliente', 'modelo', 'destino_final', 'data_registro', 'filial'];
-        const isValidFormat = expectedHeaders.every(header => 
-          headers.some(h => h.toLowerCase().includes(header.replace('_', '')))
-        );
-        
-        if (!isValidFormat) {
+        if (lines.length < 2) {
           toast({
             title: "Erro",
-            description: "Formato de arquivo inválido. Use: ID Cliente, Modelo, Destino Final, Data, Filial",
+            description: "Arquivo deve conter pelo menos o cabeçalho e uma linha de dados.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const headers = lines[0].split(';').map(h => h.trim());
+        
+        // Validar cabeçalhos esperados
+        const expectedHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial', 'Peso'];
+        const hasValidHeaders = expectedHeaders.every(expected => 
+          headers.some(header => header.toLowerCase().includes(expected.toLowerCase().replace(' ', '')))
+        );
+        
+        if (!hasValidHeaders) {
+          toast({
+            title: "Erro",
+            description: "Formato de arquivo inválido. Use o template de importação.",
             variant: "destructive"
           });
           return;
@@ -190,20 +241,34 @@ export const RetornadoGrid: React.FC = () => {
         const retornadosToImport: Omit<Retornado, 'id'>[] = [];
         
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',');
-          if (values.length < 5) continue;
+          const values = lines[i].split(';').map(v => v.trim());
+          if (values.length < 6) continue;
           
-          const toner = toners.find(t => t.modelo.toLowerCase() === values[1].toLowerCase());
-          if (!toner) continue;
+          const modelo = values[1];
+          const toner = toners.find(t => t.modelo.toLowerCase() === modelo.toLowerCase());
+          if (!toner) {
+            console.warn(`Modelo não encontrado: ${modelo}`);
+            continue;
+          }
+
+          // Converter data do formato brasileiro para Date
+          const dateParts = values[3].split('/');
+          let dataRegistro = new Date();
+          if (dateParts.length === 3) {
+            dataRegistro = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+          }
+
+          // Converter peso (trocar vírgula por ponto)
+          const peso = parseFloat(values[5].replace(',', '.')) || 0;
           
           retornadosToImport.push({
-            id_cliente: parseInt(values[0]),
+            id_cliente: parseInt(values[0]) || 0,
             id_modelo: toner.id!,
-            modelo: values[1],
+            modelo: modelo,
             destino_final: values[2] as any,
-            data_registro: new Date(values[3]),
+            data_registro: dataRegistro,
             filial: values[4],
-            peso: 0 // Default value, can be updated later
+            peso: peso
           });
         }
 
@@ -225,13 +290,13 @@ export const RetornadoGrid: React.FC = () => {
       } catch (error) {
         toast({
           title: "Erro",
-          description: "Erro ao importar arquivo.",
+          description: "Erro ao importar arquivo. Verifique o formato e tente novamente.",
           variant: "destructive"
         });
       }
     };
     
-    reader.readAsText(file);
+    reader.readAsText(file, 'UTF-8');
     event.target.value = '';
   };
 
@@ -276,6 +341,15 @@ export const RetornadoGrid: React.FC = () => {
               >
                 <Download className="w-4 h-4" />
                 Exportar CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportTemplate}
+                className="flex items-center gap-2"
+              >
+                <FileDown className="w-4 h-4" />
+                Template
               </Button>
               <div className="relative">
                 <input
