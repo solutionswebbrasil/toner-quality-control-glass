@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -91,7 +92,7 @@ export const RetornadoGrid: React.FC = () => {
         filial: editFilial
       };
 
-      // Note: You'll need to implement update method in retornadoService
+      await retornadoService.update(editingRetornado.id!, updatedRetornado);
       await loadData();
       setIsEditModalOpen(false);
       setEditingRetornado(null);
@@ -208,7 +209,9 @@ export const RetornadoGrid: React.FC = () => {
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim());
+        // Remove BOM se presente e limpa linhas vazias
+        const cleanText = text.replace(/^\uFEFF/, '');
+        const lines = cleanText.split('\n').filter(line => line.trim());
         
         if (lines.length < 2) {
           toast({
@@ -220,17 +223,21 @@ export const RetornadoGrid: React.FC = () => {
         }
 
         const headers = lines[0].split(';').map(h => h.trim());
+        console.log('Headers encontrados:', headers);
         
-        // Validar cabeçalhos esperados (removido "Peso")
+        // Validação mais específica dos cabeçalhos
         const expectedHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
-        const hasValidHeaders = expectedHeaders.every(expected => 
-          headers.some(header => header.toLowerCase().includes(expected.toLowerCase().replace(' ', '')))
-        );
+        const headersMatch = expectedHeaders.every((expected, index) => {
+          const found = headers[index];
+          return found && found.toLowerCase().replace(/\s+/g, '').includes(expected.toLowerCase().replace(/\s+/g, ''));
+        });
         
-        if (!hasValidHeaders) {
+        if (!headersMatch || headers.length !== 5) {
+          console.log('Headers esperados:', expectedHeaders);
+          console.log('Headers encontrados:', headers);
           toast({
             title: "Erro",
-            description: "Formato de arquivo inválido. Use o template de importação.",
+            description: "Formato de arquivo inválido. O arquivo deve ter exatamente 5 colunas: ID Cliente, Modelo, Destino Final, Data Registro, Filial. Use o template de importação.",
             variant: "destructive"
           });
           return;
@@ -240,12 +247,23 @@ export const RetornadoGrid: React.FC = () => {
         
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(';').map(v => v.trim());
-          if (values.length < 5) continue; // Agora são 5 campos ao invés de 6
+          if (values.length !== 5) {
+            console.warn(`Linha ${i + 1} tem ${values.length} campos, esperado 5:`, values);
+            continue;
+          }
           
           const modelo = values[1];
           const toner = toners.find(t => t.modelo.toLowerCase() === modelo.toLowerCase());
           if (!toner) {
             console.warn(`Modelo não encontrado: ${modelo}`);
+            continue;
+          }
+
+          // Validar destino final
+          const destinoFinal = values[2] as 'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno';
+          const destinosValidos = ['Descarte', 'Garantia', 'Estoque', 'Uso Interno'];
+          if (!destinosValidos.includes(destinoFinal)) {
+            console.warn(`Destino final inválido: ${destinoFinal}`);
             continue;
           }
 
@@ -256,17 +274,17 @@ export const RetornadoGrid: React.FC = () => {
             dataRegistro = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
           }
 
-          // Peso padrão ou calculado baseado no toner
-          const pesoDefault = toner.peso_vazio || 100; // Usar peso vazio do toner como padrão
+          // Peso padrão baseado no toner
+          const pesoDefault = toner.peso_vazio || 100;
           
           retornadosToImport.push({
             id_cliente: parseInt(values[0]) || 0,
             id_modelo: toner.id!,
             modelo: modelo,
-            destino_final: values[2] as any,
+            destino_final: destinoFinal,
             data_registro: dataRegistro,
             filial: values[4],
-            peso: pesoDefault // Peso padrão baseado no toner
+            peso: pesoDefault
           });
         }
 
@@ -286,6 +304,7 @@ export const RetornadoGrid: React.FC = () => {
           description: `${retornadosToImport.length} retornados importados com sucesso.`,
         });
       } catch (error) {
+        console.error('Erro na importação:', error);
         toast({
           title: "Erro",
           description: "Erro ao importar arquivo. Verifique o formato e tente novamente.",
