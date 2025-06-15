@@ -32,7 +32,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
   const [defeito, setDefeito] = useState('');
   const [fornecedorId, setFornecedorId] = useState('');
   const [status, setStatus] = useState<'aberta' | 'em_analise' | 'concluida' | 'recusada' | 'aguardando_fornecedor'>('aberta');
-  const [resultado, setResultado] = useState<'devolucao_credito' | 'trocado' | 'consertado' | ''>('');
+  const [resultado, setResultado] = useState<'devolucao_credito' | 'trocado' | 'consertado' | 'nao_definido'>('nao_definido');
   const [valorUnitario, setValorUnitario] = useState(0);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         setDefeito(garantia.defeito);
         setFornecedorId(garantia.fornecedor_id.toString());
         setStatus(garantia.status);
-        setResultado(garantia.resultado || '');
+        setResultado(garantia.resultado || 'nao_definido');
         setValorUnitario(garantia.valor_unitario);
       }
     }
@@ -84,7 +84,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         defeito,
         fornecedor_id: parseInt(fornecedorId),
         status,
-        resultado,
+        resultado: resultado === 'nao_definido' ? '' : resultado,
         valor_unitario: valorUnitario,
         valor_total: quantidade * valorUnitario
       });
@@ -185,7 +185,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                 <SelectValue placeholder="Selecione o resultado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Não definido</SelectItem>
+                <SelectItem value="nao_definido">Não definido</SelectItem>
                 <SelectItem value="devolucao_credito">Devolução em Crédito</SelectItem>
                 <SelectItem value="trocado">Trocado</SelectItem>
                 <SelectItem value="consertado">Consertado</SelectItem>
