@@ -21,7 +21,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     id_modelo: '',
     id_cliente: '',
     peso: '',
-    destino_final: '' as '' | 'Estoque' | 'Descarte' | 'Manutencao',
+    destino_final: null as 'Estoque' | 'Descarte' | 'Manutencao' | null,
     filial: '',
     valor_recuperado: ''
   });
@@ -42,7 +42,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
       calculateAnalysis();
     } else {
       setAnalysis(null);
-      setFormData(prev => ({ ...prev, destino_final: '' }));
+      setFormData(prev => ({ ...prev, destino_final: null }));
     }
   }, [selectedToner, formData.peso]);
 
@@ -94,6 +94,8 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.destino_final) return;
+    
     setIsSubmitting(true);
 
     try {
@@ -119,7 +121,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         id_modelo: '',
         id_cliente: '',
         peso: '',
-        destino_final: '',
+        destino_final: null,
         filial: '',
         valor_recuperado: ''
       });
@@ -146,6 +148,10 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     handleInputChange('id_modelo', value);
     const toner = toners.find(t => t.id!.toString() === value);
     setSelectedToner(toner || null);
+  };
+
+  const handleDestinoSelect = (value: string) => {
+    setFormData(prev => ({ ...prev, destino_final: value as 'Estoque' | 'Descarte' | 'Manutencao' }));
   };
 
   const getAlertIcon = () => {
@@ -267,7 +273,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="destino_final">Destino Final * (Baseado na análise)</Label>
-                  <Select value={formData.destino_final} onValueChange={(value) => handleInputChange('destino_final', value)}>
+                  <Select value={formData.destino_final || ''} onValueChange={handleDestinoSelect}>
                     <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
                       <SelectValue placeholder="Selecione o destino baseado na recomendação" />
                     </SelectTrigger>
