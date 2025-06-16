@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,7 +77,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   };
 
   const calculateValorRecuperado = () => {
-    if (!selectedToner || !formData.peso || (formData.destino_final !== 'Estoque' && formData.destino_final !== 'Estoque Semi Novo')) {
+    if (!selectedToner || !formData.peso || formData.destino_final !== 'Estoque') {
       return undefined;
     }
     

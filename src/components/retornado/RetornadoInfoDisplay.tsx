@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,8 +14,8 @@ interface RetornadoInfoDisplayProps {
 
 const destinosFinais = [
   'Descarte',
+  'Garantia',
   'Estoque',
-  'Estoque Semi Novo',
   'Uso Interno'
 ];
 
@@ -41,7 +40,7 @@ export const RetornadoInfoDisplay: React.FC<RetornadoInfoDisplayProps> = ({
   };
 
   const calculateValorRecuperado = () => {
-    if (!selectedToner || !peso || (destinoFinal !== 'Estoque' && destinoFinal !== 'Estoque Semi Novo')) {
+    if (!selectedToner || !peso || destinoFinal !== 'Estoque') {
       return null;
     }
     

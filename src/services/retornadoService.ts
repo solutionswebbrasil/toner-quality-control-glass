@@ -23,7 +23,7 @@ export const retornadoService = {
       let valorRecuperadoCalculado = item.valor_recuperado;
 
       // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
-      if ((item.destino_final === 'Estoque' || item.destino_final === 'Estoque Semi Novo') && !item.valor_recuperado) {
+      if (item.destino_final === 'Estoque' && !item.valor_recuperado) {
         const gramaturaRestante = item.peso - item.toners.peso_vazio;
         const percentualGramatura = (gramaturaRestante / item.toners.gramatura) * 100;
         const folhasRestantes = (percentualGramatura / 100) * item.toners.capacidade_folhas;
@@ -62,7 +62,7 @@ export const retornadoService = {
     let valorRecuperadoCalculado = data.valor_recuperado;
 
     // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
-    if ((data.destino_final === 'Estoque' || data.destino_final === 'Estoque Semi Novo') && !data.valor_recuperado) {
+    if (data.destino_final === 'Estoque' && !data.valor_recuperado) {
       const gramaturaRestante = data.peso - data.toners.peso_vazio;
       const percentualGramatura = (gramaturaRestante / data.toners.gramatura) * 100;
       const folhasRestantes = (percentualGramatura / 100) * data.toners.capacidade_folhas;
@@ -86,7 +86,7 @@ export const retornadoService = {
     // Buscar dados do toner para calcular valor recuperado se necessário
     let valorRecuperado = retornado.valor_recuperado;
     
-    if ((retornado.destino_final === 'Estoque' || retornado.destino_final === 'Estoque Semi Novo') && !valorRecuperado) {
+    if (retornado.destino_final === 'Estoque' && !valorRecuperado) {
       const toner = await tonerService.getById(retornado.id_modelo);
       if (toner) {
         const gramaturaRestante = retornado.peso - toner.peso_vazio;
@@ -127,7 +127,7 @@ export const retornadoService = {
     // Se estiver atualizando para destino estoque, calcular valor recuperado
     let valorRecuperado = updates.valor_recuperado;
     
-    if ((updates.destino_final === 'Estoque' || updates.destino_final === 'Estoque Semi Novo') && !valorRecuperado && updates.peso && updates.id_modelo) {
+    if (updates.destino_final === 'Estoque' && !valorRecuperado && updates.peso && updates.id_modelo) {
       const toner = await tonerService.getById(updates.id_modelo);
       if (toner) {
         const gramaturaRestante = updates.peso - toner.peso_vazio;
