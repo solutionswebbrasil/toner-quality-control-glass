@@ -1,4 +1,3 @@
-
 export interface Toner {
   id?: number;
   modelo: string;
@@ -66,4 +65,42 @@ export interface Auditoria {
   unidade_auditada: string;
   formulario_pdf?: File | string;
   data_registro: Date;
+}
+
+export interface TituloItPop {
+  id?: number;
+  titulo: string;
+  descricao?: string;
+  data_cadastro: Date;
+}
+
+export interface RegistroItPop {
+  id?: number;
+  titulo_id: number;
+  titulo?: string; // Para joins
+  versao: number;
+  arquivo_pdf?: File | string;
+  arquivo_ppt?: File | string;
+  data_registro: Date;
+  registrado_por?: string;
+}
+
+export interface TituloBpmn {
+  id?: number;
+  titulo: string;
+  descricao?: string;
+  data_cadastro: Date;
+}
+
+export interface RegistroBpmn {
+  id?: number;
+  titulo_id: number;
+  titulo?: string; // Para joins
+  versao: number;
+  arquivo_pdf?: File | string;
+  arquivo_jpg?: File | string;
+  arquivo_png?: File | string;
+  arquivo_bizagi?: File | string;
+  data_registro: Date;
+  registrado_por?: string;
 }

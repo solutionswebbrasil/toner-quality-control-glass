@@ -13,6 +13,12 @@ import { GarantiaGrid } from '@/components/GarantiaGrid';
 import { GarantiaCharts } from '@/components/GarantiaCharts';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
 import { AuditoriaGrid } from '@/components/AuditoriaGrid';
+import { TituloItPopForm } from '@/components/TituloItPopForm';
+import { RegistroItPopForm } from '@/components/RegistroItPopForm';
+import { VisualizadorItPop } from '@/components/VisualizadorItPop';
+import { TituloBpmnForm } from '@/components/TituloBpmnForm';
+import { RegistroBpmnForm } from '@/components/RegistroBpmnForm';
+import { BaixarBpmn } from '@/components/BaixarBpmn';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
@@ -43,6 +49,18 @@ const Index = () => {
         return <AuditoriaForm onSuccess={() => console.log('Auditoria registrada!')} />;
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
+      case 'itpop-titulo-cadastro':
+        return <TituloItPopForm onSuccess={() => console.log('Título IT/POP cadastrado!')} />;
+      case 'itpop-registro':
+        return <RegistroItPopForm onSuccess={() => console.log('IT/POP registrado!')} />;
+      case 'itpop-visualizar':
+        return <VisualizadorItPop onSuccess={() => console.log('IT/POP visualizado!')} />;
+      case 'bpmn-titulo-cadastro':
+        return <TituloBpmnForm onSuccess={() => console.log('Título BPMN cadastrado!')} />;
+      case 'bpmn-registro':
+        return <RegistroBpmnForm onSuccess={() => console.log('BPMN registrado!')} />;
+      case 'bpmn-baixar':
+        return <BaixarBpmn onSuccess={() => console.log('BPMN baixado!')} />;
       default:
         return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
     }

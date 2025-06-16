@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, Package, BarChart3, FileText, Shield, ClipboardCheck } from 'lucide-react';
+import { Menu, Sun, Moon, Package, BarChart3, FileText, Shield, ClipboardCheck, Layers } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,12 +31,22 @@ const menuItems = [
   { id: 'auditorias', label: 'Auditorias', icon: ClipboardCheck, subItems: [
     { id: 'auditorias-registro', label: 'Registro' },
     { id: 'auditorias-consulta', label: 'Consulta' }
+  ]},
+  { id: 'itpop', label: 'IT/POP', icon: FileText, subItems: [
+    { id: 'itpop-titulo-cadastro', label: 'Cadastro Títulos' },
+    { id: 'itpop-registro', label: 'Registro IT/POP' },
+    { id: 'itpop-visualizar', label: 'Visualizar IT/POP' }
+  ]},
+  { id: 'bpmn', label: 'BPMN', icon: Layers, subItems: [
+    { id: 'bpmn-titulo-cadastro', label: 'Cadastro Títulos' },
+    { id: 'bpmn-registro', label: 'Registro BPMN' },
+    { id: 'bpmn-baixar', label: 'Baixar BPMN' }
   ]}
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'toners-cadastro', onPageChange }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados', 'garantias', 'auditorias']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados', 'garantias', 'auditorias', 'itpop', 'bpmn']);
   const { theme, toggleTheme } = useTheme();
 
   const toggleSubmenu = (menuId: string) => {
