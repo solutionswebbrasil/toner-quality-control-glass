@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, Shield, Upload } from 'lucide-react';
 import { Fornecedor, Garantia } from '@/types';
 import { fornecedorService, garantiaService } from '@/services/dataService';
+import { fileUploadService } from '@/services/fileUploadService';
 import { toast } from '@/hooks/use-toast';
 
 interface GarantiaFormProps {
@@ -30,6 +31,7 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
     nf_devolucao_pdf: null as File | null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
 
   useEffect(() => {
     loadFornecedores();
@@ -47,24 +49,47 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setUploadProgress('Iniciando...');
 
     try {
       const quantidade = parseInt(formData.quantidade);
       const valor_unitario = parseFloat(formData.valor_unitario);
       
+      // Upload dos arquivos PDF
+      let nf_compra_url = '';
+      let nf_remessa_url = '';
+      let nf_devolucao_url = '';
+
+      if (files.nf_compra_pdf) {
+        setUploadProgress('Fazendo upload da NF de Compra...');
+        nf_compra_url = await fileUploadService.uploadPdf(files.nf_compra_pdf, 'nf_compra') || '';
+      }
+
+      if (files.nf_remessa_pdf) {
+        setUploadProgress('Fazendo upload da NF de Remessa...');
+        nf_remessa_url = await fileUploadService.uploadPdf(files.nf_remessa_pdf, 'nf_remessa') || '';
+      }
+
+      if (files.nf_devolucao_pdf) {
+        setUploadProgress('Fazendo upload da NF de Devolução...');
+        nf_devolucao_url = await fileUploadService.uploadPdf(files.nf_devolucao_pdf, 'nf_devolucao') || '';
+      }
+
+      setUploadProgress('Salvando garantia...');
+
       const garantia: Omit<Garantia, 'id'> = {
         item: formData.item,
         quantidade,
         defeito: formData.defeito,
         fornecedor_id: parseInt(formData.fornecedor_id),
-        nf_compra_pdf: files.nf_compra_pdf ? files.nf_compra_pdf.name : undefined, // Store file name as string
-        nf_remessa_pdf: files.nf_remessa_pdf ? files.nf_remessa_pdf.name : undefined, // Store file name as string
-        nf_devolucao_pdf: files.nf_devolucao_pdf ? files.nf_devolucao_pdf.name : undefined, // Store file name as string
+        nf_compra_pdf: nf_compra_url || undefined,
+        nf_remessa_pdf: nf_remessa_url || undefined,
+        nf_devolucao_pdf: nf_devolucao_url || undefined,
         status: 'aberta',
         resultado: '',
         valor_unitario,
         valor_total: quantidade * valor_unitario,
-        data_registro: new Date().toISOString() // Convert Date to string
+        data_registro: new Date().toISOString()
       };
 
       await garantiaService.create(garantia);
@@ -88,6 +113,10 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
         nf_devolucao_pdf: null
       });
 
+      // Reset file inputs
+      const fileInputs = document.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>;
+      fileInputs.forEach(input => input.value = '');
+
       onSuccess?.();
     } catch (error) {
       toast({
@@ -97,6 +126,7 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress('');
     }
   };
 
@@ -206,7 +236,11 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
                 accept=".pdf"
                 onChange={(e) => handleFileChange('nf_compra_pdf', e.target.files?.[0] || null)}
                 className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+                disabled={isSubmitting}
               />
+              {files.nf_compra_pdf && (
+                <p className="text-sm text-green-600">Arquivo selecionado: {files.nf_compra_pdf.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -217,7 +251,11 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
                 accept=".pdf"
                 onChange={(e) => handleFileChange('nf_remessa_pdf', e.target.files?.[0] || null)}
                 className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+                disabled={isSubmitting}
               />
+              {files.nf_remessa_pdf && (
+                <p className="text-sm text-green-600">Arquivo selecionado: {files.nf_remessa_pdf.name}</p>
+              )}
             </div>
 
             <div className="space-y-2 md:col-span-2">
@@ -228,9 +266,19 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
                 accept=".pdf"
                 onChange={(e) => handleFileChange('nf_devolucao_pdf', e.target.files?.[0] || null)}
                 className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+                disabled={isSubmitting}
               />
+              {files.nf_devolucao_pdf && (
+                <p className="text-sm text-green-600">Arquivo selecionado: {files.nf_devolucao_pdf.name}</p>
+              )}
             </div>
           </div>
+
+          {uploadProgress && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-blue-700 text-sm">{uploadProgress}</p>
+            </div>
+          )}
 
           <Button 
             type="submit" 
@@ -238,7 +286,7 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
             className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
           >
             <Save className="w-4 h-4 mr-2" />
-            {isSubmitting ? 'Salvando...' : 'Registrar Garantia'}
+            {isSubmitting ? uploadProgress || 'Salvando...' : 'Registrar Garantia'}
           </Button>
         </form>
       </CardContent>

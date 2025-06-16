@@ -148,11 +148,10 @@ export const GarantiaGrid: React.FC = () => {
       return;
     }
     
-    // Abrir PDF em nova aba
     window.open(pdfUrl, '_blank');
   };
 
-  const handleDownloadPdf = (pdfUrl: string, fileName: string) => {
+  const handleDownloadPdf = async (pdfUrl: string, fileName: string) => {
     if (!pdfUrl) {
       toast({
         title: "Erro",
@@ -162,13 +161,24 @@ export const GarantiaGrid: React.FC = () => {
       return;
     }
     
-    // Criar link temporário para download
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(pdfUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao baixar arquivo.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
