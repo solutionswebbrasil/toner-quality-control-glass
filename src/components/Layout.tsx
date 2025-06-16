@@ -112,12 +112,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
       items: [
         {
           id: "garantias-toners",
-          label: "Registrar Garantia Toner",
+          label: "Garantias de Toners Pendentes",
           icon: Wrench
         },
         {
           id: "garantias-toners-consulta",
-          label: "Consultar Garantias Toner",
+          label: "Garantias de Toners Concluídas",
           icon: HiViewBoards
         },
         {

@@ -15,8 +15,12 @@ export const GarantiaTonerConsulta: React.FC = () => {
   const [filteredGarantias, setFilteredGarantias] = useState<GarantiaToner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [fornecedorFilter, setFornecedorFilter] = useState<string>('');
+  const [ticketFilter, setTicketFilter] = useState('');
+  const [nsFilter, setNsFilter] = useState('');
+  const [loteFilter, setLoteFilter] = useState('');
+  const [filialFilter, setFilialFilter] = useState('');
+  const [modeloFilter, setModeloFilter] = useState('');
+  const [fornecedorFilter, setFornecedorFilter] = useState('');
 
   useEffect(() => {
     loadGarantias();
@@ -24,12 +28,14 @@ export const GarantiaTonerConsulta: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [garantias, searchTerm, statusFilter, fornecedorFilter]);
+  }, [garantias, searchTerm, ticketFilter, nsFilter, loteFilter, filialFilter, modeloFilter, fornecedorFilter]);
 
   const loadGarantias = async () => {
     try {
       const data = await garantiaTonerService.getAll();
-      setGarantias(data);
+      // Filtrar apenas garantias concluídas
+      const garantiasConcluidas = data.filter(g => g.status === 'Concluída');
+      setGarantias(garantiasConcluidas);
     } catch (error) {
       console.error('Erro ao carregar garantias de toners:', error);
       toast({
@@ -54,8 +60,34 @@ export const GarantiaTonerConsulta: React.FC = () => {
       );
     }
 
-    if (statusFilter) {
-      filtered = filtered.filter(garantia => garantia.status === statusFilter);
+    if (ticketFilter) {
+      filtered = filtered.filter(garantia => 
+        garantia.ticket_numero.toLowerCase().includes(ticketFilter.toLowerCase())
+      );
+    }
+
+    if (nsFilter && garantia.ns) {
+      filtered = filtered.filter(garantia => 
+        garantia.ns && garantia.ns.toLowerCase().includes(nsFilter.toLowerCase())
+      );
+    }
+
+    if (loteFilter && garantia.lote) {
+      filtered = filtered.filter(garantia => 
+        garantia.lote && garantia.lote.toLowerCase().includes(loteFilter.toLowerCase())
+      );
+    }
+
+    if (filialFilter) {
+      filtered = filtered.filter(garantia => 
+        garantia.filial_origem.toLowerCase().includes(filialFilter.toLowerCase())
+      );
+    }
+
+    if (modeloFilter) {
+      filtered = filtered.filter(garantia => 
+        garantia.modelo_toner.toLowerCase().includes(modeloFilter.toLowerCase())
+      );
     }
 
     if (fornecedorFilter) {
@@ -67,20 +99,13 @@ export const GarantiaTonerConsulta: React.FC = () => {
     setFilteredGarantias(filtered);
   };
 
-  const getStatusColor = (status: GarantiaToner['status']) => {
-    switch (status) {
-      case 'Pendente': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'Em Análise': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'Aprovada': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'Recusada': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'Concluída': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const clearFilters = () => {
     setSearchTerm('');
-    setStatusFilter('');
+    setTicketFilter('');
+    setNsFilter('');
+    setLoteFilter('');
+    setFilialFilter('');
+    setModeloFilter('');
     setFornecedorFilter('');
   };
 
@@ -99,36 +124,59 @@ export const GarantiaTonerConsulta: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wrench className="w-5 h-5" />
-          Consulta de Garantias de Toners
+          Garantias de Toners Concluídas
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Filtros */}
         <div className="mb-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar por ticket, modelo, fornecedor..."
+                placeholder="Busca geral..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
             
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
-                <SelectItem value="Pendente">Pendente</SelectItem>
-                <SelectItem value="Em Análise">Em Análise</SelectItem>
-                <SelectItem value="Aprovada">Aprovada</SelectItem>
-                <SelectItem value="Recusada">Recusada</SelectItem>
-                <SelectItem value="Concluída">Concluída</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              placeholder="Filtrar por ticket"
+              value={ticketFilter}
+              onChange={(e) => setTicketFilter(e.target.value)}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+            />
+
+            <Input
+              placeholder="Filtrar por número de série"
+              value={nsFilter}
+              onChange={(e) => setNsFilter(e.target.value)}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Input
+              placeholder="Filtrar por lote"
+              value={loteFilter}
+              onChange={(e) => setLoteFilter(e.target.value)}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+            />
+
+            <Input
+              placeholder="Filtrar por filial"
+              value={filialFilter}
+              onChange={(e) => setFilialFilter(e.target.value)}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+            />
+
+            <Input
+              placeholder="Filtrar por modelo"
+              value={modeloFilter}
+              onChange={(e) => setModeloFilter(e.target.value)}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+            />
 
             <Input
               placeholder="Filtrar por fornecedor"
@@ -136,44 +184,20 @@ export const GarantiaTonerConsulta: React.FC = () => {
               onChange={(e) => setFornecedorFilter(e.target.value)}
               className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
-
-            <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Limpar Filtros
-            </Button>
           </div>
+
+          <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Limpar Filtros
+          </Button>
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-            <div className="text-yellow-800 dark:text-yellow-200 text-sm font-medium">Pendentes</div>
-            <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
-              {garantias.filter(g => g.status === 'Pendente').length}
-            </div>
-          </div>
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-            <div className="text-blue-800 dark:text-blue-200 text-sm font-medium">Em Análise</div>
-            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {garantias.filter(g => g.status === 'Em Análise').length}
-            </div>
-          </div>
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-            <div className="text-green-800 dark:text-green-200 text-sm font-medium">Aprovadas</div>
-            <div className="text-2xl font-bold text-green-900 dark:text-green-100">
-              {garantias.filter(g => g.status === 'Aprovada').length}
-            </div>
-          </div>
-          <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-            <div className="text-red-800 dark:text-red-200 text-sm font-medium">Recusadas</div>
-            <div className="text-2xl font-bold text-red-900 dark:text-red-100">
-              {garantias.filter(g => g.status === 'Recusada').length}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
           <div className="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg">
-            <div className="text-gray-800 dark:text-gray-200 text-sm font-medium">Concluídas</div>
+            <div className="text-gray-800 dark:text-gray-200 text-sm font-medium">Total Concluídas</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {garantias.filter(g => g.status === 'Concluída').length}
+              {garantias.length}
             </div>
           </div>
         </div>
@@ -182,7 +206,7 @@ export const GarantiaTonerConsulta: React.FC = () => {
         {filteredGarantias.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             {garantias.length === 0 
-              ? "Nenhuma garantia de toner registrada." 
+              ? "Nenhuma garantia de toner concluída." 
               : "Nenhuma garantia encontrada com os filtros aplicados."
             }
           </div>
@@ -193,9 +217,10 @@ export const GarantiaTonerConsulta: React.FC = () => {
                 <TableRow>
                   <TableHead>Ticket</TableHead>
                   <TableHead>Modelo Toner</TableHead>
+                  <TableHead>NS</TableHead>
+                  <TableHead>Lote</TableHead>
                   <TableHead>Filial</TableHead>
                   <TableHead>Fornecedor</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Data Envio</TableHead>
                   <TableHead>Responsável</TableHead>
                   <TableHead>Defeito</TableHead>
@@ -206,6 +231,8 @@ export const GarantiaTonerConsulta: React.FC = () => {
                   <TableRow key={garantia.id}>
                     <TableCell className="font-medium">{garantia.ticket_numero}</TableCell>
                     <TableCell>{garantia.modelo_toner}</TableCell>
+                    <TableCell>{garantia.ns || 'N/A'}</TableCell>
+                    <TableCell>{garantia.lote || 'N/A'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Building2 className="w-3 h-3" />
@@ -213,11 +240,6 @@ export const GarantiaTonerConsulta: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell>{garantia.fornecedor}</TableCell>
-                    <TableCell>
-                      <Badge className={`${getStatusColor(garantia.status)} border-0`}>
-                        {garantia.status}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -243,7 +265,7 @@ export const GarantiaTonerConsulta: React.FC = () => {
         )}
 
         <div className="mt-4 text-sm text-gray-500">
-          Mostrando {filteredGarantias.length} de {garantias.length} garantias
+          Mostrando {filteredGarantias.length} de {garantias.length} garantias concluídas
         </div>
       </CardContent>
     </Card>

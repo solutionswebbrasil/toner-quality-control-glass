@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,9 @@ export const GarantiaTonerGrid: React.FC = () => {
   const loadGarantias = async () => {
     try {
       const data = await garantiaTonerService.getAll();
-      setGarantias(data);
+      // Filtrar apenas garantias que não estão concluídas
+      const garantiasPendentes = data.filter(g => g.status !== 'Concluída');
+      setGarantias(garantiasPendentes);
     } catch (error) {
       console.error('Erro ao carregar garantias de toners:', error);
       toast({
@@ -89,7 +90,7 @@ export const GarantiaTonerGrid: React.FC = () => {
       <CardContent>
         {garantias.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Nenhuma garantia de toner registrada.
+            Nenhuma garantia de toner pendente.
           </div>
         ) : (
           <div className="space-y-4">
