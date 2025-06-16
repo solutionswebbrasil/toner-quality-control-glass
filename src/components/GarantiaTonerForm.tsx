@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { CalendarIcon, Wrench } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -32,7 +31,8 @@ export const GarantiaTonerForm: React.FC<GarantiaTonerFormProps> = ({ onSuccess,
     responsavel_envio: '',
     data_envio: new Date(),
     ns: '',
-    lote: ''
+    lote: '',
+    status: 'Pendente' as GarantiaToner['status']
   });
 
   const [loading, setLoading] = useState(false);
@@ -70,7 +70,8 @@ export const GarantiaTonerForm: React.FC<GarantiaTonerFormProps> = ({ onSuccess,
         responsavel_envio: '',
         data_envio: new Date(),
         ns: '',
-        lote: ''
+        lote: '',
+        status: 'Pendente'
       });
 
       onSuccess?.();
