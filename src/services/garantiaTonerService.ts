@@ -35,7 +35,7 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data as GarantiaToner;
+    return data as unknown as GarantiaToner;
   },
 
   async getAll(): Promise<GarantiaToner[]> {
@@ -49,7 +49,7 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return (data || []) as GarantiaToner[];
+    return (data || []) as unknown as GarantiaToner[];
   },
 
   async updateStatus(id: number, status: GarantiaToner['status'], observacoes?: string): Promise<GarantiaToner> {
@@ -65,6 +65,6 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data as GarantiaToner;
+    return data as unknown as GarantiaToner;
   }
 };
