@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +31,7 @@ export const CertificadoForm: React.FC<CertificadoFormProps> = ({ onSuccess }) =
     setUploadingFile(true);
     try {
       const fileName = `certificado_${Date.now()}_${file.name}`;
-      const filePath = await fileUploadService.uploadFile(file, fileName, 'certificados');
+      const filePath = await fileUploadService.uploadFile(file, fileName);
       return filePath;
     } catch (error) {
       console.error('Erro ao fazer upload do arquivo:', error);

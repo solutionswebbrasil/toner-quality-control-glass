@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -15,10 +16,9 @@ import {
   HiAdjustments,
   HiCog,
   HiOfficeBuilding,
-  HiSearch,
-  FileText
+  HiSearch
 } from 'react-icons/hi';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, FileText } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
