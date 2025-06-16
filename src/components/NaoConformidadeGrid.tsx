@@ -1,17 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { NaoConformidadeFilters } from './naoConformidade/NaoConformidadeFilters';
 import { NaoConformidadeTable } from './naoConformidade/NaoConformidadeTable';
+import { NaoConformidadeViewModal } from './naoConformidade/NaoConformidadeViewModal';
+import { NaoConformidadeEditModal } from './naoConformidade/NaoConformidadeEditModal';
 import { useNaoConformidades } from '@/hooks/useNaoConformidades';
 import { useNaoConformidadeFilters } from '@/hooks/useNaoConformidadeFilters';
 import { useToast } from '@/hooks/use-toast';
+import { NaoConformidade } from '@/types/naoConformidade';
 
 export const NaoConformidadeGrid: React.FC = () => {
   const { toast } = useToast();
+  const [selectedNc, setSelectedNc] = useState<NaoConformidade | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
   const { 
     naoConformidades, 
     loading, 
-    handleDeleteNaoConformidade 
+    handleDeleteNaoConformidade,
+    loadNaoConformidades 
   } = useNaoConformidades();
 
   const {
@@ -34,22 +42,33 @@ export const NaoConformidadeGrid: React.FC = () => {
   } = useNaoConformidadeFilters(naoConformidades);
 
   const handleView = (id: number) => {
-    // Implementar visualização detalhada
-    console.log('Visualizar NC:', id);
+    const nc = naoConformidades.find(item => item.id === id);
+    if (nc) {
+      setSelectedNc(nc);
+      setIsViewModalOpen(true);
+    }
   };
 
   const handleEdit = (id: number) => {
-    // Implementar edição
-    console.log('Editar NC:', id);
+    const nc = naoConformidades.find(item => item.id === id);
+    if (nc) {
+      setSelectedNc(nc);
+      setIsEditModalOpen(true);
+    }
   };
 
   const handlePrint = (id: number) => {
-    // Implementar impressão
     console.log('Imprimir NC:', id);
     toast({
       title: "Funcionalidade em desenvolvimento",
       description: "A função de impressão será implementada em breve.",
     });
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditModalOpen(false);
+    setSelectedNc(null);
+    loadNaoConformidades();
   };
 
   if (loading) {
@@ -101,6 +120,29 @@ export const NaoConformidadeGrid: React.FC = () => {
         onDelete={handleDeleteNaoConformidade}
         onPrint={handlePrint}
       />
+
+      {selectedNc && (
+        <>
+          <NaoConformidadeViewModal
+            naoConformidade={selectedNc}
+            isOpen={isViewModalOpen}
+            onClose={() => {
+              setIsViewModalOpen(false);
+              setSelectedNc(null);
+            }}
+          />
+          
+          <NaoConformidadeEditModal
+            naoConformidade={selectedNc}
+            isOpen={isEditModalOpen}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setSelectedNc(null);
+            }}
+            onSuccess={handleEditSuccess}
+          />
+        </>
+      )}
     </div>
   );
 };

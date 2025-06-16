@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -17,7 +18,7 @@ import {
   HiOfficeBuilding,
   HiSearch
 } from 'react-icons/hi';
-import { AlertTriangle, FileText, Wrench } from 'lucide-react';
+import { AlertTriangle, FileText, Wrench, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -25,6 +26,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Menu } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,7 +36,15 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const { theme, toggleTheme } = useTheme();
+
+  const toggleSection = (sectionTitle: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
+  };
 
   const menuItems = [
     {
@@ -261,29 +271,44 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
 
   const SidebarContent = () => (
     <ScrollArea className="h-full py-6 px-4">
-      <div className="space-y-6">
+      <div className="space-y-2">
         {menuItems.map((menuGroup, index) => (
           <div key={index}>
-            <h3 className="mb-2 px-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {menuGroup.title}
-            </h3>
-            <div className="space-y-1">
-              {menuGroup.items.map(item => {
-                const IconComponent = item.icon;
-                return (
-                  <Button
-                    key={item.id}
-                    variant={currentPage === item.id ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => onPageChange(item.id)}
-                  >
-                    <IconComponent className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </div>
-            {index < menuItems.length - 1 && <Separator className="mt-4" />}
+            <Collapsible 
+              open={!collapsedSections[menuGroup.title]} 
+              onOpenChange={() => toggleSection(menuGroup.title)}
+            >
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <span>{menuGroup.title}</span>
+                  {collapsedSections[menuGroup.title] ? (
+                    <ChevronRight className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-1 mt-2">
+                {menuGroup.items.map(item => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Button
+                      key={item.id}
+                      variant={currentPage === item.id ? "default" : "ghost"}
+                      className="w-full justify-start pl-6"
+                      onClick={() => onPageChange(item.id)}
+                    >
+                      <IconComponent className="mr-2 h-4 w-4" />
+                      {item.label}
+                    </Button>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+            {index < menuItems.length - 1 && <Separator className="mt-2" />}
           </div>
         ))}
       </div>
