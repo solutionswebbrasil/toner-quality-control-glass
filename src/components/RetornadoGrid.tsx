@@ -1,43 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Search, Download, Upload, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { Retornado } from '@/types';
 import { retornadoService } from '@/services/retornadoService';
 import { useToast } from '@/hooks/use-toast';
-
-const filiais = [
-  'Todas',
-  'Matriz',
-  'Filial 1',
-  'Filial 2',
-  'Filial 3',
-  'Filial 4',
-  'Filial 5'
-];
-
-const destinosFinais = [
-  'Todos',
-  'Descarte',
-  'Garantia',
-  'Estoque',
-  'Uso Interno'
-];
+import { RetornadoFilters, RetornadoActions, RetornadoTable } from './retornado';
 
 export const RetornadoGrid: React.FC = () => {
   const { toast } = useToast();
@@ -276,29 +242,12 @@ export const RetornadoGrid: React.FC = () => {
     }
   };
 
-  const getDestinoColor = (destino: string) => {
-    switch (destino) {
-      case 'Descarte':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'Garantia':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'Estoque':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'Uso Interno':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
   if (loading) {
     return (
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
-        <CardContent className="p-8 text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4">Carregando retornados...</p>
-        </CardContent>
-      </Card>
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50 rounded-lg p-8 text-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+        <p className="mt-4">Carregando retornados...</p>
+      </div>
     );
   }
 
@@ -313,197 +262,32 @@ export const RetornadoGrid: React.FC = () => {
         </p>
       </div>
 
-      {/* Filtros */}
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Filtros de Pesquisa
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="data_inicio">Data Início</Label>
-              <Input
-                id="data_inicio"
-                type="date"
-                value={dataInicio}
-                onChange={(e) => setDataInicio(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="data_fim">Data Fim</Label>
-              <Input
-                id="data_fim"
-                type="date"
-                value={dataFim}
-                onChange={(e) => setDataFim(e.target.value)}
-              />
-            </div>
+      <RetornadoFilters
+        dataInicio={dataInicio}
+        setDataInicio={setDataInicio}
+        dataFim={dataFim}
+        setDataFim={setDataFim}
+        filialSelecionada={filialSelecionada}
+        setFilialSelecionada={setFilialSelecionada}
+        destinoSelecionado={destinoSelecionado}
+        setDestinoSelecionado={setDestinoSelecionado}
+        clearFilters={clearFilters}
+        resultCount={filteredRetornados.length}
+      />
 
-            <div className="space-y-2">
-              <Label>Filial</Label>
-              <Select value={filialSelecionada} onValueChange={setFilialSelecionada}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {filiais.map((filial) => (
-                    <SelectItem key={filial} value={filial}>
-                      {filial}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="flex justify-end">
+        <RetornadoActions
+          onExportCSV={handleExportCSV}
+          onDownloadTemplate={handleDownloadTemplate}
+          onImportCSV={handleImportCSV}
+          importing={importing}
+        />
+      </div>
 
-            <div className="space-y-2">
-              <Label>Destino Final</Label>
-              <Select value={destinoSelecionado} onValueChange={setDestinoSelecionado}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {destinosFinais.map((destino) => (
-                    <SelectItem key={destino} value={destino}>
-                      {destino}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end space-y-2">
-              <Button variant="outline" onClick={clearFilters} className="w-full">
-                Limpar Filtros
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mt-4 pt-4 border-t">
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              {filteredRetornados.length} registro(s) encontrado(s)
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleDownloadTemplate} variant="outline" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Baixar Modelo
-              </Button>
-              
-              <label htmlFor="import-csv">
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2 cursor-pointer"
-                  disabled={importing}
-                  asChild
-                >
-                  <span>
-                    <Upload className="h-4 w-4" />
-                    {importing ? 'Importando...' : 'Importar CSV'}
-                  </span>
-                </Button>
-              </label>
-              <input
-                id="import-csv"
-                type="file"
-                accept=".csv"
-                onChange={handleImportCSV}
-                className="hidden"
-                disabled={importing}
-              />
-              
-              <Button onClick={handleExportCSV} className="flex items-center gap-2">
-                <FileSpreadsheet className="h-4 w-4" />
-                Exportar CSV
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Resultados */}
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
-        <CardHeader>
-          <CardTitle>Retornados Encontrados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/20 dark:border-slate-700/50">
-                  <th className="text-left p-3 font-semibold">ID Cliente</th>
-                  <th className="text-left p-3 font-semibold">Modelo</th>
-                  <th className="text-left p-3 font-semibold">Filial</th>
-                  <th className="text-left p-3 font-semibold">Destino Final</th>
-                  <th className="text-left p-3 font-semibold">Valor Recuperado</th>
-                  <th className="text-left p-3 font-semibold">Data Registro</th>
-                  <th className="text-left p-3 font-semibold">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRetornados.map((retornado) => (
-                  <tr 
-                    key={retornado.id} 
-                    className="border-b border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20 transition-colors"
-                  >
-                    <td className="p-3 font-medium">{retornado.id_cliente}</td>
-                    <td className="p-3">{retornado.modelo}</td>
-                    <td className="p-3">{retornado.filial}</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDestinoColor(retornado.destino_final)}`}>
-                        {retornado.destino_final}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      {retornado.valor_recuperado ? `R$ ${retornado.valor_recuperado.toFixed(2)}` : '-'}
-                    </td>
-                    <td className="p-3">{new Date(retornado.data_registro).toLocaleDateString('pt-BR')}</td>
-                    <td className="p-3">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir este retornado (Cliente: {retornado.id_cliente})? 
-                              Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteRetornado(retornado.id!)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {filteredRetornados.length === 0 && (
-              <div className="text-center py-8 text-slate-500">
-                Nenhum retornado encontrado.
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <RetornadoTable
+        retornados={filteredRetornados}
+        onDelete={handleDeleteRetornado}
+      />
     </div>
   );
 };
