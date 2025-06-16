@@ -90,8 +90,8 @@ export const RetornadoGrid: React.FC = () => {
         onUpload={handleImportUpload}
         onDownloadTemplate={handleDownloadTemplate}
         title="Importar Planilha de Retornados"
-        templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, peso, valor_recuperado, data_registro"
-        requiredColumns={['id_cliente', 'peso']}
+        templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, valor_recuperado, data_registro"
+        requiredColumns={['id_cliente']}
       />
     </div>
   );
