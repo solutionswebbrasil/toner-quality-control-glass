@@ -73,7 +73,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
       ]
     },
     {
-      title: "Garantias Gerais",
+      title: "Cadastro de Fornecedores",
       items: [
         {
           id: "garantias-fornecedores-cadastro",
@@ -84,7 +84,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           id: "garantias-fornecedores-consulta",
           label: "Consultar Fornecedores",
           icon: HiViewBoards
-        },
+        }
+      ]
+    },
+    {
+      title: "Garantias Gerais",
+      items: [
         {
           id: "garantias-registro",
           label: "Registrar Garantia",
