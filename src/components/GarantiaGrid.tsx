@@ -3,24 +3,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { garantiaService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
 import { Garantia } from '@/types';
-import { Edit, Printer, FileText, Trash2, Download, Eye } from 'lucide-react';
+import { Edit, Printer, FileText, Trash2, Download, Eye, CalendarIcon } from 'lucide-react';
 import { GarantiaEditForm } from './GarantiaEditForm';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 export const GarantiaGrid: React.FC = () => {
   const { toast } = useToast();
   const [garantias, setGarantias] = useState<Garantia[]>([]);
+  const [filteredGarantias, setFilteredGarantias] = useState<Garantia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingGarantia, setEditingGarantia] = useState<Garantia | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const loadGarantias = async () => {
     try {
       setIsLoading(true);
       const data = await garantiaService.getAll();
       setGarantias(data);
+      setFilteredGarantias(data);
     } catch (error) {
       toast({
         title: "Erro",
@@ -35,6 +44,92 @@ export const GarantiaGrid: React.FC = () => {
   useEffect(() => {
     loadGarantias();
   }, []);
+
+  useEffect(() => {
+    // Filtrar garantias baseado nas datas selecionadas
+    let filtered = garantias;
+    
+    if (startDate && endDate) {
+      filtered = garantias.filter(garantia => {
+        const garantiaDate = new Date(garantia.data_registro);
+        return garantiaDate >= startDate && garantiaDate <= endDate;
+      });
+    }
+    
+    setFilteredGarantias(filtered);
+  }, [startDate, endDate, garantias]);
+
+  const exportToExcel = () => {
+    if (filteredGarantias.length === 0) {
+      toast({
+        title: "Aviso",
+        description: "Não há dados para exportar no período selecionado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Preparar dados para exportação
+    const exportData = filteredGarantias.map(garantia => ({
+      'Item': garantia.item,
+      'Quantidade': garantia.quantidade,
+      'Defeito': garantia.defeito,
+      'Fornecedor': garantia.fornecedor,
+      'Status': getStatusLabel(garantia.status),
+      'Resultado': getResultadoLabel(garantia.resultado || ''),
+      'Valor Unitário': `R$ ${garantia.valor_unitario.toFixed(2)}`,
+      'Valor Total': `R$ ${garantia.valor_total.toFixed(2)}`,
+      'Data de Registro': new Date(garantia.data_registro).toLocaleDateString('pt-BR'),
+      'NF Compra': garantia.nf_compra_pdf ? 'Anexado' : 'Não anexado',
+      'NF Remessa': garantia.nf_remessa_pdf ? 'Anexado' : 'Não anexado',
+      'NF Devolução': garantia.nf_devolucao_pdf ? 'Anexado' : 'Não anexado'
+    }));
+
+    // Criar workbook e worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Ajustar largura das colunas
+    const colWidths = [
+      { wch: 25 }, // Item
+      { wch: 10 }, // Quantidade
+      { wch: 20 }, // Defeito
+      { wch: 20 }, // Fornecedor
+      { wch: 15 }, // Status
+      { wch: 15 }, // Resultado
+      { wch: 12 }, // Valor Unitário
+      { wch: 12 }, // Valor Total
+      { wch: 12 }, // Data
+      { wch: 12 }, // NF Compra
+      { wch: 12 }, // NF Remessa
+      { wch: 12 }  // NF Devolução
+    ];
+    ws['!cols'] = colWidths;
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Garantias');
+
+    // Gerar nome do arquivo com período
+    let fileName = 'relatorio-garantias';
+    if (startDate && endDate) {
+      const start = format(startDate, 'dd-MM-yyyy');
+      const end = format(endDate, 'dd-MM-yyyy');
+      fileName += `-${start}-${end}`;
+    }
+    fileName += '.xlsx';
+
+    // Fazer download
+    XLSX.writeFile(wb, fileName);
+
+    toast({
+      title: "Sucesso!",
+      description: "Relatório exportado com sucesso.",
+    });
+  };
+
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
@@ -216,6 +311,84 @@ export const GarantiaGrid: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Consulta de Garantias</h2>
       
+      {/* Filtros de Data e Exportação */}
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle>Selecione um período para exportar relatório em Excel</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Inicial:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-40 justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Final:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-40 justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "dd/MM/yyyy") : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <Button variant="outline" onClick={clearFilters}>
+              Limpar Filtros
+            </Button>
+
+            <Button onClick={exportToExcel} className="bg-green-600 hover:bg-green-700">
+              <FileText className="mr-2 h-4 w-4" />
+              Exportar Excel
+            </Button>
+          </div>
+          
+          {startDate && endDate && (
+            <div className="mt-4 text-sm text-slate-600">
+              Período selecionado: {format(startDate, "dd/MM/yyyy")} até {format(endDate, "dd/MM/yyyy")} 
+              ({filteredGarantias.length} registros encontrados)
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
         <CardHeader>
           <CardTitle>Garantias Registradas</CardTitle>
@@ -225,9 +398,12 @@ export const GarantiaGrid: React.FC = () => {
             <div className="flex justify-center py-8">
               <div className="text-slate-500">Carregando...</div>
             </div>
-          ) : garantias.length === 0 ? (
+          ) : filteredGarantias.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
-              Nenhuma garantia registrada.
+              {startDate && endDate ? 
+                "Nenhuma garantia encontrada no período selecionado." : 
+                "Nenhuma garantia registrada."
+              }
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -250,7 +426,7 @@ export const GarantiaGrid: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {garantias.map((garantia) => (
+                  {filteredGarantias.map((garantia) => (
                     <TableRow key={garantia.id}>
                       <TableCell className="font-medium max-w-[200px] truncate" title={garantia.item}>
                         {garantia.item}
