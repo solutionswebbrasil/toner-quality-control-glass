@@ -118,9 +118,6 @@ export type Database = {
       }
       registros_bpmn: {
         Row: {
-          arquivo_bizagi: string | null
-          arquivo_jpg: string | null
-          arquivo_pdf: string | null
           arquivo_png: string | null
           data_registro: string
           id: number
@@ -129,9 +126,6 @@ export type Database = {
           versao: number | null
         }
         Insert: {
-          arquivo_bizagi?: string | null
-          arquivo_jpg?: string | null
-          arquivo_pdf?: string | null
           arquivo_png?: string | null
           data_registro?: string
           id?: number
@@ -140,9 +134,6 @@ export type Database = {
           versao?: number | null
         }
         Update: {
-          arquivo_bizagi?: string | null
-          arquivo_jpg?: string | null
-          arquivo_pdf?: string | null
           arquivo_png?: string | null
           data_registro?: string
           id?: number

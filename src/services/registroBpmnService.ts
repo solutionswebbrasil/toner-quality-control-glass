@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { RegistroBpmn } from '@/types';
 
@@ -22,9 +23,7 @@ export const registroBpmnService = {
     console.log('✅ Registros BPMN encontrados:', data?.length || 0);
     return (data || []).map(item => ({
       ...item,
-      titulo: item.titulos_bpmn?.titulo || 'N/A',
-      // Map arquivo_bizagi to arquivo_zip for backward compatibility
-      arquivo_zip: item.arquivo_bizagi || undefined
+      titulo: item.titulos_bpmn?.titulo || 'N/A'
     }));
   },
 
@@ -49,9 +48,7 @@ export const registroBpmnService = {
     console.log('✅ Registros encontrados para o título:', data?.length || 0);
     return (data || []).map(item => ({
       ...item,
-      titulo: item.titulos_bpmn?.titulo || 'N/A',
-      // Map arquivo_bizagi to arquivo_zip for backward compatibility
-      arquivo_zip: item.arquivo_bizagi || undefined
+      titulo: item.titulos_bpmn?.titulo || 'N/A'
     }));
   },
 
@@ -94,27 +91,16 @@ export const registroBpmnService = {
     
     return {
       ...data,
-      titulo: data.titulos_bpmn?.titulo || 'N/A',
-      // Map arquivo_bizagi to arquivo_zip for backward compatibility
-      arquivo_zip: data.arquivo_bizagi || undefined
+      titulo: data.titulos_bpmn?.titulo || 'N/A'
     };
   },
 
   create: async (registro: Omit<RegistroBpmn, 'id' | 'versao'>): Promise<RegistroBpmn> => {
     console.log('📝 Criando novo registro BPMN:', registro);
     
-    // Map arquivo_zip to arquivo_bizagi for database storage
-    const registroParaBanco = {
-      ...registro,
-      arquivo_bizagi: registro.arquivo_zip,
-      arquivo_zip: undefined
-    };
-    
-    console.log('📝 Registro BPMN a ser criado:', registroParaBanco);
-    
     const { data, error } = await supabase
       .from('registros_bpmn')
-      .insert([registroParaBanco])
+      .insert([registro])
       .select(`
         *,
         titulos_bpmn:titulo_id (
@@ -131,25 +117,16 @@ export const registroBpmnService = {
     console.log('✅ Registro BPMN criado com sucesso:', data);
     return {
       ...data,
-      titulo: data.titulos_bpmn?.titulo || 'N/A',
-      // Map arquivo_bizagi to arquivo_zip for response
-      arquivo_zip: data.arquivo_bizagi || undefined
+      titulo: data.titulos_bpmn?.titulo || 'N/A'
     };
   },
 
   update: async (id: number, registro: Partial<RegistroBpmn>): Promise<RegistroBpmn | null> => {
     console.log('📝 Atualizando registro BPMN:', id, registro);
     
-    // Map arquivo_zip to arquivo_bizagi for database storage
-    const registroParaBanco = {
-      ...registro,
-      arquivo_bizagi: registro.arquivo_zip,
-      arquivo_zip: undefined
-    };
-    
     const { data, error } = await supabase
       .from('registros_bpmn')
-      .update(registroParaBanco)
+      .update(registro)
       .eq('id', id)
       .select(`
         *,
@@ -166,9 +143,7 @@ export const registroBpmnService = {
     
     return {
       ...data,
-      titulo: data.titulos_bpmn?.titulo || 'N/A',
-      // Map arquivo_bizagi to arquivo_zip for response
-      arquivo_zip: data.arquivo_bizagi || undefined
+      titulo: data.titulos_bpmn?.titulo || 'N/A'
     };
   },
 

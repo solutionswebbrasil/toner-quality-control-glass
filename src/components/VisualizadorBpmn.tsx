@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Eye, Download, FileText, Image, Layers } from 'lucide-react';
+import { Eye, Download, Image } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -94,18 +94,6 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
     });
   };
 
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'pdf':
-        return <FileText className="h-4 w-4" />;
-      case 'jpg':
-      case 'png':
-        return <Image className="h-4 w-4" />;
-      default:
-        return <Layers className="h-4 w-4" />;
-    }
-  };
-
   const registroAtual = registros.find(r => r.id?.toString() === registroSelecionado);
 
   return (
@@ -115,7 +103,7 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
           Visualizar BPMN
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Visualize e baixe documentos BPMN cadastrados
+          Visualize e baixe diagramas BPMN em formato PNG
         </p>
       </div>
 
@@ -168,7 +156,7 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
           <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Layers className="h-5 w-5" />
+                <Image className="h-5 w-5" />
                 Detalhes do BPMN
               </CardTitle>
             </CardHeader>
@@ -187,47 +175,21 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Arquivos Disponíveis</h4>
+                <h4 className="font-medium mb-3">Arquivo Disponível</h4>
                 <div className="space-y-2">
-                  {registroAtual.arquivo_jpg && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleDownload(registroAtual.arquivo_jpg!, `${registroAtual.titulo}_v${registroAtual.versao}.jpg`)}
-                    >
-                      {getFileIcon('jpg')}
-                      <span className="ml-2">Baixar JPG</span>
-                      <Download className="ml-auto h-4 w-4" />
-                    </Button>
-                  )}
-
-                  {registroAtual.arquivo_png && (
+                  {registroAtual.arquivo_png ? (
                     <Button
                       variant="outline"
                       className="w-full justify-start"
                       onClick={() => handleDownload(registroAtual.arquivo_png!, `${registroAtual.titulo}_v${registroAtual.versao}.png`)}
                     >
-                      {getFileIcon('png')}
+                      <Image className="h-4 w-4" />
                       <span className="ml-2">Baixar PNG</span>
                       <Download className="ml-auto h-4 w-4" />
                     </Button>
-                  )}
-
-                  {registroAtual.arquivo_zip && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleDownload(registroAtual.arquivo_zip!, `${registroAtual.titulo}_v${registroAtual.versao}.zip`)}
-                    >
-                      {getFileIcon('zip')}
-                      <span className="ml-2">Baixar ZIP</span>
-                      <Download className="ml-auto h-4 w-4" />
-                    </Button>
-                  )}
-
-                  {!registroAtual.arquivo_jpg && !registroAtual.arquivo_png && !registroAtual.arquivo_zip && (
+                  ) : (
                     <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
-                      Nenhum arquivo disponível para esta versão.
+                      Nenhum arquivo PNG disponível para esta versão.
                     </p>
                   )}
                 </div>

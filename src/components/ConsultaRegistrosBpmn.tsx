@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, Download, Layers, Image, Archive } from 'lucide-react';
+import { Search, Trash2, Download, Image } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,18 +110,6 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
     });
   };
 
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'jpg':
-      case 'png':
-        return <Image className="h-4 w-4" />;
-      case 'zip':
-        return <Archive className="h-4 w-4" />;
-      default:
-        return <Layers className="h-4 w-4" />;
-    }
-  };
-
   if (loading) {
     return (
       <div className="space-y-6">
@@ -144,14 +132,14 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
           BPMNs Cadastrados
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Consulte e gerencie todos os registros BPMN cadastrados
+          Consulte e gerencie todos os diagramas BPMN em formato PNG
         </p>
       </div>
 
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
+            <Image className="h-5 w-5" />
             Registros BPMN
           </CardTitle>
         </CardHeader>
@@ -180,7 +168,7 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
                     <TableRow>
                       <TableHead>Título</TableHead>
                       <TableHead>Versão</TableHead>
-                      <TableHead>Arquivos</TableHead>
+                      <TableHead>Arquivo PNG</TableHead>
                       <TableHead>Registrado por</TableHead>
                       <TableHead>Data de Registro</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
@@ -194,41 +182,19 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
                           <Badge variant="secondary">v{registro.versao}</Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-2">
-                            {registro.arquivo_jpg && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownload(registro.arquivo_jpg!, `${registro.titulo}_v${registro.versao}.jpg`)}
-                                className="text-xs"
-                              >
-                                {getFileIcon('jpg')}
-                                JPG
-                              </Button>
-                            )}
-                            {registro.arquivo_png && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownload(registro.arquivo_png!, `${registro.titulo}_v${registro.versao}.png`)}
-                                className="text-xs"
-                              >
-                                {getFileIcon('png')}
-                                PNG
-                              </Button>
-                            )}
-                            {registro.arquivo_zip && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownload(registro.arquivo_zip!, `${registro.titulo}_v${registro.versao}.zip`)}
-                                className="text-xs"
-                              >
-                                {getFileIcon('zip')}
-                                ZIP
-                              </Button>
-                            )}
-                          </div>
+                          {registro.arquivo_png ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownload(registro.arquivo_png!, `${registro.titulo}_v${registro.versao}.png`)}
+                              className="text-xs"
+                            >
+                              <Image className="h-4 w-4" />
+                              PNG
+                            </Button>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
                         </TableCell>
                         <TableCell>{registro.registrado_por || '-'}</TableCell>
                         <TableCell>{formatDate(registro.data_registro)}</TableCell>

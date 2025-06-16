@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Upload, Layers } from 'lucide-react';
+import { Upload, Image } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,9 +28,7 @@ interface RegistroBpmnFormProps {
 }
 
 export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess }) => {
-  const [jpgFile, setJpgFile] = useState<File | null>(null);
   const [pngFile, setPngFile] = useState<File | null>(null);
-  const [zipFile, setZipFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [titulos, setTitulos] = useState<TituloBpmn[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,35 +64,13 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
     carregarTitulos();
   }, []);
 
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    type: 'jpg' | 'png' | 'zip',
-    setFile: React.Dispatch<React.SetStateAction<File | null>>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      let isValid = false;
-      let errorMessage = '';
-
-      switch (type) {
-        case 'jpg':
-          isValid = file.type === 'image/jpeg';
-          errorMessage = 'Apenas arquivos JPG são permitidos.';
-          break;
-        case 'png':
-          isValid = file.type === 'image/png';
-          errorMessage = 'Apenas arquivos PNG são permitidos.';
-          break;
-        case 'zip':
-          isValid = file.type === 'application/zip' || file.name.endsWith('.zip');
-          errorMessage = 'Apenas arquivos ZIP são permitidos.';
-          break;
-      }
-
-      if (!isValid) {
+      if (file.type !== 'image/png') {
         toast({
           title: 'Erro',
-          description: errorMessage,
+          description: 'Apenas arquivos PNG são permitidos.',
           variant: 'destructive',
         });
         return;
@@ -109,16 +85,16 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
         return;
       }
 
-      console.log(`📎 Arquivo ${type.toUpperCase()} selecionado:`, file.name, 'Tamanho:', file.size);
-      setFile(file);
+      console.log('📎 Arquivo PNG selecionado:', file.name, 'Tamanho:', file.size);
+      setPngFile(file);
     }
   };
 
   const onSubmit = async (data: RegistroFormData) => {
-    if (!jpgFile && !pngFile && !zipFile) {
+    if (!pngFile) {
       toast({
         title: 'Erro',
-        description: 'Anexe pelo menos um arquivo.',
+        description: 'Anexe um arquivo PNG.',
         variant: 'destructive',
       });
       return;
@@ -129,41 +105,21 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
       console.log('🚀 Iniciando registro de BPMN...', {
         titulo_id: data.titulo_id,
         registrado_por: data.registrado_por,
-        arquivos: {
-          jpg: !!jpgFile,
-          png: !!pngFile,
-          zip: !!zipFile
-        }
+        arquivo_png: !!pngFile
       });
       
-      let arquivo_jpg_url = null;
       let arquivo_png_url = null;
-      let arquivo_zip_url = null;
       
-      // Upload dos arquivos
+      // Upload do arquivo PNG
       try {
-        if (jpgFile) {
-          console.log('📤 Fazendo upload do JPG...');
-          arquivo_jpg_url = await fileUploadService.uploadImage(jpgFile, 'bpmn');
-          console.log('✅ JPG uploaded:', arquivo_jpg_url);
-        }
-
-        if (pngFile) {
-          console.log('📤 Fazendo upload do PNG...');
-          arquivo_png_url = await fileUploadService.uploadImage(pngFile, 'bpmn');
-          console.log('✅ PNG uploaded:', arquivo_png_url);
-        }
-
-        if (zipFile) {
-          console.log('📤 Fazendo upload do ZIP...');
-          arquivo_zip_url = await fileUploadService.uploadFile(zipFile, 'bpmn');
-          console.log('✅ ZIP uploaded:', arquivo_zip_url);
-        }
+        console.log('📤 Fazendo upload do PNG...');
+        arquivo_png_url = await fileUploadService.uploadImage(pngFile, 'bpmn');
+        console.log('✅ PNG uploaded:', arquivo_png_url);
       } catch (uploadError) {
-        console.error('❌ Erro no upload dos arquivos:', uploadError);
+        console.error('❌ Erro no upload do arquivo:', uploadError);
         toast({
           title: 'Erro no Upload',
-          description: 'Erro ao fazer upload dos arquivos. Tente novamente.',
+          description: 'Erro ao fazer upload do arquivo. Tente novamente.',
           variant: 'destructive',
         });
         return;
@@ -172,9 +128,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
       // Criar objeto registro para salvar no banco
       const registro: Omit<RegistroBpmn, 'id' | 'versao' | 'titulo'> = {
         titulo_id: parseInt(data.titulo_id),
-        arquivo_jpg: arquivo_jpg_url || undefined,
         arquivo_png: arquivo_png_url || undefined,
-        arquivo_zip: arquivo_zip_url || undefined,
         data_registro: new Date().toISOString(),
         registrado_por: data.registrado_por || undefined,
       };
@@ -190,9 +144,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
 
       // Limpar formulário
       form.reset();
-      setJpgFile(null);
       setPngFile(null);
-      setZipFile(null);
       onSuccess();
     } catch (error) {
       console.error('❌ Erro ao registrar BPMN:', error);
@@ -228,14 +180,14 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
           Registro de BPMN
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Registre uma nova versão de BPMN (apenas imagens ou arquivo ZIP)
+          Registre uma nova versão de BPMN (apenas arquivos PNG)
         </p>
       </div>
 
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
+            <Image className="h-5 w-5" />
             Dados do Registro
           </CardTitle>
         </CardHeader>
@@ -281,69 +233,25 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="arquivo_jpg">Arquivo JPG</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="arquivo_jpg"
-                      type="file"
-                      accept=".jpg,.jpeg"
-                      onChange={(e) => handleFileChange(e, 'jpg', setJpgFile)}
-                      className="flex-1"
-                    />
-                    <Button type="button" variant="outline" size="icon">
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {jpgFile && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      JPG: {jpgFile.name} ({(jpgFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </p>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="arquivo_png">Arquivo PNG</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="arquivo_png"
+                    type="file"
+                    accept=".png"
+                    onChange={handleFileChange}
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="outline" size="icon">
+                    <Upload className="h-4 w-4" />
+                  </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="arquivo_png">Arquivo PNG</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="arquivo_png"
-                      type="file"
-                      accept=".png"
-                      onChange={(e) => handleFileChange(e, 'png', setPngFile)}
-                      className="flex-1"
-                    />
-                    <Button type="button" variant="outline" size="icon">
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {pngFile && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      PNG: {pngFile.name} ({(pngFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="arquivo_zip">Arquivo ZIP</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="arquivo_zip"
-                      type="file"
-                      accept=".zip"
-                      onChange={(e) => handleFileChange(e, 'zip', setZipFile)}
-                      className="flex-1"
-                    />
-                    <Button type="button" variant="outline" size="icon">
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {zipFile && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      ZIP: {zipFile.name} ({(zipFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </p>
-                  )}
-                </div>
+                {pngFile && (
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    PNG: {pngFile.name} ({(pngFile.size / (1024 * 1024)).toFixed(2)} MB)
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-4">
@@ -352,14 +260,12 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
                   variant="outline"
                   onClick={() => {
                     form.reset();
-                    setJpgFile(null);
                     setPngFile(null);
-                    setZipFile(null);
                   }}
                 >
                   Limpar
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || !pngFile}>
                   {isSubmitting ? 'Registrando...' : 'Registrar BPMN'}
                 </Button>
               </div>
