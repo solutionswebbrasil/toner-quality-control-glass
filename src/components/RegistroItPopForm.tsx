@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,10 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import type { RegistroItPop } from '@/types';
+import { tituloItPopService } from '@/services/tituloItPopService';
+import { registroItPopService } from '@/services/registroItPopService';
+import { fileUploadService } from '@/services/fileUploadService';
+import type { RegistroItPop, TituloItPop } from '@/types';
 
 const registroSchema = z.object({
   titulo_id: z.string().min(1, 'Selecione um título'),
+  registrado_por: z.string().optional(),
 });
 
 type RegistroFormData = z.infer<typeof registroSchema>;
@@ -23,24 +27,43 @@ interface RegistroItPopFormProps {
   onSuccess: () => void;
 }
 
-// Mock data - seria vindo do serviço
-const titulosDisponiveis = [
-  { id: 1, titulo: 'Procedimento de Backup' },
-  { id: 2, titulo: 'Instalação de Software' },
-  { id: 3, titulo: 'Configuração de Rede' },
-];
-
 export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess }) => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pptFile, setPptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [titulos, setTitulos] = useState<TituloItPop[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<RegistroFormData>({
     resolver: zodResolver(registroSchema),
     defaultValues: {
       titulo_id: '',
+      registrado_por: '',
     },
   });
+
+  useEffect(() => {
+    const carregarTitulos = async () => {
+      try {
+        console.log('🔍 Carregando títulos IT/POP...');
+        setLoading(true);
+        const titulosData = await tituloItPopService.getAll();
+        setTitulos(titulosData);
+        console.log('✅ Títulos carregados:', titulosData.length);
+      } catch (error) {
+        console.error('❌ Erro ao carregar títulos:', error);
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar títulos. Tente recarregar a página.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarTitulos();
+  }, []);
 
   const handlePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -53,6 +76,15 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
         });
         return;
       }
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        toast({
+          title: 'Erro',
+          description: 'O arquivo PDF deve ter no máximo 10MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      console.log('📎 Arquivo PDF selecionado:', file.name, 'Tamanho:', file.size);
       setPdfFile(file);
     }
   };
@@ -68,6 +100,15 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
         });
         return;
       }
+      if (file.size > 20 * 1024 * 1024) { // 20MB
+        toast({
+          title: 'Erro',
+          description: 'O arquivo PPT deve ter no máximo 20MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      console.log('📎 Arquivo PPT selecionado:', file.name, 'Tamanho:', file.size);
       setPptFile(file);
     }
   };
@@ -84,37 +125,99 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
 
     try {
       setIsSubmitting(true);
+      console.log('🚀 Iniciando registro de IT/POP...', {
+        titulo_id: data.titulo_id,
+        registrado_por: data.registrado_por,
+        temPDF: !!pdfFile,
+        temPPT: !!pptFile
+      });
       
-      const registro: RegistroItPop = {
+      let arquivo_pdf_url = null;
+      let arquivo_ppt_url = null;
+      
+      // Upload do arquivo PDF se existir
+      if (pdfFile) {
+        console.log('📤 Fazendo upload do PDF...');
+        try {
+          arquivo_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'itpop');
+          console.log('✅ PDF uploaded com sucesso:', arquivo_pdf_url);
+        } catch (uploadError) {
+          console.error('❌ Erro no upload do PDF:', uploadError);
+          toast({
+            title: 'Erro no Upload',
+            description: 'Erro ao fazer upload do PDF. Tente novamente.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
+      // Upload do arquivo PPT se existir
+      if (pptFile) {
+        console.log('📤 Fazendo upload do PPT...');
+        try {
+          arquivo_ppt_url = await fileUploadService.uploadPdf(pptFile, 'itpop');
+          console.log('✅ PPT uploaded com sucesso:', arquivo_ppt_url);
+        } catch (uploadError) {
+          console.error('❌ Erro no upload do PPT:', uploadError);
+          toast({
+            title: 'Erro no Upload',
+            description: 'Erro ao fazer upload do PPT. Tente novamente.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
+      // Criar objeto registro para salvar no banco
+      const registro: Omit<RegistroItPop, 'id' | 'versao' | 'titulo'> = {
         titulo_id: parseInt(data.titulo_id),
-        versao: 1, // Seria calculado automaticamente
-        arquivo_pdf: pdfFile ? pdfFile.name : undefined, // Store file name as string
-        arquivo_ppt: pptFile ? pptFile.name : undefined, // Store file name as string
-        data_registro: new Date().toISOString(), // Convert Date to string
+        arquivo_pdf: arquivo_pdf_url || undefined,
+        arquivo_ppt: arquivo_ppt_url || undefined,
+        data_registro: new Date().toISOString(),
+        registrado_por: data.registrado_por || undefined,
       };
 
-      console.log('Registro IT/POP criado:', registro);
+      console.log('💾 Salvando registro no banco:', registro);
+      const novoRegistro = await registroItPopService.create(registro);
+      console.log('✅ Registro salvo com sucesso:', novoRegistro);
 
       toast({
         title: 'Sucesso',
-        description: 'IT/POP registrado com sucesso!',
+        description: `IT/POP registrado com sucesso! Versão ${novoRegistro.versao} criada.`,
       });
 
+      // Limpar formulário
       form.reset();
       setPdfFile(null);
       setPptFile(null);
       onSuccess();
     } catch (error) {
-      console.error('Erro ao registrar IT/POP:', error);
+      console.error('❌ Erro ao registrar IT/POP:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao registrar IT/POP. Tente novamente.',
+        description: 'Erro ao registrar IT/POP. Verifique os dados e tente novamente.',
         variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+            Registro de IT/POP
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400">
+            Carregando títulos disponíveis...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -150,13 +253,27 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {titulosDisponiveis.map((titulo) => (
-                          <SelectItem key={titulo.id} value={titulo.id.toString()}>
+                        {titulos.map((titulo) => (
+                          <SelectItem key={titulo.id} value={titulo.id!.toString()}>
                             {titulo.titulo}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="registrado_por"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Registrado por (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome de quem está registrando" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -179,7 +296,7 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
                   </div>
                   {pdfFile && (
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      PDF selecionado: {pdfFile.name}
+                      PDF selecionado: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
                     </p>
                   )}
                 </div>
@@ -200,7 +317,7 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
                   </div>
                   {pptFile && (
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      PPT selecionado: {pptFile.name}
+                      PPT selecionado: {pptFile.name} ({(pptFile.size / (1024 * 1024)).toFixed(2)} MB)
                     </p>
                   )}
                 </div>

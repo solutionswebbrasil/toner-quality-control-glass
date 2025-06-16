@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
+import { tituloItPopService } from '@/services/tituloItPopService';
 import type { TituloItPop } from '@/types';
 
 const tituloSchema = z.object({
@@ -36,14 +37,15 @@ export const TituloItPopForm: React.FC<TituloItPopFormProps> = ({ onSuccess }) =
   const onSubmit = async (data: TituloFormData) => {
     try {
       setIsSubmitting(true);
+      console.log('🚀 Iniciando cadastro de título IT/POP...', data);
       
-      const titulo: TituloItPop = {
+      const titulo: Omit<TituloItPop, 'id'> = {
         titulo: data.titulo,
-        descricao: data.descricao,
-        data_cadastro: new Date().toISOString(), // Convert Date to string
+        descricao: data.descricao || '',
+        data_cadastro: new Date().toISOString(),
       };
 
-      console.log('Título IT/POP cadastrado:', titulo);
+      await tituloItPopService.create(titulo);
 
       toast({
         title: 'Sucesso',
@@ -53,7 +55,7 @@ export const TituloItPopForm: React.FC<TituloItPopFormProps> = ({ onSuccess }) =
       form.reset();
       onSuccess();
     } catch (error) {
-      console.error('Erro ao cadastrar título:', error);
+      console.error('❌ Erro ao cadastrar título:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao cadastrar título. Tente novamente.',

@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { tituloItPopService, registroItPopService } from '@/services/dataService';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { tituloItPopService } from '@/services/tituloItPopService';
+import { registroItPopService } from '@/services/registroItPopService';
 import type { TituloItPop, RegistroItPop } from '@/types';
 
 interface VisualizadorItPopProps {
@@ -17,45 +19,62 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
   const [titulos, setTitulos] = useState<TituloItPop[]>([]);
   const [registros, setRegistros] = useState<RegistroItPop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRegistros, setLoadingRegistros] = useState(false);
 
   useEffect(() => {
-    const carregarDados = async () => {
+    const carregarTitulos = async () => {
       try {
+        console.log('🔍 Carregando títulos IT/POP...');
         setLoading(true);
-        const [titulosData, registrosData] = await Promise.all([
-          tituloItPopService.getAll(),
-          registroItPopService.getAll()
-        ]);
+        const titulosData = await tituloItPopService.getAll();
         setTitulos(titulosData);
-        setRegistros(registrosData);
+        console.log('✅ Títulos carregados:', titulosData.length);
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('❌ Erro ao carregar títulos:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    carregarDados();
+    carregarTitulos();
   }, []);
 
-  const registrosFiltrados = registros.filter(
-    registro => tituloSelecionado ? registro.titulo_id.toString() === tituloSelecionado : false
-  );
+  useEffect(() => {
+    const carregarRegistros = async () => {
+      if (!tituloSelecionado) {
+        setRegistros([]);
+        return;
+      }
 
-  const ultimaVersao = registrosFiltrados.length > 0 
-    ? registrosFiltrados.reduce((prev, current) => 
-        prev.versao > current.versao ? prev : current
-      )
-    : null;
+      try {
+        console.log('🔍 Carregando registros para título ID:', tituloSelecionado);
+        setLoadingRegistros(true);
+        const registrosData = await registroItPopService.getByTituloId(parseInt(tituloSelecionado));
+        setRegistros(registrosData);
+        console.log('✅ Registros carregados:', registrosData.length);
+      } catch (error) {
+        console.error('❌ Erro ao carregar registros:', error);
+      } finally {
+        setLoadingRegistros(false);
+      }
+    };
+
+    carregarRegistros();
+  }, [tituloSelecionado]);
 
   const handleDownload = (arquivo: string, tipo: string) => {
-    console.log(`Baixando arquivo ${tipo}:`, arquivo);
-    // Aqui implementaria o download real
+    console.log(`📥 Iniciando download do arquivo ${tipo}:`, arquivo);
+    // Abrir o arquivo em uma nova aba para download
+    window.open(arquivo, '_blank');
   };
 
   const getFileName = (filePath: string | undefined): string => {
     if (!filePath || typeof filePath !== 'string') return 'Arquivo';
     return filePath.split('/').pop() || filePath;
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   if (loading) {
@@ -80,7 +99,7 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
           Visualizar IT/POP
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Visualize a versão mais atual de um IT/POP
+          Visualize todas as versões de um IT/POP
         </p>
       </div>
 
@@ -108,76 +127,98 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
             </Select>
           </div>
 
-          {ultimaVersao && (
-            <div className="border rounded-lg p-4 bg-slate-50 dark:bg-slate-800/50">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">{ultimaVersao.titulo}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="default">Versão {ultimaVersao.versao}</Badge>
-                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                      Registrado em {new Date(ultimaVersao.data_registro).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                  {ultimaVersao.registrado_por && (
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                      por {ultimaVersao.registrado_por}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {ultimaVersao.arquivo_pdf && (
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded border">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-red-500" />
-                      <span className="text-sm font-medium">Arquivo PDF</span>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {getFileName(ultimaVersao.arquivo_pdf)}
-                      </span>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDownload(ultimaVersao.arquivo_pdf!, 'PDF')}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Baixar
-                    </Button>
-                  </div>
-                )}
-
-                {ultimaVersao.arquivo_ppt && (
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded border">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm font-medium">Arquivo PPT</span>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {getFileName(ultimaVersao.arquivo_ppt)}
-                      </span>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDownload(ultimaVersao.arquivo_ppt!, 'PPT')}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Baixar
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {!ultimaVersao.arquivo_pdf && !ultimaVersao.arquivo_ppt && (
-                <div className="text-center py-4 text-slate-600 dark:text-slate-400">
-                  Nenhum arquivo disponível para esta versão.
-                </div>
-              )}
+          {loadingRegistros && (
+            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
+              Carregando registros...
             </div>
           )}
 
-          {tituloSelecionado && !ultimaVersao && (
+          {!loadingRegistros && registros.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  {registros[0]?.titulo} - {registros.length} versão(s) encontrada(s)
+                </h3>
+              </div>
+
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Versão</TableHead>
+                      <TableHead>Data do Registro</TableHead>
+                      <TableHead>Registrado por</TableHead>
+                      <TableHead>Arquivos</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {registros.map((registro) => (
+                      <TableRow key={registro.id}>
+                        <TableCell>
+                          <Badge variant={registro.versao === registros[0].versao ? "default" : "secondary"}>
+                            v{registro.versao}
+                            {registro.versao === registros[0].versao && " (Atual)"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(registro.data_registro)}
+                        </TableCell>
+                        <TableCell>
+                          {registro.registrado_por || 'Não informado'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {registro.arquivo_pdf && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <FileText className="h-3 w-3 text-red-500" />
+                                <span>PDF</span>
+                              </div>
+                            )}
+                            {registro.arquivo_ppt && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <FileText className="h-3 w-3 text-orange-500" />
+                                <span>PPT</span>
+                              </div>
+                            )}
+                            {!registro.arquivo_pdf && !registro.arquivo_ppt && (
+                              <span className="text-sm text-slate-500">Sem arquivos</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {registro.arquivo_pdf && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDownload(registro.arquivo_pdf!, 'PDF')}
+                              >
+                                <Download className="h-3 w-3 mr-1" />
+                                PDF
+                              </Button>
+                            )}
+                            {registro.arquivo_ppt && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDownload(registro.arquivo_ppt!, 'PPT')}
+                              >
+                                <Download className="h-3 w-3 mr-1" />
+                                PPT
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
+          {!loadingRegistros && tituloSelecionado && registros.length === 0 && (
             <div className="text-center py-8 text-slate-600 dark:text-slate-400">
               Nenhum registro encontrado para este título.
             </div>
