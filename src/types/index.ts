@@ -1,4 +1,3 @@
-
 export interface Toner {
   id?: number;
   modelo: string;
@@ -101,7 +100,7 @@ export interface RegistroBpmn {
   arquivo_pdf?: string; // Changed from File | string to string
   arquivo_jpg?: string; // Changed from File | string to string
   arquivo_png?: string; // Changed from File | string to string
-  arquivo_bizagi?: string; // Changed from File | string to string
+  arquivo_zip?: string; // Added for ZIP files
   data_registro: string; // Changed from Date to string
   registrado_por?: string;
 }
