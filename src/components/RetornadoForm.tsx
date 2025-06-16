@@ -47,6 +47,16 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     loadToners();
   }, []);
 
+  // Atualizar toner selecionado quando o modelo mudar
+  useEffect(() => {
+    if (formData.id_modelo) {
+      const toner = toners.find(t => t.id?.toString() === formData.id_modelo);
+      setSelectedToner(toner || null);
+    } else {
+      setSelectedToner(null);
+    }
+  }, [formData.id_modelo, toners]);
+
   const loadToners = async () => {
     try {
       const data = await tonerService.getAll();
@@ -68,7 +78,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         destino_final: formData.destino_final,
         filial: formData.filial,
         valor_recuperado: formData.valor_recuperado ? parseFloat(formData.valor_recuperado) : undefined,
-        data_registro: new Date().toISOString() // Convert Date to string
+        data_registro: new Date().toISOString()
       };
 
       await retornadoService.create(retornado);
@@ -103,11 +113,6 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
-    if (field === 'id_modelo') {
-      const toner = toners.find(t => t.id?.toString() === value);
-      setSelectedToner(toner || null);
-    }
   };
 
   const calculateGramaturaUsada = () => {

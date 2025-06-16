@@ -226,22 +226,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     <div className="min-h-screen flex flex-col">
       <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-40 w-full">
         <div className="flex h-16 items-center px-4">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-2">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-                <SheetDescription>
-                  Navegue pelas opções do sistema.
-                </SheetDescription>
-              </SheetHeader>
-              <SidebarContent />
-            </SheetContent>
-          </Sheet>
+          {/* Menu móvel */}
+          <div className="lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                  <SheetDescription>
+                    Navegue pelas opções do sistema.
+                  </SheetDescription>
+                </SheetHeader>
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+          </div>
+          
           <div className="font-bold text-xl">
             <span className="text-blue-600">Easy</span>Toner
           </div>
@@ -251,14 +255,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 p-4">
-        <aside className="hidden lg:block col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit">
+      <div className="flex-1 flex">
+        {/* Sidebar fixo para desktop */}
+        <aside className="hidden lg:block w-80 border-r border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 h-full">
             <SidebarContent />
           </div>
         </aside>
 
-        <main className="col-span-1 lg:col-span-4">
+        {/* Conteúdo principal */}
+        <main className="flex-1 p-4">
           {children}
         </main>
       </div>
