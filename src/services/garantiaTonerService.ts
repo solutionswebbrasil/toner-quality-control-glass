@@ -21,7 +21,7 @@ export const garantiaTonerService = {
     const ticketNumero = `GT${Date.now().toString().slice(-8)}`;
     
     const { data, error } = await supabase
-      .from('garantias_toners')
+      .from('garantias_toners' as any)
       .insert([{
         ...garantiaToner,
         ticket_numero: ticketNumero,
@@ -35,12 +35,12 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data;
+    return data as GarantiaToner;
   },
 
   async getAll(): Promise<GarantiaToner[]> {
     const { data, error } = await supabase
-      .from('garantias_toners')
+      .from('garantias_toners' as any)
       .select('*')
       .order('data_registro', { ascending: false });
 
@@ -49,12 +49,12 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as GarantiaToner[];
   },
 
   async updateStatus(id: number, status: GarantiaToner['status'], observacoes?: string): Promise<GarantiaToner> {
     const { data, error } = await supabase
-      .from('garantias_toners')
+      .from('garantias_toners' as any)
       .update({ status, observacoes })
       .eq('id', id)
       .select()
@@ -65,6 +65,6 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data;
+    return data as GarantiaToner;
   }
 };

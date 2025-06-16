@@ -173,6 +173,48 @@ export type Database = {
           },
         ]
       }
+      garantias_toners: {
+        Row: {
+          data_envio: string
+          data_registro: string
+          defeito: string
+          filial_origem: string
+          fornecedor: string
+          id: number
+          modelo_toner: string
+          observacoes: string | null
+          responsavel_envio: string
+          status: string
+          ticket_numero: string
+        }
+        Insert: {
+          data_envio: string
+          data_registro?: string
+          defeito: string
+          filial_origem: string
+          fornecedor: string
+          id?: number
+          modelo_toner: string
+          observacoes?: string | null
+          responsavel_envio: string
+          status?: string
+          ticket_numero: string
+        }
+        Update: {
+          data_envio?: string
+          data_registro?: string
+          defeito?: string
+          filial_origem?: string
+          fornecedor?: string
+          id?: number
+          modelo_toner?: string
+          observacoes?: string | null
+          responsavel_envio?: string
+          status?: string
+          ticket_numero?: string
+        }
+        Relationships: []
+      }
       nao_conformidades: {
         Row: {
           acao_corretiva_proposta: string | null
