@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Retornado } from '@/types';
 import { retornadoService } from '@/services/retornadoService';
 import { useToast } from '@/hooks/use-toast';
 import { RetornadoFilters, RetornadoActions, RetornadoTable } from './retornado';
+import { ImportModal } from './ImportModal';
+import * as XLSX from 'xlsx';
 
 export const RetornadoGrid: React.FC = () => {
   const { toast } = useToast();
@@ -10,6 +13,7 @@ export const RetornadoGrid: React.FC = () => {
   const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   
   // Filtros
   const [dataInicio, setDataInicio] = useState('');
@@ -131,30 +135,18 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleDownloadTemplate = () => {
     try {
-      // Criar CSV com encoding UTF-8 BOM para o Excel reconhecer corretamente
-      const headers = ['id_cliente', 'modelo', 'filial', 'destino_final', 'peso', 'valor_recuperado', 'data_registro'];
-      const exemploRow = ['12345', 'HP CF217A', 'Matriz', 'Estoque', '125.50', '25.50', '2024-06-16'];
+      const template = [
+        { id_cliente: 12345, modelo: 'HP CF217A', filial: 'Matriz', destino_final: 'Estoque', peso: 125.50, valor_recuperado: 25.50, data_registro: '2024-06-16' }
+      ];
 
-      // Adicionar BOM para UTF-8 para garantir que o Excel abra corretamente
-      const BOM = '\uFEFF';
-      const csvContent = BOM + [
-        headers.join(';'), // Usar ponto e vírgula como separador para Excel brasileiro
-        exemploRow.join(';')
-      ].join('\r\n'); // Usar CRLF para compatibilidade com Windows/Excel
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', 'modelo_importacao_retornados.csv');
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const ws = XLSX.utils.json_to_sheet(template);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Retornados');
+      XLSX.writeFile(wb, 'template_importacao_retornados.xlsx');
 
       toast({
         title: "Sucesso",
-        description: "Modelo de planilha baixado com sucesso! Abra no Excel para editar.",
+        description: "Modelo de planilha baixado com sucesso!",
       });
     } catch (error) {
       toast({
@@ -165,82 +157,38 @@ export const RetornadoGrid: React.FC = () => {
     }
   };
 
-  const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleImportUpload = async (data: any[]) => {
     setImporting(true);
     
     try {
-      const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      if (lines.length < 2) {
-        throw new Error('Arquivo deve conter pelo menos o cabeçalho e uma linha de dados');
-      }
-
-      // Suportar tanto vírgula quanto ponto e vírgula como separadores
-      const separator = lines[0].includes(';') ? ';' : ',';
-      const headers = lines[0].split(separator).map(h => h.trim().replace(/"/g, ''));
-      const expectedHeaders = ['id_cliente', 'modelo', 'filial', 'destino_final', 'peso', 'valor_recuperado', 'data_registro'];
-      
-      // Verificar se os cabeçalhos estão corretos (aceitar em qualquer ordem)
-      const hasAllHeaders = expectedHeaders.every(h => headers.includes(h));
-      if (!hasAllHeaders) {
-        throw new Error(`Cabeçalhos incorretos. Esperados: ${expectedHeaders.join(', ')}. Encontrados: ${headers.join(', ')}`);
-      }
-
-      const dataLines = lines.slice(1);
       let importedCount = 0;
       let errorCount = 0;
 
-      for (const line of dataLines) {
+      for (const item of data) {
         try {
-          const values = line.split(separator).map(v => v.trim().replace(/"/g, ''));
-          const data: any = {};
-          
-          headers.forEach((header, index) => {
-            data[header] = values[index];
-          });
-
-          // Função para converter valor brasileiro para número
-          const parseValorBrasileiro = (valor: string): number | undefined => {
-            if (!valor || valor.trim() === '') return undefined;
-            
-            // Remover R$, espaços e outros caracteres não numéricos exceto vírgula e ponto
-            let cleanValue = valor.replace(/[R$\s]/g, '');
-            
-            // Se tem vírgula, assumir formato brasileiro (1.234,56)
-            if (cleanValue.includes(',')) {
-              // Remover pontos (separadores de milhares) e trocar vírgula por ponto
-              cleanValue = cleanValue.replace(/\./g, '').replace(',', '.');
-            }
-            
-            const numero = parseFloat(cleanValue);
-            return isNaN(numero) ? undefined : numero;
-          };
-
-          // Validar e converter dados
+          // Normalizar e validar dados
           const retornadoData = {
-            id_cliente: parseInt(data.id_cliente),
+            id_cliente: parseInt(item.id_cliente) || 0,
             id_modelo: 1, // Valor padrão - seria ideal ter uma lookup table
-            peso: parseValorBrasileiro(data.peso) || 100, // Valor padrão se não conseguir converter
-            destino_final: data.destino_final,
-            filial: data.filial,
-            valor_recuperado: parseValorBrasileiro(data.valor_recuperado),
-            data_registro: data.data_registro
+            peso: parseFloat(item.peso) || 100,
+            destino_final: item.destino_final || '',
+            filial: item.filial || '',
+            valor_recuperado: parseFloat(item.valor_recuperado) || null,
+            data_registro: item.data_registro || new Date().toISOString().split('T')[0]
           };
 
+          console.log('Importando retornado:', retornadoData);
           await retornadoService.create(retornadoData);
           importedCount++;
         } catch (error) {
-          console.error('Erro ao importar linha:', line, error);
+          console.error('Erro ao importar item:', item, error);
           errorCount++;
         }
       }
 
       // Recarregar dados
       await loadRetornados();
+      setIsImportModalOpen(false);
 
       toast({
         title: "Importação Concluída",
@@ -256,9 +204,12 @@ export const RetornadoGrid: React.FC = () => {
       });
     } finally {
       setImporting(false);
-      // Limpar o input
-      event.target.value = '';
     }
+  };
+
+  // Função obsoleta - removida para usar o ImportModal
+  const handleImportCSV = () => {
+    setIsImportModalOpen(true);
   };
 
   if (loading) {
@@ -306,6 +257,15 @@ export const RetornadoGrid: React.FC = () => {
       <RetornadoTable
         retornados={filteredRetornados}
         onDelete={handleDeleteRetornado}
+      />
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onUpload={handleImportUpload}
+        onDownloadTemplate={handleDownloadTemplate}
+        title="Importar Planilha de Retornados"
+        templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, peso, valor_recuperado, data_registro"
       />
     </div>
   );
