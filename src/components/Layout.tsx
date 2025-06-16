@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -120,19 +119,37 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     },
     {
       title: "Não Conformidades",
-      icon: AlertTriangle,
       items: [
-        { title: 'Registro de NC', id: 'nao-conformidades-registro' },
-        { title: 'Consulta de NC', id: 'nao-conformidades-consulta' },
-        { title: 'Gráficos de NC', id: 'nao-conformidades-graficos' },
+        { 
+          id: 'nao-conformidades-registro',
+          label: 'Registro de NC',
+          icon: AlertTriangle
+        },
+        { 
+          id: 'nao-conformidades-consulta',
+          label: 'Consulta de NC',
+          icon: HiViewBoards
+        },
+        { 
+          id: 'nao-conformidades-graficos',
+          label: 'Gráficos de NC',
+          icon: HiChartPie
+        },
       ]
     },
     {
       title: 'Certificados',
-      icon: FileText,
       items: [
-        { title: 'Registro de Certificados', id: 'certificados-registro' },
-        { title: 'Consulta de Certificados', id: 'certificados-consulta' },
+        { 
+          id: 'certificados-registro',
+          label: 'Registro de Certificados',
+          icon: FileText
+        },
+        { 
+          id: 'certificados-consulta',
+          label: 'Consulta de Certificados',
+          icon: HiViewBoards
+        },
       ]
     },
     {
@@ -226,17 +243,20 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
               {menuGroup.title}
             </h3>
             <div className="space-y-1">
-              {menuGroup.items.map(item => (
-                <Button
-                  key={item.id}
-                  variant={currentPage === item.id ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => onPageChange(item.id)}
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.label}
-                </Button>
-              ))}
+              {menuGroup.items.map(item => {
+                const IconComponent = item.icon;
+                return (
+                  <Button
+                    key={item.id}
+                    variant={currentPage === item.id ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => onPageChange(item.id)}
+                  >
+                    <IconComponent className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                );
+              })}
             </div>
             {index < menuItems.length - 1 && <Separator className="mt-4" />}
           </div>
