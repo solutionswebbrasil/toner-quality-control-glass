@@ -33,7 +33,8 @@ export const processImportData = async (
         capacidade_folhas: 1000,
         preco_produto: 50,
         valor_por_folha: 0.05,
-        registrado_por: 1
+        registrado_por: 1,
+        data_registro: new Date().toISOString()
       });
       idTonerPadrao = tonerPadrao.id;
       console.log(`Toner padrão criado com ID ${idTonerPadrao}`);
