@@ -23,6 +23,11 @@ export interface Retornado {
   data_registro: string; // Changed from Date to string
   valor_recuperado?: number;
   modelo?: string; // Para joins
+  // Campos adicionais para cálculos de valor recuperado
+  peso_vazio?: number;
+  gramatura?: number;
+  capacidade_folhas?: number;
+  valor_por_folha?: number;
 }
 
 export interface RetornadoCSV {
