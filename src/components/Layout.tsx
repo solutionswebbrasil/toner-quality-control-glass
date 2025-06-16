@@ -1,5 +1,5 @@
+
 import React, { useState } from 'react';
-import { Sidebar } from 'flowbite-react';
 import { 
   HiChartPie, 
   HiViewBoards, 
@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -192,6 +194,34 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   ];
 
+  const SidebarContent = () => (
+    <ScrollArea className="h-full py-6 px-4">
+      <div className="space-y-6">
+        {menuItems.map((menuGroup, index) => (
+          <div key={index}>
+            <h3 className="mb-2 px-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {menuGroup.title}
+            </h3>
+            <div className="space-y-1">
+              {menuGroup.items.map(item => (
+                <Button
+                  key={item.id}
+                  variant={currentPage === item.id ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => onPageChange(item.id)}
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+            {index < menuItems.length - 1 && <Separator className="mt-4" />}
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-40 w-full">
@@ -209,30 +239,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
                   Navegue pelas opções do sistema.
                 </SheetDescription>
               </SheetHeader>
-              <Sidebar aria-label="Sidebar with multi-level dropdown example">
-                <Sidebar.Items>
-                  {menuItems.map((menuGroup, index) => (
-                    <div key={index}>
-                      {menuGroup.title && (
-                        <Sidebar.Title>{menuGroup.title}</Sidebar.Title>
-                      )}
-                      {menuGroup.items.map(item => (
-                        <Sidebar.Item
-                          key={item.id}
-                          href="#"
-                          active={currentPage === item.id}
-                          onClick={() => onPageChange(item.id)}
-                        >
-                          <span className="flex items-center space-x-2">
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.label}</span>
-                          </span>
-                        </Sidebar.Item>
-                      ))}
-                    </div>
-                  ))}
-                </Sidebar.Items>
-              </Sidebar>
+              <SidebarContent />
             </SheetContent>
           </Sheet>
           <div className="font-bold text-xl">
@@ -246,30 +253,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 p-4">
         <aside className="hidden lg:block col-span-1">
-          <Sidebar aria-label="Sidebar with multi-level dropdown example">
-            <Sidebar.Items>
-              {menuItems.map((menuGroup, index) => (
-                <div key={index}>
-                  {menuGroup.title && (
-                    <Sidebar.Title>{menuGroup.title}</Sidebar.Title>
-                  )}
-                  {menuGroup.items.map(item => (
-                    <Sidebar.Item
-                      key={item.id}
-                      href="#"
-                      active={currentPage === item.id}
-                      onClick={() => onPageChange(item.id)}
-                    >
-                      <span className="flex items-center space-x-2">
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.label}</span>
-                      </span>
-                    </Sidebar.Item>
-                  ))}
-                </div>
-              ))}
-            </Sidebar.Items>
-          </Sidebar>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit">
+            <SidebarContent />
+          </div>
         </aside>
 
         <main className="col-span-1 lg:col-span-4">
