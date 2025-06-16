@@ -29,6 +29,7 @@ export const RetornadoGrid: React.FC = () => {
 
   const {
     importing,
+    importProgress,
     isImportModalOpen,
     setIsImportModalOpen,
     handleExportCSV,
@@ -97,6 +98,8 @@ export const RetornadoGrid: React.FC = () => {
         title="Importar Planilha de Retornados"
         templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, valor_recuperado, data_registro"
         requiredColumns={['id_cliente']}
+        importing={importing}
+        progress={importProgress}
       />
     </div>
   );

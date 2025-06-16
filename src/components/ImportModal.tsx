@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { FileDropZone } from './import/FileDropZone';
 import { ImportActions } from './import/ImportActions';
@@ -15,6 +16,8 @@ interface ImportModalProps {
   templateDescription: string;
   requiredColumns?: string[];
   validateData?: (data: any[]) => boolean;
+  importing?: boolean;
+  progress?: number;
 }
 
 export const ImportModal: React.FC<ImportModalProps> = ({
@@ -25,7 +28,9 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   title,
   templateDescription,
   requiredColumns,
-  validateData
+  validateData,
+  importing = false,
+  progress = 0
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,9 +86,19 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             O formato da data pode ser DD/MM/AAAA ou DD-MM-AAAA.
           </div>
 
+          {importing && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Importando dados...</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} className="w-full" />
+            </div>
+          )}
+
           <FileDropZone
             isDragging={isDragging}
-            isProcessing={isProcessing}
+            isProcessing={isProcessing || importing}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -96,12 +111,13 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             accept=".xlsx,.xls"
             onChange={handleFileInputChange}
             className="hidden"
+            disabled={importing}
           />
 
           <ImportActions
             onDownloadTemplate={onDownloadTemplate}
             onSelectFile={() => fileInputRef.current?.click()}
-            isProcessing={isProcessing}
+            isProcessing={isProcessing || importing}
           />
         </div>
       </DialogContent>

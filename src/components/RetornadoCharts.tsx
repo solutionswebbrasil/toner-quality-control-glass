@@ -8,7 +8,7 @@ import { Maximize2 } from 'lucide-react';
 import { ChartModal } from './ChartModal';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -32,7 +32,7 @@ export const RetornadoCharts: React.FC = () => {
   const [endDate, setEndDate] = useState<Date | undefined>();
 
   // Cores mais vibrantes para os gráficos
-  const pieColors = ['#2563eb', '#16a34a', '#dc2626', '#ea580c', '#7c3aed', '#db2777'];
+  const pieColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   const loadChartData = async () => {
     try {
@@ -51,22 +51,72 @@ export const RetornadoCharts: React.FC = () => {
         return true;
       });
 
-      // Dados mensais ou por período
-      const dataMap = new Map();
-      
+      // Preparar dados baseado no período selecionado
+      let dataMap = new Map();
+      let periodArray: any[] = [];
+
       if (startDate && endDate) {
-        // Se há filtro de data, agrupar por dia
-        const startDay = new Date(startDate);
-        const endDay = new Date(endDate);
+        const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
         
-        for (let d = new Date(startDay); d <= endDay; d.setDate(d.getDate() + 1)) {
-          const key = format(new Date(d), 'dd/MM');
-          dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
+        if (daysDifference <= 31) {
+          // Mostrar por dias se período for menor que 31 dias
+          const daysInterval = eachDayOfInterval({ start: startDate, end: endDate });
+          
+          daysInterval.forEach(day => {
+            const key = format(day, 'dd/MM', { locale: ptBR });
+            dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
+          });
+          
+          filteredData.forEach(item => {
+            const date = new Date(item.data_registro);
+            const key = format(date, 'dd/MM', { locale: ptBR });
+            
+            if (dataMap.has(key)) {
+              const existing = dataMap.get(key);
+              existing.quantidade += 1;
+              existing.valor += item.valor_recuperado || 0;
+            }
+          });
+        } else {
+          // Mostrar por meses se período for maior que 31 dias
+          const monthsInterval = eachMonthOfInterval({ start: startOfMonth(startDate), end: endOfMonth(endDate) });
+          
+          monthsInterval.forEach(month => {
+            const key = format(month, 'MMM/yy', { locale: ptBR });
+            dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
+          });
+          
+          filteredData.forEach(item => {
+            const date = new Date(item.data_registro);
+            const key = format(date, 'MMM/yy', { locale: ptBR });
+            
+            if (dataMap.has(key)) {
+              const existing = dataMap.get(key);
+              existing.quantidade += 1;
+              existing.valor += item.valor_recuperado || 0;
+            }
+          });
         }
+      } else {
+        // Mostrar últimos 6 meses por padrão
+        const today = new Date();
+        const sixMonthsAgo = subMonths(today, 5);
+        const monthsInterval = eachMonthOfInterval({ start: startOfMonth(sixMonthsAgo), end: endOfMonth(today) });
         
-        filteredData.forEach(item => {
+        monthsInterval.forEach(month => {
+          const key = format(month, 'MMM/yy', { locale: ptBR });
+          dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
+        });
+        
+        // Filtrar dados dos últimos 6 meses
+        const filteredLastSixMonths = retornados.filter(item => {
+          const itemDate = new Date(item.data_registro);
+          return itemDate >= sixMonthsAgo;
+        });
+        
+        filteredLastSixMonths.forEach(item => {
           const date = new Date(item.data_registro);
-          const key = format(date, 'dd/MM');
+          const key = format(date, 'MMM/yy', { locale: ptBR });
           
           if (dataMap.has(key)) {
             const existing = dataMap.get(key);
@@ -74,29 +124,9 @@ export const RetornadoCharts: React.FC = () => {
             existing.valor += item.valor_recuperado || 0;
           }
         });
-      } else {
-        // Últimos 6 meses por padrão
-        for (let i = 5; i >= 0; i--) {
-          const date = new Date();
-          date.setMonth(date.getMonth() - i);
-          const monthName = getMonthName(date.getMonth());
-          const key = monthName;
-          dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
-        }
-        
-        filteredData.forEach(item => {
-          const date = new Date(item.data_registro);
-          const monthName = getMonthName(date.getMonth());
-          
-          if (dataMap.has(monthName)) {
-            const existing = dataMap.get(monthName);
-            existing.quantidade += 1;
-            existing.valor += item.valor_recuperado || 0;
-          }
-        });
       }
 
-      const periodArray = Array.from(dataMap.values());
+      periodArray = Array.from(dataMap.values());
       setMonthlyData(periodArray);
       setValorData(periodArray);
 
@@ -126,11 +156,11 @@ export const RetornadoCharts: React.FC = () => {
   const chartConfig = {
     quantidade: {
       label: "Quantidade",
-      color: "#2563eb",
+      color: "#3b82f6",
     },
     valor: {
       label: "Valor (R$)",
-      color: "#16a34a",
+      color: "#10b981",
     },
   };
 
@@ -150,31 +180,35 @@ export const RetornadoCharts: React.FC = () => {
     );
   }
 
-  const periodLabel = startDate && endDate ? 
-    `${startDate && endDate && (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) <= 31 ? 'por Período' : 'por Mês'}` : 
-    'Últimos 6 Meses';
+  const getPeriodLabel = () => {
+    if (startDate && endDate) {
+      const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+      return daysDifference <= 31 ? 'por Período Diário' : 'por Período Mensal';
+    }
+    return 'Últimos 6 Meses';
+  };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Gráficos de Retornados</h2>
+      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Gráficos de Retornados</h2>
       
       {/* Filtros de Data */}
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+      <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/50 shadow-lg">
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-4 items-center">
             <div>
-              <label className="text-sm font-medium mb-2 block">Data Inicial:</label>
+              <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Data Inicial:</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-40 justify-start text-left font-normal",
+                      "w-40 justify-start text-left font-normal bg-white dark:bg-slate-800",
                       !startDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar"}
+                    {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -183,24 +217,25 @@ export const RetornadoCharts: React.FC = () => {
                     selected={startDate}
                     onSelect={setStartDate}
                     className="p-3 pointer-events-auto"
+                    locale={ptBR}
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Data Final:</label>
+              <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Data Final:</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-40 justify-start text-left font-normal",
+                      "w-40 justify-start text-left font-normal bg-white dark:bg-slate-800",
                       !endDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "dd/MM/yyyy") : "Selecionar"}
+                    {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -209,69 +244,78 @@ export const RetornadoCharts: React.FC = () => {
                     selected={endDate}
                     onSelect={setEndDate}
                     className="p-3 pointer-events-auto"
+                    locale={ptBR}
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
-            <Button variant="outline" onClick={clearFilters}>
-              Limpar Filtros
-            </Button>
+            <div className="flex items-end">
+              <Button variant="outline" onClick={clearFilters} className="bg-white dark:bg-slate-800">
+                Limpar Filtros
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
       
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Gráfico de Quantidade - Melhorado */}
-        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+        {/* Gráfico de Quantidade */}
+        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
-              Retornados {periodLabel}
+              Retornados {getPeriodLabel()}
             </CardTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setExpandedChart('quantidade')}
+              className="bg-white/50 dark:bg-slate-800/50"
             >
               <Maximize2 className="w-4 h-4" />
             </Button>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-80">
-              <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis 
-                  dataKey="period" 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                />
-                <ChartTooltip 
-                  content={<ChartTooltipContent />}
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Bar 
-                  dataKey="quantidade" 
-                  fill="#2563eb" 
-                  radius={[4, 4, 0, 0]}
-                  name="Quantidade"
-                />
-              </BarChart>
+          <CardContent className="pb-4">
+            <ChartContainer config={chartConfig} className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                  <XAxis 
+                    dataKey="period" 
+                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    axisLine={{ stroke: '#cbd5e1' }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    axisLine={{ stroke: '#cbd5e1' }}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="quantidade" 
+                    fill="#3b82f6" 
+                    radius={[6, 6, 0, 0]}
+                    name="Quantidade"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Gráfico Pizza - Destino Final - Melhorado */}
-        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        {/* Gráfico Pizza - Destino Final */}
+        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
               Destino Final dos Retornados
             </CardTitle>
@@ -279,74 +323,83 @@ export const RetornadoCharts: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setExpandedChart('destino')}
+              className="bg-white/50 dark:bg-slate-800/50"
             >
               <Maximize2 className="w-4 h-4" />
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             {destinoData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-80">
-                <PieChart>
-                  <Pie
-                    data={destinoData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    stroke="#fff"
-                    strokeWidth={2}
-                  >
-                    {destinoData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
-                </PieChart>
+              <ChartContainer config={chartConfig} className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={destinoData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={90}
+                      fill="#8884d8"
+                      dataKey="value"
+                      stroke="#fff"
+                      strokeWidth={3}
+                    >
+                      {destinoData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip 
+                      content={<ChartTooltipContent />}
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <div className="h-80 flex items-center justify-center text-slate-500">
+              <div className="h-72 flex items-center justify-center text-slate-500">
                 Nenhum dado disponível para o período selecionado
               </div>
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Novo Gráfico de Valor Recuperado - Melhorado */}
-        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-lg lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
-              Valor Recuperado {periodLabel}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExpandedChart('valor')}
-            >
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-80">
-              <BarChart data={valorData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+      {/* Gráfico de Valor Recuperado - Full Width */}
+      <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
+            Valor Recuperado {getPeriodLabel()}
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setExpandedChart('valor')}
+            className="bg-white/50 dark:bg-slate-800/50"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <ChartContainer config={chartConfig} className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={valorData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                 <XAxis 
                   dataKey="period" 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: '#64748b' }}
                   axisLine={{ stroke: '#cbd5e1' }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: '#64748b' }}
                   axisLine={{ stroke: '#cbd5e1' }}
                   tickFormatter={(value) => `R$ ${value.toFixed(0)}`}
                 />
@@ -354,38 +407,40 @@ export const RetornadoCharts: React.FC = () => {
                   content={<ChartTooltipContent />}
                   formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor Recuperado']}
                   contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
                     border: '1px solid #e2e8f0',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
                   }}
                 />
                 <Bar 
                   dataKey="valor" 
-                  fill="#16a34a" 
-                  radius={[4, 4, 0, 0]}
+                  fill="#10b981" 
+                  radius={[6, 6, 0, 0]}
                   name="Valor Recuperado"
                 />
               </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
       {/* Modals para Gráficos Expandidos */}
       <ChartModal
         isOpen={expandedChart === 'quantidade'}
         onClose={() => setExpandedChart(null)}
-        title={`Retornados ${periodLabel}`}
+        title={`Retornados ${getPeriodLabel()}`}
       >
         <ChartContainer config={chartConfig} className="h-96">
-          <BarChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="period" />
-            <YAxis />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
-          </BarChart>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" angle={-45} textAnchor="end" height={60} />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="quantidade" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </ChartModal>
 
@@ -396,23 +451,27 @@ export const RetornadoCharts: React.FC = () => {
       >
         {destinoData.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-96">
-            <PieChart>
-              <Pie
-                data={destinoData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={120}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {destinoData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                ))}
-              </Pie>
-              <ChartTooltip content={<ChartTooltipContent />} />
-            </PieChart>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={destinoData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={120}
+                  fill="#8884d8"
+                  dataKey="value"
+                  stroke="#fff"
+                  strokeWidth={2}
+                >
+                  {destinoData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </PieChart>
+            </ResponsiveContainer>
           </ChartContainer>
         ) : (
           <div className="h-96 flex items-center justify-center text-slate-500">
@@ -424,19 +483,21 @@ export const RetornadoCharts: React.FC = () => {
       <ChartModal
         isOpen={expandedChart === 'valor'}
         onClose={() => setExpandedChart(null)}
-        title={`Valor Recuperado ${periodLabel}`}
+        title={`Valor Recuperado ${getPeriodLabel()}`}
       >
         <ChartContainer config={chartConfig} className="h-96">
-          <BarChart data={valorData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="period" />
-            <YAxis />
-            <ChartTooltip 
-              content={<ChartTooltipContent />}
-              formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor Recuperado']}
-            />
-            <Bar dataKey="valor" fill="var(--color-valor)" />
-          </BarChart>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={valorData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" angle={-45} textAnchor="end" height={60} />
+              <YAxis tickFormatter={(value) => `R$ ${value.toFixed(0)}`} />
+              <ChartTooltip 
+                content={<ChartTooltipContent />}
+                formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor Recuperado']}
+              />
+              <Bar dataKey="valor" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </ChartModal>
 

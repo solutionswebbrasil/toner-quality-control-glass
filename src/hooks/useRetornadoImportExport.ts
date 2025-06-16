@@ -9,6 +9,7 @@ import { Retornado } from '@/types';
 export const useRetornadoImportExport = (loadRetornados: () => void) => {
   const { toast } = useToast();
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const handleExportCSV = (filteredRetornados: Retornado[]) => {
@@ -50,15 +51,24 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
 
   const handleImportUpload = async (data: any[]) => {
     setImporting(true);
+    setImportProgress(0);
     
     try {
-      const { importedCount, errorCount, errors } = await processImportData(data);
+      const { importedCount, errorCount, errors } = await processImportData(
+        data,
+        (imported: number, errors: number) => {
+          const total = imported + errors;
+          const progress = (total / data.length) * 100;
+          setImportProgress(Math.min(progress, 100));
+        }
+      );
       
       console.log(`Importação concluída: ${importedCount} sucessos, ${errorCount} erros`);
       
       // Recarregar dados após importação
       await loadRetornados();
       setIsImportModalOpen(false);
+      setImportProgress(0);
 
       if (errorCount > 0) {
         console.log('Erros encontrados:', errors);
@@ -83,6 +93,7 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
       });
     } finally {
       setImporting(false);
+      setImportProgress(0);
     }
   };
 
@@ -92,6 +103,7 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
 
   return {
     importing,
+    importProgress,
     isImportModalOpen,
     setIsImportModalOpen,
     handleExportCSV,
