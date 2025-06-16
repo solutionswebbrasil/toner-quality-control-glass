@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +8,18 @@ import { ChartModal } from './ChartModal';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { retornadoService } from '@/services/dataService';
+
+const getMonthName = (monthNumber: number) => {
+  const months = [
+    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+  ];
+  return months[monthNumber];
+};
 
 export const RetornadoCharts: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
@@ -69,13 +77,17 @@ export const RetornadoCharts: React.FC = () => {
         for (let i = 5; i >= 0; i--) {
           const date = new Date();
           date.setMonth(date.getMonth() - i);
-          const key = `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
+          const monthName = getMonthName(date.getMonth());
+          const year = date.getFullYear();
+          const key = `${monthName}/${year}`;
           dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
         }
         
         filteredData.forEach(item => {
           const date = new Date(item.data_registro);
-          const key = `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
+          const monthName = getMonthName(date.getMonth());
+          const year = date.getFullYear();
+          const key = `${monthName}/${year}`;
           
           if (dataMap.has(key)) {
             const existing = dataMap.get(key);
