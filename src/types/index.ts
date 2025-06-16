@@ -108,3 +108,4 @@ export interface RegistroBpmn {
 }
 
 export type { Filial } from './filial';
+export type { NaoConformidade } from './naoConformidade';

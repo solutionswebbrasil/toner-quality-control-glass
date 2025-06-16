@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -16,7 +15,8 @@ import {
   HiAdjustments,
   HiCog,
   HiOfficeBuilding,
-  HiSearch
+  HiSearch,
+  HiExclamationTriangle
 } from 'react-icons/hi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from "@/components/ui/button"
@@ -114,6 +114,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           id: "auditorias-consulta",
           label: "Consultar Auditorias",
           icon: HiViewBoards
+        }
+      ]
+    },
+    {
+      title: "Não Conformidades",
+      items: [
+        {
+          id: "nao-conformidades-registro",
+          label: "Registro de NC",
+          icon: HiExclamationTriangle
+        },
+        {
+          id: "nao-conformidades-consulta",
+          label: "Consulta de NC",
+          icon: HiViewBoards
+        },
+        {
+          id: "nao-conformidades-graficos",
+          label: "Gráficos de NC",
+          icon: HiChartPie
         }
       ]
     },

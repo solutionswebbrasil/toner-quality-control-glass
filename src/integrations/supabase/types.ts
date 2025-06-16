@@ -149,6 +149,69 @@ export type Database = {
           },
         ]
       }
+      nao_conformidades: {
+        Row: {
+          acao_corretiva_proposta: string | null
+          acao_imediata: string | null
+          classificacao: string
+          data_atualizacao: string | null
+          data_limite_correcao: string
+          data_ocorrencia: string
+          data_registro: string
+          descricao: string
+          evidencias: Json | null
+          id: number
+          identificado_por: string
+          necessita_acao_corretiva: boolean | null
+          observacoes: string | null
+          responsavel_tratamento: string
+          setor_responsavel: string
+          status: string
+          tipo_nc: string
+          unidade_filial: string
+        }
+        Insert: {
+          acao_corretiva_proposta?: string | null
+          acao_imediata?: string | null
+          classificacao: string
+          data_atualizacao?: string | null
+          data_limite_correcao: string
+          data_ocorrencia: string
+          data_registro?: string
+          descricao: string
+          evidencias?: Json | null
+          id?: number
+          identificado_por: string
+          necessita_acao_corretiva?: boolean | null
+          observacoes?: string | null
+          responsavel_tratamento: string
+          setor_responsavel: string
+          status?: string
+          tipo_nc: string
+          unidade_filial: string
+        }
+        Update: {
+          acao_corretiva_proposta?: string | null
+          acao_imediata?: string | null
+          classificacao?: string
+          data_atualizacao?: string | null
+          data_limite_correcao?: string
+          data_ocorrencia?: string
+          data_registro?: string
+          descricao?: string
+          evidencias?: Json | null
+          id?: number
+          identificado_por?: string
+          necessita_acao_corretiva?: boolean | null
+          observacoes?: string | null
+          responsavel_tratamento?: string
+          setor_responsavel?: string
+          status?: string
+          tipo_nc?: string
+          unidade_filial?: string
+        }
+        Relationships: []
+      }
       registros_bpmn: {
         Row: {
           arquivo_png: string | null

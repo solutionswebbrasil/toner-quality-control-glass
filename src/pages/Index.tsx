@@ -12,6 +12,9 @@ import { GarantiaGrid } from '@/components/GarantiaGrid';
 import { GarantiaCharts } from '@/components/GarantiaCharts';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
 import { AuditoriaGrid } from '@/components/AuditoriaGrid';
+import { NaoConformidadeForm } from '@/components/NaoConformidadeForm';
+import { NaoConformidadeGrid } from '@/components/NaoConformidadeGrid';
+import { NaoConformidadeCharts } from '@/components/NaoConformidadeCharts';
 import { TituloItPopForm } from '@/components/TituloItPopForm';
 import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { RegistroItPopForm } from '@/components/RegistroItPopForm';
@@ -25,70 +28,78 @@ import { VisualizadorBpmn } from '@/components/VisualizadorBpmn';
 import { FilialForm } from '@/components/FilialForm';
 import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
+import { useNaoConformidades } from '@/hooks/useNaoConformidades';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
+  const { naoConformidades } = useNaoConformidades();
 
-  const renderPage = () => {
+  const renderContent = () => {
     switch (currentPage) {
       case 'toners-cadastro':
-        return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
+        return <TonerForm />;
       case 'toners-consulta':
         return <TonerGrid />;
       case 'retornados-registro':
-        return <RetornadoForm onSuccess={() => console.log('Retornado registrado!')} />;
+        return <RetornadoForm />;
       case 'retornados-consulta':
         return <RetornadoGrid />;
       case 'retornados-graficos':
         return <RetornadoCharts />;
       case 'garantias-fornecedores-cadastro':
-        return <FornecedorForm onSuccess={() => console.log('Fornecedor cadastrado!')} />;
+        return <FornecedorForm />;
       case 'garantias-fornecedores-consulta':
         return <FornecedorGrid />;
       case 'garantias-registro':
-        return <GarantiaForm onSuccess={() => console.log('Garantia registrada!')} />;
+        return <GarantiaForm />;
       case 'garantias-consulta':
         return <GarantiaGrid />;
       case 'garantias-graficos':
         return <GarantiaCharts />;
       case 'auditorias-registro':
-        return <AuditoriaForm onSuccess={() => console.log('Auditoria registrada!')} />;
+        return <AuditoriaForm />;
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
+      case 'nao-conformidades-registro':
+        return <NaoConformidadeForm />;
+      case 'nao-conformidades-consulta':
+        return <NaoConformidadeGrid />;
+      case 'nao-conformidades-graficos':
+        return <NaoConformidadeCharts naoConformidades={naoConformidades} />;
       case 'itpop-titulo-cadastro':
-        return <TituloItPopForm onSuccess={() => console.log('Título IT/POP cadastrado!')} />;
+        return <TituloItPopForm />;
       case 'itpop-titulo-consulta':
-        return <ConsultaTitulosItPop onSuccess={() => console.log('Título IT/POP consultado!')} />;
+        return <ConsultaTitulosItPop />;
       case 'itpop-registro':
-        return <RegistroItPopForm onSuccess={() => console.log('IT/POP registrado!')} />;
+        return <RegistroItPopForm />;
       case 'itpop-registros-consulta':
-        return <ConsultaRegistrosItPop onSuccess={() => console.log('Registros IT/POP consultados!')} />;
+        return <ConsultaRegistrosItPop />;
       case 'itpop-visualizar':
-        return <VisualizadorItPop onSuccess={() => console.log('IT/POP visualizado!')} />;
+        return <VisualizadorItPop />;
       case 'bpmn-titulo-cadastro':
-        return <TituloBpmnForm onSuccess={() => console.log('Título BPMN cadastrado!')} />;
+        return <TituloBpmnForm />;
       case 'bpmn-titulo-consulta':
-        return <ConsultaTitulosBpmn onSuccess={() => console.log('Títulos BPMN consultados!')} />;
+        return <ConsultaTitulosBpmn />;
       case 'bpmn-registro':
-        return <RegistroBpmnForm onSuccess={() => console.log('BPMN registrado!')} />;
+        return <RegistroBpmnForm />;
       case 'bpmn-registros-consulta':
-        return <ConsultaRegistrosBpmn onSuccess={() => console.log('Registros BPMN consultados!')} />;
+        return <ConsultaRegistrosBpmn />;
       case 'bpmn-visualizar':
-        return <VisualizadorBpmn onSuccess={() => console.log('BPMN visualizado!')} />;
+        return <VisualizadorBpmn />;
       case 'configuracoes-filiais-cadastro':
-        return <FilialForm onSuccess={() => console.log('Filial cadastrada!')} />;
+        return <FilialForm />;
       case 'configuracoes-filiais-consulta':
         return <FilialGrid />;
       case 'configuracoes-retornado':
         return <ConfiguracoesRetornado />;
       default:
-        return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
+        return <TonerForm />;
     }
   };
 
   return (
     <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderPage()}
+      {renderContent()}
     </Layout>
   );
 };
