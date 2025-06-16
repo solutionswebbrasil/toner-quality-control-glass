@@ -90,9 +90,11 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
     try {
       setIsSubmitting(true);
       
-      // Simular salvamento da auditoria
+      // Create auditoria object with properly typed required fields
       const auditoria: Auditoria = {
-        ...data,
+        data_inicio: data.data_inicio,
+        data_fim: data.data_fim,
+        unidade_auditada: data.unidade_auditada,
         formulario_pdf: pdfFile || undefined,
         data_registro: new Date(),
       };
