@@ -30,34 +30,6 @@ const unidades = [
   'Filial Goiânia'
 ];
 
-// Dados mock para demonstração - usando strings para datas
-const mockAuditorias: Auditoria[] = [
-  {
-    id: 1,
-    data_inicio: '2024-01-15',
-    data_fim: '2024-01-17',
-    unidade_auditada: 'Matriz - São Paulo',
-    formulario_pdf: 'auditoria_matriz_jan2024.pdf',
-    data_registro: '2024-01-18T00:00:00.000Z',
-  },
-  {
-    id: 2,
-    data_inicio: '2024-02-10',
-    data_fim: '2024-02-12',
-    unidade_auditada: 'Filial Rio de Janeiro',
-    formulario_pdf: 'auditoria_rj_fev2024.pdf',
-    data_registro: '2024-02-13T00:00:00.000Z',
-  },
-  {
-    id: 3,
-    data_inicio: '2024-03-05',
-    data_fim: '2024-03-08',
-    unidade_auditada: 'Filial Belo Horizonte',
-    formulario_pdf: 'auditoria_bh_mar2024.pdf',
-    data_registro: '2024-03-09T00:00:00.000Z',
-  },
-];
-
 export const AuditoriaGrid: React.FC = () => {
   const [auditorias, setAuditorias] = useState<Auditoria[]>([]);
   const [filteredAuditorias, setFilteredAuditorias] = useState<Auditoria[]>([]);
@@ -77,17 +49,14 @@ export const AuditoriaGrid: React.FC = () => {
   const loadAuditorias = async () => {
     try {
       setIsLoading(true);
-      // Tentar carregar do banco de dados primeiro
       const data = await auditoriaService.getAll();
-      setAuditorias(data.length > 0 ? data : mockAuditorias);
+      setAuditorias(data);
     } catch (error) {
       console.error('Erro ao carregar auditorias:', error);
-      // Usar dados mock em caso de erro
-      setAuditorias(mockAuditorias);
       toast({
-        title: 'Aviso',
-        description: 'Carregando dados de exemplo. Verifique a conexão com o banco.',
-        variant: 'default',
+        title: 'Erro',
+        description: 'Erro ao carregar auditorias. Tente novamente.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -116,44 +85,55 @@ export const AuditoriaGrid: React.FC = () => {
   };
 
   const handleDownloadPDF = async (auditoria: Auditoria) => {
-    if (auditoria.formulario_pdf) {
-      try {
-        // Se a URL começa com http, é uma URL completa do Supabase Storage
-        if (auditoria.formulario_pdf.startsWith('http')) {
-          const link = document.createElement('a');
-          link.href = auditoria.formulario_pdf;
-          link.download = `auditoria_${auditoria.id}_formulario.pdf`;
-          link.target = '_blank';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          toast({
-            title: 'Download iniciado',
-            description: `Baixando formulário da auditoria de ${auditoria.unidade_auditada}`,
-          });
-        } else {
-          // Para compatibilidade com dados antigos
-          toast({
-            title: 'Download simulado',
-            description: `Baixando formulário da auditoria de ${auditoria.unidade_auditada}`,
-          });
-          console.log('Downloading PDF:', auditoria.formulario_pdf);
-        }
-      } catch (error) {
-        console.error('Erro ao baixar PDF:', error);
-        toast({
-          title: 'Erro no download',
-          description: 'Erro ao baixar o arquivo. Tente novamente.',
-          variant: 'destructive',
-        });
-      }
-    } else {
+    if (!auditoria.formulario_pdf) {
       toast({
         title: 'Arquivo não disponível',
         description: 'Esta auditoria não possui formulário anexado.',
         variant: 'destructive',
       });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Se a URL começa com http, é uma URL completa do Supabase Storage
+      if (auditoria.formulario_pdf.startsWith('http')) {
+        // Criar um link temporário para download
+        const response = await fetch(auditoria.formulario_pdf);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `auditoria_${auditoria.id}_formulario.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpar o objeto URL
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: 'Download concluído',
+          description: `Formulário da auditoria de ${auditoria.unidade_auditada} baixado com sucesso.`,
+        });
+      } else {
+        toast({
+          title: 'Erro no download',
+          description: 'URL do arquivo inválida.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao baixar PDF:', error);
+      toast({
+        title: 'Erro no download',
+        description: 'Erro ao baixar o arquivo. Verifique sua conexão e tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -339,11 +319,11 @@ export const AuditoriaGrid: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleDownloadPDF(auditoria)}
-                            disabled={!auditoria.formulario_pdf}
+                            disabled={!auditoria.formulario_pdf || isLoading}
                             className="flex items-center gap-2"
                           >
                             <Download className="h-4 w-4" />
-                            Baixar PDF
+                            {isLoading ? 'Baixando...' : 'Baixar PDF'}
                           </Button>
                           
                           <AlertDialog>
@@ -351,6 +331,7 @@ export const AuditoriaGrid: React.FC = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                disabled={isLoading}
                                 className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
                                 <Trash2 className="h-4 w-4" />
