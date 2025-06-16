@@ -6,12 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Wrench, Search, Filter, Calendar as CalendarIcon, User, Building2, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { Wrench, Search, Filter, Calendar, User, Building2, AlertCircle } from 'lucide-react';
 import { garantiaTonerService, GarantiaToner } from '@/services/garantiaTonerService';
 import { toast } from '@/hooks/use-toast';
 
@@ -22,9 +17,6 @@ export const GarantiaTonerConsulta: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [fornecedorFilter, setFornecedorFilter] = useState<string>('');
-  const [filialFilter, setFilialFilter] = useState<string>('');
-  const [dataInicio, setDataInicio] = useState<Date | undefined>();
-  const [dataFim, setDataFim] = useState<Date | undefined>();
 
   useEffect(() => {
     loadGarantias();
@@ -32,7 +24,7 @@ export const GarantiaTonerConsulta: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [garantias, searchTerm, statusFilter, fornecedorFilter, filialFilter, dataInicio, dataFim]);
+  }, [garantias, searchTerm, statusFilter, fornecedorFilter]);
 
   const loadGarantias = async () => {
     try {
@@ -53,7 +45,6 @@ export const GarantiaTonerConsulta: React.FC = () => {
   const applyFilters = () => {
     let filtered = garantias;
 
-    // Filtro por texto
     if (searchTerm) {
       filtered = filtered.filter(garantia =>
         garantia.ticket_numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,38 +54,14 @@ export const GarantiaTonerConsulta: React.FC = () => {
       );
     }
 
-    // Filtro por status
     if (statusFilter) {
       filtered = filtered.filter(garantia => garantia.status === statusFilter);
     }
 
-    // Filtro por fornecedor
     if (fornecedorFilter) {
       filtered = filtered.filter(garantia => 
         garantia.fornecedor.toLowerCase().includes(fornecedorFilter.toLowerCase())
       );
-    }
-
-    // Filtro por filial
-    if (filialFilter) {
-      filtered = filtered.filter(garantia => 
-        garantia.filial_origem.toLowerCase().includes(filialFilter.toLowerCase())
-      );
-    }
-
-    // Filtro por período
-    if (dataInicio) {
-      filtered = filtered.filter(garantia => {
-        const dataRegistro = new Date(garantia.data_registro);
-        return dataRegistro >= dataInicio;
-      });
-    }
-
-    if (dataFim) {
-      filtered = filtered.filter(garantia => {
-        const dataRegistro = new Date(garantia.data_registro);
-        return dataRegistro <= dataFim;
-      });
     }
 
     setFilteredGarantias(filtered);
@@ -115,9 +82,6 @@ export const GarantiaTonerConsulta: React.FC = () => {
     setSearchTerm('');
     setStatusFilter('');
     setFornecedorFilter('');
-    setFilialFilter('');
-    setDataInicio(undefined);
-    setDataFim(undefined);
   };
 
   if (loading) {
@@ -141,11 +105,11 @@ export const GarantiaTonerConsulta: React.FC = () => {
       <CardContent>
         {/* Filtros */}
         <div className="mb-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar por ticket, modelo..."
+                placeholder="Buscar por ticket, modelo, fornecedor..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-white/50 dark:bg-slate-800/50 backdrop-blur"
@@ -154,10 +118,10 @@ export const GarantiaTonerConsulta: React.FC = () => {
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="">Todos os status</SelectItem>
                 <SelectItem value="Pendente">Pendente</SelectItem>
                 <SelectItem value="Em Análise">Em Análise</SelectItem>
                 <SelectItem value="Aprovada">Aprovada</SelectItem>
@@ -167,76 +131,21 @@ export const GarantiaTonerConsulta: React.FC = () => {
             </Select>
 
             <Input
-              placeholder="Fornecedor"
+              placeholder="Filtrar por fornecedor"
               value={fornecedorFilter}
               onChange={(e) => setFornecedorFilter(e.target.value)}
               className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
 
-            <Input
-              placeholder="Filial"
-              value={filialFilter}
-              onChange={(e) => setFilialFilter(e.target.value)}
-              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
-            />
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal bg-white/50 dark:bg-slate-800/50 backdrop-blur",
-                    !dataInicio && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataInicio ? format(dataInicio, "dd/MM/yyyy") : "Data início"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dataInicio}
-                  onSelect={setDataInicio}
-                  locale={ptBR}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal bg-white/50 dark:bg-slate-800/50 backdrop-blur",
-                    !dataFim && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataFim ? format(dataFim, "dd/MM/yyyy") : "Data fim"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dataFim}
-                  onSelect={setDataFim}
-                  locale={ptBR}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              Limpar Filtros
+            </Button>
           </div>
-
-          <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
-            <Filter className="w-4 h-4" />
-            Limpar Filtros
-          </Button>
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
             <div className="text-yellow-800 dark:text-yellow-200 text-sm font-medium">Pendentes</div>
             <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
@@ -287,9 +196,9 @@ export const GarantiaTonerConsulta: React.FC = () => {
                   <TableHead>Filial</TableHead>
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Data Registro</TableHead>
                   <TableHead>Data Envio</TableHead>
                   <TableHead>Responsável</TableHead>
+                  <TableHead>Defeito</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -311,13 +220,7 @@ export const GarantiaTonerConsulta: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <CalendarIcon className="w-3 h-3" />
-                        {new Date(garantia.data_registro).toLocaleDateString('pt-BR')}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <CalendarIcon className="w-3 h-3" />
+                        <Calendar className="w-3 h-3" />
                         {new Date(garantia.data_envio).toLocaleDateString('pt-BR')}
                       </div>
                     </TableCell>
@@ -325,6 +228,11 @@ export const GarantiaTonerConsulta: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <User className="w-3 h-3" />
                         {garantia.responsavel_envio}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={garantia.defeito}>
+                        {garantia.defeito}
                       </div>
                     </TableCell>
                   </TableRow>

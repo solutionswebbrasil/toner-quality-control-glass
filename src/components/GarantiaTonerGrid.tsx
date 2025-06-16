@@ -24,9 +24,7 @@ export const GarantiaTonerGrid: React.FC = () => {
   const loadGarantias = async () => {
     try {
       const data = await garantiaTonerService.getAll();
-      // Filtrar apenas garantias pendentes
-      const pendentes = data.filter(g => g.status === 'Pendente');
-      setGarantias(pendentes);
+      setGarantias(data);
     } catch (error) {
       console.error('Erro ao carregar garantias de toners:', error);
       toast({
@@ -86,17 +84,12 @@ export const GarantiaTonerGrid: React.FC = () => {
         <CardTitle className="flex items-center gap-2">
           <Wrench className="w-5 h-5" />
           Garantias de Toners Pendentes
-          {garantias.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {garantias.length}
-            </Badge>
-          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {garantias.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Nenhuma garantia de toner pendente.
+            Nenhuma garantia de toner registrada.
           </div>
         ) : (
           <div className="space-y-4">
@@ -156,16 +149,6 @@ export const GarantiaTonerGrid: React.FC = () => {
                   <div className="text-sm">
                     <span className="font-medium">Defeito:</span> {garantia.defeito}
                   </div>
-                  {garantia.ns && (
-                    <div className="text-sm mt-1">
-                      <span className="font-medium">NS:</span> {garantia.ns}
-                    </div>
-                  )}
-                  {garantia.lote && (
-                    <div className="text-sm mt-1">
-                      <span className="font-medium">Lote:</span> {garantia.lote}
-                    </div>
-                  )}
                   {garantia.observacoes && (
                     <div className="text-sm mt-2">
                       <span className="font-medium">Observações:</span> {garantia.observacoes}
