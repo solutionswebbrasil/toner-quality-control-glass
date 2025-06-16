@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { 
@@ -16,7 +17,7 @@ import {
   Search,
   Users,
   AlertTriangle,
-  Certificate,
+  Award,
   FileImage,
   Network
 } from 'lucide-react';
@@ -34,42 +35,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const { user, permissions } = useAuth();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setSidebarOpen(localStorage.getItem('sidebarOpen') === 'true');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebarOpen', String(sidebarOpen));
-    }
-  }, [sidebarOpen]);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleMenu = (menuId: string) => {
-    setExpandedMenus((prev) => {
-      if (prev.includes(menuId)) {
-        return prev.filter((id) => id !== menuId);
-      } else {
-        return [...prev, menuId];
-      }
-    });
-  };
-
-  const isActive = (page: string) => currentPage === page;
-
-  const filteredMenuItems = menuItems.filter(item => {
-    if (item.id === 'configuracoes') {
-      return user?.email === 'suporte@lovdata.com.br';
-    }
-    return true;
-  });
+  const { usuario } = useAuth();
 
   const menuItems = [
     {
@@ -165,7 +131,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     {
       id: 'certificados',
       label: 'Certificados',
-      icon: Certificate,
+      icon: Award,
       submenu: [
         { id: 'certificados-registro', label: 'Registro de Certificados', page: 'certificados-registro' },
         { id: 'certificados-consulta', label: 'Consulta de Certificados', page: 'certificados-consulta' }
@@ -183,6 +149,41 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
       ]
     }
   ];
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSidebarOpen(localStorage.getItem('sidebarOpen') === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarOpen', String(sidebarOpen));
+    }
+  }, [sidebarOpen]);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus((prev) => {
+      if (prev.includes(menuId)) {
+        return prev.filter((id) => id !== menuId);
+      } else {
+        return [...prev, menuId];
+      }
+    });
+  };
+
+  const isActive = (page: string) => currentPage === page;
+
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.id === 'configuracoes') {
+      return usuario?.usuario === 'admin.admin';
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
