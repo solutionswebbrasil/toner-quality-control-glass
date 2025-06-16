@@ -66,13 +66,13 @@ export const GarantiaTonerConsulta: React.FC = () => {
       );
     }
 
-    if (nsFilter && garantia.ns) {
+    if (nsFilter) {
       filtered = filtered.filter(garantia => 
         garantia.ns && garantia.ns.toLowerCase().includes(nsFilter.toLowerCase())
       );
     }
 
-    if (loteFilter && garantia.lote) {
+    if (loteFilter) {
       filtered = filtered.filter(garantia => 
         garantia.lote && garantia.lote.toLowerCase().includes(loteFilter.toLowerCase())
       );
