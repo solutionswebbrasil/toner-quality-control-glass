@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
 import { Toner } from '@/types';
+import { Fornecedor } from '@/types';
+import { fornecedorService } from '@/services/fornecedorService';
+import { toast } from '@/hooks/use-toast';
 
 interface GarantiaTonerModalProps {
   isOpen: boolean;
@@ -29,14 +33,46 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
   selectedToner,
   filial
 }) => {
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [loadingFornecedores, setLoadingFornecedores] = useState(false);
   const [formData, setFormData] = useState<GarantiaTonerData>({
     fornecedor: '',
     defeito: '',
     responsavel_envio: ''
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      loadFornecedores();
+    }
+  }, [isOpen]);
+
+  const loadFornecedores = async () => {
+    setLoadingFornecedores(true);
+    try {
+      const data = await fornecedorService.getAll();
+      setFornecedores(data);
+    } catch (error) {
+      console.error('Erro ao carregar fornecedores:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar lista de fornecedores.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingFornecedores(false);
+    }
+  };
+
   const handleInputChange = (field: keyof GarantiaTonerData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFornecedorChange = (fornecedorId: string) => {
+    const fornecedor = fornecedores.find(f => f.id?.toString() === fornecedorId);
+    if (fornecedor) {
+      handleInputChange('fornecedor', fornecedor.nome);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -91,15 +127,31 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="fornecedor">Nome do Fornecedor *</Label>
-              <Input
-                id="fornecedor"
-                type="text"
-                value={formData.fornecedor}
-                onChange={(e) => handleInputChange('fornecedor', e.target.value)}
-                placeholder="Ex: HP Brasil, Canon Brasil..."
-                required
-              />
+              <Label htmlFor="fornecedor">Fornecedor *</Label>
+              {loadingFornecedores ? (
+                <div className="text-sm text-gray-500">Carregando fornecedores...</div>
+              ) : (
+                <Select 
+                  value={fornecedores.find(f => f.nome === formData.fornecedor)?.id?.toString() || ''} 
+                  onValueChange={handleFornecedorChange}
+                >
+                  <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+                    <SelectValue placeholder="Selecione um fornecedor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fornecedores.map((fornecedor) => (
+                      <SelectItem key={fornecedor.id} value={fornecedor.id!.toString()}>
+                        {fornecedor.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {fornecedores.length === 0 && !loadingFornecedores && (
+                <p className="text-sm text-amber-600">
+                  Nenhum fornecedor cadastrado. Cadastre fornecedores primeiro.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -138,7 +190,7 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={!isFormValid()}
+                disabled={!isFormValid() || loadingFornecedores}
                 className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
               >
                 <Save className="w-4 h-4 mr-2" />
