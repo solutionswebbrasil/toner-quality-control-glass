@@ -28,10 +28,9 @@ interface RegistroBpmnFormProps {
 }
 
 export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess }) => {
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [jpgFile, setJpgFile] = useState<File | null>(null);
   const [pngFile, setPngFile] = useState<File | null>(null);
-  const [bizagiFile, setBizagiFile] = useState<File | null>(null);
+  const [zipFile, setZipFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [titulos, setTitulos] = useState<TituloBpmn[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +68,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    type: 'pdf' | 'jpg' | 'png' | 'bizagi',
+    type: 'jpg' | 'png' | 'zip',
     setFile: React.Dispatch<React.SetStateAction<File | null>>
   ) => {
     const file = event.target.files?.[0];
@@ -78,10 +77,6 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
       let errorMessage = '';
 
       switch (type) {
-        case 'pdf':
-          isValid = file.type === 'application/pdf';
-          errorMessage = 'Apenas arquivos PDF são permitidos.';
-          break;
         case 'jpg':
           isValid = file.type === 'image/jpeg';
           errorMessage = 'Apenas arquivos JPG são permitidos.';
@@ -90,9 +85,9 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
           isValid = file.type === 'image/png';
           errorMessage = 'Apenas arquivos PNG são permitidos.';
           break;
-        case 'bizagi':
-          isValid = file.name.endsWith('.bizagi') || file.type === 'application/octet-stream';
-          errorMessage = 'Apenas arquivos Bizagi são permitidos.';
+        case 'zip':
+          isValid = file.type === 'application/zip' || file.name.endsWith('.zip');
+          errorMessage = 'Apenas arquivos ZIP são permitidos.';
           break;
       }
 
@@ -120,7 +115,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
   };
 
   const onSubmit = async (data: RegistroFormData) => {
-    if (!pdfFile && !jpgFile && !pngFile && !bizagiFile) {
+    if (!jpgFile && !pngFile && !zipFile) {
       toast({
         title: 'Erro',
         description: 'Anexe pelo menos um arquivo.',
@@ -135,26 +130,18 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
         titulo_id: data.titulo_id,
         registrado_por: data.registrado_por,
         arquivos: {
-          pdf: !!pdfFile,
           jpg: !!jpgFile,
           png: !!pngFile,
-          bizagi: !!bizagiFile
+          zip: !!zipFile
         }
       });
       
-      let arquivo_pdf_url = null;
       let arquivo_jpg_url = null;
       let arquivo_png_url = null;
-      let arquivo_bizagi_url = null;
+      let arquivo_zip_url = null;
       
       // Upload dos arquivos
       try {
-        if (pdfFile) {
-          console.log('📤 Fazendo upload do PDF...');
-          arquivo_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'bpmn');
-          console.log('✅ PDF uploaded:', arquivo_pdf_url);
-        }
-
         if (jpgFile) {
           console.log('📤 Fazendo upload do JPG...');
           arquivo_jpg_url = await fileUploadService.uploadImage(jpgFile, 'bpmn');
@@ -167,10 +154,10 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
           console.log('✅ PNG uploaded:', arquivo_png_url);
         }
 
-        if (bizagiFile) {
-          console.log('📤 Fazendo upload do Bizagi...');
-          arquivo_bizagi_url = await fileUploadService.uploadFile(bizagiFile, 'bpmn');
-          console.log('✅ Bizagi uploaded:', arquivo_bizagi_url);
+        if (zipFile) {
+          console.log('📤 Fazendo upload do ZIP...');
+          arquivo_zip_url = await fileUploadService.uploadFile(zipFile, 'bpmn');
+          console.log('✅ ZIP uploaded:', arquivo_zip_url);
         }
       } catch (uploadError) {
         console.error('❌ Erro no upload dos arquivos:', uploadError);
@@ -185,10 +172,9 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
       // Criar objeto registro para salvar no banco
       const registro: Omit<RegistroBpmn, 'id' | 'versao' | 'titulo'> = {
         titulo_id: parseInt(data.titulo_id),
-        arquivo_pdf: arquivo_pdf_url || undefined,
         arquivo_jpg: arquivo_jpg_url || undefined,
         arquivo_png: arquivo_png_url || undefined,
-        arquivo_bizagi: arquivo_bizagi_url || undefined,
+        arquivo_zip: arquivo_zip_url || undefined,
         data_registro: new Date().toISOString(),
         registrado_por: data.registrado_por || undefined,
       };
@@ -204,10 +190,9 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
 
       // Limpar formulário
       form.reset();
-      setPdfFile(null);
       setJpgFile(null);
       setPngFile(null);
-      setBizagiFile(null);
+      setZipFile(null);
       onSuccess();
     } catch (error) {
       console.error('❌ Erro ao registrar BPMN:', error);
@@ -243,7 +228,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
           Registro de BPMN
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Registre uma nova versão de BPMN
+          Registre uma nova versão de BPMN (apenas imagens ou arquivo ZIP)
         </p>
       </div>
 
@@ -296,28 +281,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="arquivo_pdf">Arquivo PDF</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="arquivo_pdf"
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, 'pdf', setPdfFile)}
-                      className="flex-1"
-                    />
-                    <Button type="button" variant="outline" size="icon">
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {pdfFile && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      PDF: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </p>
-                  )}
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="arquivo_jpg">Arquivo JPG</Label>
                   <div className="flex items-center space-x-2">
@@ -361,22 +325,22 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="arquivo_bizagi">Arquivo Bizagi</Label>
+                  <Label htmlFor="arquivo_zip">Arquivo ZIP</Label>
                   <div className="flex items-center space-x-2">
                     <Input
-                      id="arquivo_bizagi"
+                      id="arquivo_zip"
                       type="file"
-                      accept=".bizagi"
-                      onChange={(e) => handleFileChange(e, 'bizagi', setBizagiFile)}
+                      accept=".zip"
+                      onChange={(e) => handleFileChange(e, 'zip', setZipFile)}
                       className="flex-1"
                     />
                     <Button type="button" variant="outline" size="icon">
                       <Upload className="h-4 w-4" />
                     </Button>
                   </div>
-                  {bizagiFile && (
+                  {zipFile && (
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      Bizagi: {bizagiFile.name} ({(bizagiFile.size / (1024 * 1024)).toFixed(2)} MB)
+                      ZIP: {zipFile.name} ({(zipFile.size / (1024 * 1024)).toFixed(2)} MB)
                     </p>
                   )}
                 </div>
@@ -388,10 +352,9 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
                   variant="outline"
                   onClick={() => {
                     form.reset();
-                    setPdfFile(null);
                     setJpgFile(null);
                     setPngFile(null);
-                    setBizagiFile(null);
+                    setZipFile(null);
                   }}
                 >
                   Limpar

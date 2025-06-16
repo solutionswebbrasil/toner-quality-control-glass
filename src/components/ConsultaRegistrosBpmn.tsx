@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, Download, Layers, FileText, Image } from 'lucide-react';
+import { Search, Trash2, Download, Layers, Image, Archive } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -112,11 +112,11 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'pdf':
-        return <FileText className="h-4 w-4" />;
       case 'jpg':
       case 'png':
         return <Image className="h-4 w-4" />;
+      case 'zip':
+        return <Archive className="h-4 w-4" />;
       default:
         return <Layers className="h-4 w-4" />;
     }
@@ -195,17 +195,6 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-2">
-                            {registro.arquivo_pdf && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownload(registro.arquivo_pdf!, `${registro.titulo}_v${registro.versao}.pdf`)}
-                                className="text-xs"
-                              >
-                                {getFileIcon('pdf')}
-                                PDF
-                              </Button>
-                            )}
                             {registro.arquivo_jpg && (
                               <Button
                                 variant="outline"
@@ -228,15 +217,15 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
                                 PNG
                               </Button>
                             )}
-                            {registro.arquivo_bizagi && (
+                            {registro.arquivo_zip && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleDownload(registro.arquivo_bizagi!, `${registro.titulo}_v${registro.versao}.bizagi`)}
+                                onClick={() => handleDownload(registro.arquivo_zip!, `${registro.titulo}_v${registro.versao}.zip`)}
                                 className="text-xs"
                               >
-                                {getFileIcon('bizagi')}
-                                Bizagi
+                                {getFileIcon('zip')}
+                                ZIP
                               </Button>
                             )}
                           </div>
