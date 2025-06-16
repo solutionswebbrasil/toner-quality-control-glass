@@ -127,6 +127,7 @@ export type Database = {
           nf_compra_pdf: string | null
           nf_devolucao_pdf: string | null
           nf_remessa_pdf: string | null
+          ns: string | null
           quantidade: number
           resultado: string | null
           status: string
@@ -142,6 +143,7 @@ export type Database = {
           nf_compra_pdf?: string | null
           nf_devolucao_pdf?: string | null
           nf_remessa_pdf?: string | null
+          ns?: string | null
           quantidade: number
           resultado?: string | null
           status?: string
@@ -157,6 +159,7 @@ export type Database = {
           nf_compra_pdf?: string | null
           nf_devolucao_pdf?: string | null
           nf_remessa_pdf?: string | null
+          ns?: string | null
           quantidade?: number
           resultado?: string | null
           status?: string
@@ -181,7 +184,9 @@ export type Database = {
           filial_origem: string
           fornecedor: string
           id: number
+          lote: string | null
           modelo_toner: string
+          ns: string | null
           observacoes: string | null
           responsavel_envio: string
           status: string
@@ -194,7 +199,9 @@ export type Database = {
           filial_origem: string
           fornecedor: string
           id?: number
+          lote?: string | null
           modelo_toner: string
+          ns?: string | null
           observacoes?: string | null
           responsavel_envio: string
           status?: string
@@ -207,7 +214,9 @@ export type Database = {
           filial_origem?: string
           fornecedor?: string
           id?: number
+          lote?: string | null
           modelo_toner?: string
+          ns?: string | null
           observacoes?: string | null
           responsavel_envio?: string
           status?: string

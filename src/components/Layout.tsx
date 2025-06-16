@@ -73,7 +73,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
       ]
     },
     {
-      title: "Garantias",
+      title: "Garantias Gerais",
       items: [
         {
           id: "garantias-fornecedores-cadastro",
@@ -96,10 +96,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           icon: HiViewBoards
         },
         {
-          id: "garantias-graficos",
+          id: "garantias-gerais-graficos",
           label: "Gráficos",
           icon: HiChartPie
-        },
+        }
+      ]
+    },
+    {
+      title: "Garantias de Toners",
+      items: [
         {
           id: "garantias-toners",
           label: "Registrar Garantia Toner",
@@ -109,6 +114,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           id: "garantias-toners-consulta",
           label: "Consultar Garantias Toner",
           icon: HiViewBoards
+        },
+        {
+          id: "garantias-toners-graficos",
+          label: "Gráficos",
+          icon: HiChartPie
         }
       ]
     },

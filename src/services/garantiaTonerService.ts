@@ -13,6 +13,8 @@ export interface GarantiaToner {
   data_envio: string;
   data_registro: string;
   observacoes?: string;
+  ns?: string;
+  lote?: string;
 }
 
 export const garantiaTonerService = {
@@ -66,5 +68,59 @@ export const garantiaTonerService = {
     }
 
     return data as unknown as GarantiaToner;
+  },
+
+  async getStats(): Promise<any> {
+    const { data: garantiasToners, error } = await supabase
+      .from('garantias_toners' as any)
+      .select('*');
+    
+    if (error) {
+      console.error('Erro ao buscar estatísticas de garantias de toners:', error);
+      throw error;
+    }
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Dados por mês para gráficos
+    const monthlyData = (garantiasToners || []).reduce((acc, g) => {
+      const date = new Date(g.data_registro);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!acc[monthKey]) {
+        acc[monthKey] = { quantidade: 0 };
+      }
+      
+      acc[monthKey].quantidade += 1;
+      
+      return acc;
+    }, {} as Record<string, { quantidade: number }>);
+
+    // Dados por fornecedor no mês atual
+    const currentMonthByFornecedor = (garantiasToners || [])
+      .filter(g => {
+        const date = new Date(g.data_registro);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      })
+      .reduce((acc, g) => {
+        const fornecedor = g.fornecedor || 'N/A';
+        acc[fornecedor] = (acc[fornecedor] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+    // Dados por status
+    const statusData = (garantiasToners || []).reduce((acc, g) => {
+      const status = g.status || 'Pendente';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      monthlyData,
+      currentMonthByFornecedor,
+      statusData
+    };
   }
 };

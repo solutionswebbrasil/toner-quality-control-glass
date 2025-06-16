@@ -1,37 +1,35 @@
-
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Shield, Upload } from 'lucide-react';
-import { Fornecedor, Garantia } from '@/types';
-import { fornecedorService, garantiaService } from '@/services/dataService';
+import { Shield, Upload } from 'lucide-react';
+import { garantiaService } from '@/services/garantiaService';
+import { fornecedorService } from '@/services/fornecedorService';
 import { fileUploadService } from '@/services/fileUploadService';
 import { toast } from '@/hooks/use-toast';
+import type { Garantia, Fornecedor } from '@/types';
 
-interface GarantiaFormProps {
-  onSuccess?: () => void;
-}
-
-export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+export const GarantiaForm = () => {
   const [formData, setFormData] = useState({
     item: '',
     quantidade: '',
     defeito: '',
     fornecedor_id: '',
-    valor_unitario: ''
+    valor_unitario: '',
+    valor_total: '',
+    ns: ''
   });
+
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [files, setFiles] = useState({
-    nf_compra_pdf: null as File | null,
-    nf_remessa_pdf: null as File | null,
-    nf_devolucao_pdf: null as File | null
+    nf_compra: null as File | null,
+    nf_remessa: null as File | null,
+    nf_devolucao: null as File | null,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadFornecedores();
@@ -46,53 +44,71 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    if (field === 'quantidade' || field === 'valor_unitario') {
+      const quantidade = parseFloat(field === 'quantidade' ? value : formData.quantidade) || 0;
+      const valorUnitario = parseFloat(field === 'valor_unitario' ? value : formData.valor_unitario) || 0;
+      const valorTotal = quantidade * valorUnitario;
+      setFormData(prev => ({ ...prev, valor_total: valorTotal.toString() }));
+    }
+  };
+
+  const handleFileChange = (fileType: keyof typeof files, file: File | null) => {
+    setFiles(prev => ({ ...prev, [fileType]: file }));
+  };
+
+  const uploadFiles = async () => {
+    const uploadedFiles: Record<string, string> = {};
+    
+    for (const [key, file] of Object.entries(files)) {
+      if (file) {
+        try {
+          const url = await fileUploadService.uploadGarantiaFile(file, key);
+          uploadedFiles[`${key}_pdf`] = url;
+        } catch (error) {
+          console.error(`Erro ao fazer upload do arquivo ${key}:`, error);
+          throw new Error(`Erro ao fazer upload do arquivo ${key}`);
+        }
+      }
+    }
+    
+    return uploadedFiles;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setUploadProgress('Iniciando...');
+    
+    if (!formData.item || !formData.quantidade || !formData.defeito || 
+        !formData.fornecedor_id || !formData.valor_unitario) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
 
+    setUploading(true);
+    
     try {
-      const quantidade = parseInt(formData.quantidade);
-      const valor_unitario = parseFloat(formData.valor_unitario);
+      const uploadedFiles = await uploadFiles();
       
-      // Upload dos arquivos PDF
-      let nf_compra_url = '';
-      let nf_remessa_url = '';
-      let nf_devolucao_url = '';
-
-      if (files.nf_compra_pdf) {
-        setUploadProgress('Fazendo upload da NF de Compra...');
-        nf_compra_url = await fileUploadService.uploadPdf(files.nf_compra_pdf, 'nf_compra') || '';
-      }
-
-      if (files.nf_remessa_pdf) {
-        setUploadProgress('Fazendo upload da NF de Remessa...');
-        nf_remessa_url = await fileUploadService.uploadPdf(files.nf_remessa_pdf, 'nf_remessa') || '';
-      }
-
-      if (files.nf_devolucao_pdf) {
-        setUploadProgress('Fazendo upload da NF de Devolução...');
-        nf_devolucao_url = await fileUploadService.uploadPdf(files.nf_devolucao_pdf, 'nf_devolucao') || '';
-      }
-
-      setUploadProgress('Salvando garantia...');
-
-      const garantia: Omit<Garantia, 'id'> = {
+      const garantiaData: Omit<Garantia, 'id'> = {
         item: formData.item,
-        quantidade,
+        quantidade: parseInt(formData.quantidade),
         defeito: formData.defeito,
         fornecedor_id: parseInt(formData.fornecedor_id),
-        nf_compra_pdf: nf_compra_url || undefined,
-        nf_remessa_pdf: nf_remessa_url || undefined,
-        nf_devolucao_pdf: nf_devolucao_url || undefined,
+        valor_unitario: parseFloat(formData.valor_unitario),
+        valor_total: parseFloat(formData.valor_total),
         status: 'aberta',
-        resultado: '',
-        valor_unitario,
-        valor_total: quantidade * valor_unitario,
-        data_registro: new Date().toISOString()
+        data_registro: new Date().toISOString(),
+        ns: formData.ns || undefined,
+        ...uploadedFiles
       };
 
-      await garantiaService.create(garantia);
+      await garantiaService.create(garantiaData);
       
       toast({
         title: "Sucesso!",
@@ -105,62 +121,56 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
         quantidade: '',
         defeito: '',
         fornecedor_id: '',
-        valor_unitario: ''
+        valor_unitario: '',
+        valor_total: '',
+        ns: ''
       });
       setFiles({
-        nf_compra_pdf: null,
-        nf_remessa_pdf: null,
-        nf_devolucao_pdf: null
+        nf_compra: null,
+        nf_remessa: null,
+        nf_devolucao: null,
       });
-
-      // Reset file inputs
-      const fileInputs = document.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>;
-      fileInputs.forEach(input => input.value = '');
-
-      onSuccess?.();
     } catch (error) {
+      console.error('Erro ao registrar garantia:', error);
       toast({
         title: "Erro",
-        description: "Erro ao registrar garantia.",
+        description: "Erro ao registrar garantia. Tente novamente.",
         variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
-      setUploadProgress('');
+      setUploading(false);
     }
   };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleFileChange = (field: string, file: File | null) => {
-    setFiles(prev => ({ ...prev, [field]: file }));
-  };
-
-  const valorTotal = formData.quantidade && formData.valor_unitario ? 
-    (parseInt(formData.quantidade) * parseFloat(formData.valor_unitario)).toFixed(2) : '0.00';
 
   return (
     <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="w-5 h-5" />
-          Registro de Garantias
+          Registrar Garantia Geral
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="item">Item *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="item">Item/Produto *</Label>
               <Input
                 id="item"
-                placeholder="Impressora HP LaserJet P1102"
                 value={formData.item}
                 onChange={(e) => handleInputChange('item', e.target.value)}
+                placeholder="Ex: Placa principal HP LaserJet"
                 required
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ns">Número de Série</Label>
+              <Input
+                id="ns"
+                value={formData.ns}
+                onChange={(e) => handleInputChange('ns', e.target.value)}
+                placeholder="Número de série (opcional)"
               />
             </div>
 
@@ -169,20 +179,18 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
               <Input
                 id="quantidade"
                 type="number"
-                min="1"
-                placeholder="1"
                 value={formData.quantidade}
                 onChange={(e) => handleInputChange('quantidade', e.target.value)}
+                placeholder="1"
                 required
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fornecedor_id">Fornecedor *</Label>
+              <Label htmlFor="fornecedor">Fornecedor *</Label>
               <Select value={formData.fornecedor_id} onValueChange={(value) => handleInputChange('fornecedor_id', value)}>
-                <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
-                  <SelectValue placeholder="Selecione o fornecedor" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um fornecedor" />
                 </SelectTrigger>
                 <SelectContent>
                   {fornecedores.map((fornecedor) => (
@@ -195,98 +203,108 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="valor_unitario">Valor Unitário (R$) *</Label>
+              <Label htmlFor="valor_unitario">Valor Unitário *</Label>
               <Input
                 id="valor_unitario"
                 type="number"
                 step="0.01"
-                min="0"
-                placeholder="450.00"
                 value={formData.valor_unitario}
                 onChange={(e) => handleInputChange('valor_unitario', e.target.value)}
+                placeholder="0.00"
                 required
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Valor Total</Label>
-              <div className="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-md font-medium">
-                R$ {valorTotal}
-              </div>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="defeito">Descrição do Defeito *</Label>
-              <Textarea
-                id="defeito"
-                placeholder="Descreva detalhadamente o defeito apresentado..."
-                value={formData.defeito}
-                onChange={(e) => handleInputChange('defeito', e.target.value)}
-                required
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur min-h-[100px]"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="nf_compra">NF de Compra (PDF)</Label>
+              <Label htmlFor="valor_total">Valor Total</Label>
               <Input
-                id="nf_compra"
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange('nf_compra_pdf', e.target.files?.[0] || null)}
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
-                disabled={isSubmitting}
+                id="valor_total"
+                type="number"
+                step="0.01"
+                value={formData.valor_total}
+                readOnly
+                className="bg-gray-100 dark:bg-gray-800"
               />
-              {files.nf_compra_pdf && (
-                <p className="text-sm text-green-600">Arquivo selecionado: {files.nf_compra_pdf.name}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="nf_remessa">NF de Remessa (PDF)</Label>
-              <Input
-                id="nf_remessa"
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange('nf_remessa_pdf', e.target.files?.[0] || null)}
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
-                disabled={isSubmitting}
-              />
-              {files.nf_remessa_pdf && (
-                <p className="text-sm text-green-600">Arquivo selecionado: {files.nf_remessa_pdf.name}</p>
-              )}
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="nf_devolucao">NF de Devolução (PDF)</Label>
-              <Input
-                id="nf_devolucao"
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange('nf_devolucao_pdf', e.target.files?.[0] || null)}
-                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
-                disabled={isSubmitting}
-              />
-              {files.nf_devolucao_pdf && (
-                <p className="text-sm text-green-600">Arquivo selecionado: {files.nf_devolucao_pdf.name}</p>
-              )}
             </div>
           </div>
 
-          {uploadProgress && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-              <p className="text-blue-700 text-sm">{uploadProgress}</p>
+          <div className="space-y-2">
+            <Label htmlFor="defeito">Descrição do Defeito *</Label>
+            <Textarea
+              id="defeito"
+              value={formData.defeito}
+              onChange={(e) => handleInputChange('defeito', e.target.value)}
+              placeholder="Descreva detalhadamente o defeito encontrado..."
+              rows={3}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>NF Compra</Label>
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => handleFileChange('nf_compra', e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="nf_compra"
+                />
+                <label htmlFor="nf_compra" className="cursor-pointer">
+                  <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {files.nf_compra ? files.nf_compra.name : 'Clique para selecionar'}
+                  </span>
+                </label>
+              </div>
             </div>
-          )}
+
+            <div className="space-y-2">
+              <Label>NF Remessa</Label>
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => handleFileChange('nf_remessa', e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="nf_remessa"
+                />
+                <label htmlFor="nf_remessa" className="cursor-pointer">
+                  <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {files.nf_remessa ? files.nf_remessa.name : 'Clique para selecionar'}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>NF Devolução</Label>
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => handleFileChange('nf_devolucao', e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="nf_devolucao"
+                />
+                <label htmlFor="nf_devolucao" className="cursor-pointer">
+                  <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {files.nf_devolucao ? files.nf_devolucao.name : 'Clique para selecionar'}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
 
           <Button 
             type="submit" 
-            disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            disabled={uploading}
           >
-            <Save className="w-4 h-4 mr-2" />
-            {isSubmitting ? uploadProgress || 'Salvando...' : 'Registrar Garantia'}
+            {uploading ? 'Registrando...' : 'Registrar Garantia'}
           </Button>
         </form>
       </CardContent>

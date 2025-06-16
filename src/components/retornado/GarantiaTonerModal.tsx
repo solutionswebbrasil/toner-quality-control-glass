@@ -24,6 +24,8 @@ export interface GarantiaTonerData {
   fornecedor: string;
   defeito: string;
   responsavel_envio: string;
+  ns?: string;
+  lote?: string;
 }
 
 export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
@@ -38,7 +40,9 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
   const [formData, setFormData] = useState<GarantiaTonerData>({
     fornecedor: '',
     defeito: '',
-    responsavel_envio: ''
+    responsavel_envio: '',
+    ns: '',
+    lote: ''
   });
 
   useEffect(() => {
@@ -83,7 +87,9 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
       setFormData({
         fornecedor: '',
         defeito: '',
-        responsavel_envio: ''
+        responsavel_envio: '',
+        ns: '',
+        lote: ''
       });
     }
   };
@@ -92,7 +98,9 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
     setFormData({
       fornecedor: '',
       defeito: '',
-      responsavel_envio: ''
+      responsavel_envio: '',
+      ns: '',
+      lote: ''
     });
     onClose();
   };
@@ -103,7 +111,7 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Save className="w-5 h-5" />
@@ -152,6 +160,30 @@ export const GarantiaTonerModal: React.FC<GarantiaTonerModalProps> = ({
                   Nenhum fornecedor cadastrado. Cadastre fornecedores primeiro.
                 </p>
               )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ns">Número de Série</Label>
+                <Input
+                  id="ns"
+                  type="text"
+                  value={formData.ns || ''}
+                  onChange={(e) => handleInputChange('ns', e.target.value)}
+                  placeholder="Número de série (opcional)"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lote">Lote</Label>
+                <Input
+                  id="lote"
+                  type="text"
+                  value={formData.lote || ''}
+                  onChange={(e) => handleInputChange('lote', e.target.value)}
+                  placeholder="Lote (opcional)"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

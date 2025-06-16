@@ -9,9 +9,10 @@ import { FornecedorForm } from '@/components/FornecedorForm';
 import { FornecedorGrid } from '@/components/FornecedorGrid';
 import { GarantiaForm } from '@/components/GarantiaForm';
 import { GarantiaGrid } from '@/components/GarantiaGrid';
-import { GarantiaCharts } from '@/components/GarantiaCharts';
+import { GarantiaGeralCharts } from '@/components/GarantiaGeralCharts';
 import { GarantiaTonerGrid } from '@/components/GarantiaTonerGrid';
 import { GarantiaTonerConsulta } from '@/components/GarantiaTonerConsulta';
+import { GarantiaTonerCharts } from '@/components/GarantiaTonerCharts';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
 import { AuditoriaGrid } from '@/components/AuditoriaGrid';
 import { NaoConformidadeForm } from '@/components/NaoConformidadeForm';
@@ -58,12 +59,14 @@ const Index = () => {
         return <GarantiaForm />;
       case 'garantias-consulta':
         return <GarantiaGrid />;
-      case 'garantias-graficos':
-        return <GarantiaCharts />;
+      case 'garantias-gerais-graficos':
+        return <GarantiaGeralCharts />;
       case 'garantias-toners':
         return <GarantiaTonerGrid />;
       case 'garantias-toners-consulta':
         return <GarantiaTonerConsulta />;
+      case 'garantias-toners-graficos':
+        return <GarantiaTonerCharts />;
       case 'auditorias-registro':
         return <AuditoriaForm onSuccess={() => {}} />;
       case 'auditorias-consulta':
