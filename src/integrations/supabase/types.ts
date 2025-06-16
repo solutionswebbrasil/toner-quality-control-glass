@@ -9,6 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auditorias: {
+        Row: {
+          data_fim: string
+          data_inicio: string
+          data_registro: string
+          formulario_pdf: string | null
+          id: number
+          unidade_auditada: string
+        }
+        Insert: {
+          data_fim: string
+          data_inicio: string
+          data_registro?: string
+          formulario_pdf?: string | null
+          id?: number
+          unidade_auditada: string
+        }
+        Update: {
+          data_fim?: string
+          data_inicio?: string
+          data_registro?: string
+          formulario_pdf?: string | null
+          id?: number
+          unidade_auditada?: string
+        }
+        Relationships: []
+      }
+      fornecedores: {
+        Row: {
+          data_cadastro: string
+          id: number
+          link_rma: string
+          nome: string
+          telefone: string
+        }
+        Insert: {
+          data_cadastro?: string
+          id?: number
+          link_rma: string
+          nome: string
+          telefone: string
+        }
+        Update: {
+          data_cadastro?: string
+          id?: number
+          link_rma?: string
+          nome?: string
+          telefone?: string
+        }
+        Relationships: []
+      }
+      garantias: {
+        Row: {
+          data_registro: string
+          defeito: string
+          fornecedor_id: number
+          id: number
+          item: string
+          nf_compra_pdf: string | null
+          nf_devolucao_pdf: string | null
+          nf_remessa_pdf: string | null
+          quantidade: number
+          resultado: string | null
+          status: string
+          valor_total: number
+          valor_unitario: number
+        }
+        Insert: {
+          data_registro?: string
+          defeito: string
+          fornecedor_id: number
+          id?: number
+          item: string
+          nf_compra_pdf?: string | null
+          nf_devolucao_pdf?: string | null
+          nf_remessa_pdf?: string | null
+          quantidade: number
+          resultado?: string | null
+          status?: string
+          valor_total: number
+          valor_unitario: number
+        }
+        Update: {
+          data_registro?: string
+          defeito?: string
+          fornecedor_id?: number
+          id?: number
+          item?: string
+          nf_compra_pdf?: string | null
+          nf_devolucao_pdf?: string | null
+          nf_remessa_pdf?: string | null
+          quantidade?: number
+          resultado?: string | null
+          status?: string
+          valor_total?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garantias_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_bpmn: {
         Row: {
           arquivo_bizagi: string | null
@@ -91,6 +198,47 @@ export type Database = {
           },
         ]
       }
+      retornados: {
+        Row: {
+          data_registro: string
+          destino_final: string
+          filial: string
+          id: number
+          id_cliente: number
+          id_modelo: number
+          peso: number
+          valor_recuperado: number | null
+        }
+        Insert: {
+          data_registro?: string
+          destino_final: string
+          filial: string
+          id?: number
+          id_cliente: number
+          id_modelo: number
+          peso: number
+          valor_recuperado?: number | null
+        }
+        Update: {
+          data_registro?: string
+          destino_final?: string
+          filial?: string
+          id?: number
+          id_cliente?: number
+          id_modelo?: number
+          peso?: number
+          valor_recuperado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retornados_id_modelo_fkey"
+            columns: ["id_modelo"]
+            isOneToOne: false
+            referencedRelation: "toners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       titulos_bpmn: {
         Row: {
           data_cadastro: string
@@ -130,6 +278,51 @@ export type Database = {
           descricao?: string | null
           id?: number
           titulo?: string
+        }
+        Relationships: []
+      }
+      toners: {
+        Row: {
+          capacidade_folhas: number
+          cor: string
+          data_registro: string
+          gramatura: number
+          id: number
+          impressoras_compat: string
+          modelo: string
+          peso_cheio: number
+          peso_vazio: number
+          preco_produto: number
+          registrado_por: number
+          valor_por_folha: number
+        }
+        Insert: {
+          capacidade_folhas: number
+          cor: string
+          data_registro?: string
+          gramatura: number
+          id?: number
+          impressoras_compat: string
+          modelo: string
+          peso_cheio: number
+          peso_vazio: number
+          preco_produto: number
+          registrado_por: number
+          valor_por_folha: number
+        }
+        Update: {
+          capacidade_folhas?: number
+          cor?: string
+          data_registro?: string
+          gramatura?: number
+          id?: number
+          impressoras_compat?: string
+          modelo?: string
+          peso_cheio?: number
+          peso_vazio?: number
+          preco_produto?: number
+          registrado_por?: number
+          valor_por_folha?: number
         }
         Relationships: []
       }

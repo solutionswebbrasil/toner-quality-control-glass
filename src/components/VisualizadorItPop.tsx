@@ -1,46 +1,44 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Download, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { tituloItPopService, registroItPopService } from '@/services/dataService';
+import type { TituloItPop, RegistroItPop } from '@/types';
 
 interface VisualizadorItPopProps {
   onSuccess: () => void;
 }
 
-// Mock data
-const titulosDisponiveis = [
-  { id: 1, titulo: 'Procedimento de Backup' },
-  { id: 2, titulo: 'Instalação de Software' },
-  { id: 3, titulo: 'Configuração de Rede' },
-];
-
-const registrosItPop = [
-  {
-    id: 1,
-    titulo_id: 1,
-    titulo: 'Procedimento de Backup',
-    versao: 3,
-    arquivo_pdf: 'backup_v3.pdf',
-    arquivo_ppt: 'backup_v3.pptx',
-    data_registro: new Date('2024-02-15'),
-  },
-  {
-    id: 2,
-    titulo_id: 1,
-    titulo: 'Procedimento de Backup',
-    versao: 2,
-    arquivo_pdf: 'backup_v2.pdf',
-    data_registro: new Date('2024-01-10'),
-  },
-];
-
 export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess }) => {
   const [tituloSelecionado, setTituloSelecionado] = useState<string>('');
+  const [titulos, setTitulos] = useState<TituloItPop[]>([]);
+  const [registros, setRegistros] = useState<RegistroItPop[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const registrosFiltrados = registrosItPop.filter(
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        const [titulosData, registrosData] = await Promise.all([
+          tituloItPopService.getAll(),
+          registroItPopService.getAll()
+        ]);
+        setTitulos(titulosData);
+        setRegistros(registrosData);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, []);
+
+  const registrosFiltrados = registros.filter(
     registro => tituloSelecionado ? registro.titulo_id.toString() === tituloSelecionado : false
   );
 
@@ -54,6 +52,21 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
     console.log(`Baixando arquivo ${tipo}:`, arquivo);
     // Aqui implementaria o download real
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+            Visualizar IT/POP
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400">
+            Carregando dados...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -81,8 +94,8 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                 <SelectValue placeholder="Selecione o título" />
               </SelectTrigger>
               <SelectContent>
-                {titulosDisponiveis.map((titulo) => (
-                  <SelectItem key={titulo.id} value={titulo.id.toString()}>
+                {titulos.map((titulo) => (
+                  <SelectItem key={titulo.id} value={titulo.id!.toString()}>
                     {titulo.titulo}
                   </SelectItem>
                 ))}
@@ -98,9 +111,14 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="default">Versão {ultimaVersao.versao}</Badge>
                     <span className="text-sm text-slate-600 dark:text-slate-400">
-                      Registrado em {ultimaVersao.data_registro.toLocaleDateString('pt-BR')}
+                      Registrado em {new Date(ultimaVersao.data_registro).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
+                  {ultimaVersao.registrado_por && (
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      por {ultimaVersao.registrado_por}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -145,12 +163,24 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                   </div>
                 )}
               </div>
+
+              {!ultimaVersao.arquivo_pdf && !ultimaVersao.arquivo_ppt && (
+                <div className="text-center py-4 text-slate-600 dark:text-slate-400">
+                  Nenhum arquivo disponível para esta versão.
+                </div>
+              )}
             </div>
           )}
 
           {tituloSelecionado && !ultimaVersao && (
             <div className="text-center py-8 text-slate-600 dark:text-slate-400">
               Nenhum registro encontrado para este título.
+            </div>
+          )}
+
+          {!tituloSelecionado && (
+            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
+              Selecione um título para visualizar os registros.
             </div>
           )}
         </CardContent>
