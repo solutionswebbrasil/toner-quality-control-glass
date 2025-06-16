@@ -36,6 +36,30 @@ export type Database = {
         }
         Relationships: []
       }
+      certificados: {
+        Row: {
+          arquivo_pdf: string | null
+          data_emissao: string
+          data_registro: string
+          id: number
+          nome_certificado: string
+        }
+        Insert: {
+          arquivo_pdf?: string | null
+          data_emissao: string
+          data_registro?: string
+          id?: number
+          nome_certificado: string
+        }
+        Update: {
+          arquivo_pdf?: string | null
+          data_emissao?: string
+          data_registro?: string
+          id?: number
+          nome_certificado?: string
+        }
+        Relationships: []
+      }
       filiais: {
         Row: {
           ativo: boolean

@@ -15,7 +15,8 @@ import {
   HiAdjustments,
   HiCog,
   HiOfficeBuilding,
-  HiSearch
+  HiSearch,
+  FileText
 } from 'react-icons/hi';
 import { AlertTriangle } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -119,22 +120,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     },
     {
       title: "Não Conformidades",
+      icon: AlertTriangle,
       items: [
-        {
-          id: "nao-conformidades-registro",
-          label: "Registro de NC",
-          icon: AlertTriangle
-        },
-        {
-          id: "nao-conformidades-consulta",
-          label: "Consulta de NC",
-          icon: HiViewBoards
-        },
-        {
-          id: "nao-conformidades-graficos",
-          label: "Gráficos de NC",
-          icon: HiChartPie
-        }
+        { title: 'Registro de NC', id: 'nao-conformidades-registro' },
+        { title: 'Consulta de NC', id: 'nao-conformidades-consulta' },
+        { title: 'Gráficos de NC', id: 'nao-conformidades-graficos' },
+      ]
+    },
+    {
+      title: 'Certificados',
+      icon: FileText,
+      items: [
+        { title: 'Registro de Certificados', id: 'certificados-registro' },
+        { title: 'Consulta de Certificados', id: 'certificados-consulta' },
       ]
     },
     {

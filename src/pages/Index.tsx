@@ -29,6 +29,8 @@ import { FilialForm } from '@/components/FilialForm';
 import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
 import { useNaoConformidades } from '@/hooks/useNaoConformidades';
+import { CertificadoForm } from '@/components/CertificadoForm';
+import { CertificadoGrid } from '@/components/CertificadoGrid';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
@@ -92,6 +94,10 @@ const Index = () => {
         return <FilialGrid />;
       case 'configuracoes-retornado':
         return <ConfiguracoesRetornado />;
+      case 'certificados-registro':
+        return <CertificadoForm onSuccess={() => {}} />;
+      case 'certificados-consulta':
+        return <CertificadoGrid />;
       default:
         return <TonerForm />;
     }
