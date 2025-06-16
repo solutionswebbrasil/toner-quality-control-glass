@@ -1,172 +1,278 @@
-
 import React, { useState } from 'react';
-import { Menu, Sun, Moon, Package, BarChart3, FileText, Shield, ClipboardCheck, Layers } from 'lucide-react';
+import { Sidebar } from 'flowbite-react';
+import { 
+  HiChartPie, 
+  HiViewBoards, 
+  HiUser, 
+  HiShoppingBag, 
+  HiArrowSmRight,
+  HiDocumentText,
+  HiFolder,
+  HiTemplate,
+  HiCollection,
+  HiBookOpen,
+  HiOutlineDocumentText,
+  HiCubeTransparent,
+  HiAdjustments,
+  HiCog,
+  HiBuilding,
+  HiSearch
+} from 'react-icons/hi';
 import { useTheme } from '@/contexts/ThemeContext';
-import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from "@/components/ui/button"
+import { ModeToggle } from "@/components/ModeToggle"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 interface LayoutProps {
   children: React.ReactNode;
-  currentPage?: string;
-  onPageChange?: (page: string) => void;
+  currentPage: string;
+  onPageChange: (page: string) => void;
 }
 
-const menuItems = [
-  { id: 'toners', label: 'Toners', icon: Package, subItems: [
-    { id: 'toners-cadastro', label: 'Cadastro' },
-    { id: 'toners-consulta', label: 'Consulta' }
-  ]},
-  { id: 'retornados', label: 'Retornados', icon: FileText, subItems: [
-    { id: 'retornados-registro', label: 'Registro' },
-    { id: 'retornados-consulta', label: 'Consulta' },
-    { id: 'retornados-graficos', label: 'Gráficos' }
-  ]},
-  { id: 'garantias', label: 'Garantias', icon: Shield, subItems: [
-    { id: 'garantias-fornecedores-cadastro', label: 'Cadastro Fornecedores' },
-    { id: 'garantias-fornecedores-consulta', label: 'Consulta Fornecedores' },
-    { id: 'garantias-registro', label: 'Registro Garantias' },
-    { id: 'garantias-consulta', label: 'Consulta Garantias' },
-    { id: 'garantias-graficos', label: 'Gráficos' }
-  ]},
-  { id: 'auditorias', label: 'Auditorias', icon: ClipboardCheck, subItems: [
-    { id: 'auditorias-registro', label: 'Registro' },
-    { id: 'auditorias-consulta', label: 'Consulta' }
-  ]},
-  { id: 'itpop', label: 'IT/POP', icon: FileText, subItems: [
-    { id: 'itpop-titulo-cadastro', label: 'Cadastro Títulos' },
-    { id: 'itpop-titulo-consulta', label: 'Consulta Títulos' },
-    { id: 'itpop-registro', label: 'Registro IT/POP' },
-    { id: 'itpop-registros-consulta', label: 'POP/ITs Cadastrados' },
-    { id: 'itpop-visualizar', label: 'Visualizar IT/POP' }
-  ]},
-  { id: 'bpmn', label: 'BPMN', icon: Layers, subItems: [
-    { id: 'bpmn-titulo-cadastro', label: 'Cadastro Títulos' },
-    { id: 'bpmn-titulo-consulta', label: 'Consulta Títulos' },
-    { id: 'bpmn-registro', label: 'Registro BPMN' },
-    { id: 'bpmn-registros-consulta', label: 'BPMNs Cadastrados' },
-    { id: 'bpmn-visualizar', label: 'Visualizar BPMN' }
-  ]}
-];
-
-export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'toners-cadastro', onPageChange }) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados', 'garantias', 'auditorias', 'itpop', 'bpmn']);
+export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
-  const toggleSubmenu = (menuId: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(menuId) 
-        ? prev.filter(id => id !== menuId)
-        : [...prev, menuId]
-    );
-  };
+  const menuItems = [
+    {
+      title: "Toners",
+      items: [
+        {
+          id: "toners-cadastro",
+          label: "Cadastrar Toner",
+          icon: HiShoppingBag
+        },
+        {
+          id: "toners-consulta",
+          label: "Consultar Toners",
+          icon: HiViewBoards
+        }
+      ]
+    },
+    {
+      title: "Retornados",
+      items: [
+        {
+          id: "retornados-registro",
+          label: "Registrar Retorno",
+          icon: HiArrowSmRight
+        },
+        {
+          id: "retornados-consulta",
+          label: "Consultar Retornos",
+          icon: HiChartPie
+        },
+        {
+          id: "retornados-graficos",
+          label: "Gráficos",
+          icon: HiChartPie
+        }
+      ]
+    },
+    {
+      title: "Garantias",
+      items: [
+        {
+          id: "garantias-fornecedores-cadastro",
+          label: "Cadastrar Fornecedor",
+          icon: HiUser
+        },
+        {
+          id: "garantias-fornecedores-consulta",
+          label: "Consultar Fornecedores",
+          icon: HiViewBoards
+        },
+        {
+          id: "garantias-registro",
+          label: "Registrar Garantia",
+          icon: HiDocumentText
+        },
+        {
+          id: "garantias-consulta",
+          label: "Consultar Garantias",
+          icon: HiViewBoards
+        },
+        {
+          id: "garantias-graficos",
+          label: "Gráficos",
+          icon: HiChartPie
+        }
+      ]
+    },
+    {
+      title: "Auditorias",
+      items: [
+        {
+          id: "auditorias-registro",
+          label: "Registrar Auditoria",
+          icon: HiOutlineDocumentText
+        },
+        {
+          id: "auditorias-consulta",
+          label: "Consultar Auditorias",
+          icon: HiViewBoards
+        }
+      ]
+    },
+    {
+      title: "IT/POP",
+      items: [
+        {
+          id: "itpop-titulo-cadastro",
+          label: "Cadastrar Título",
+          icon: HiTemplate
+        },
+        {
+          id: "itpop-titulo-consulta",
+          label: "Consultar Títulos",
+          icon: HiCollection
+        },
+        {
+          id: "itpop-registro",
+          label: "Registrar IT/POP",
+          icon: HiBookOpen
+        },
+        {
+          id: "itpop-registros-consulta",
+          label: "Consultar Registros",
+          icon: HiViewBoards
+        },
+        {
+          id: "itpop-visualizar",
+          label: "Visualizar IT/POP",
+          icon: HiCubeTransparent
+        }
+      ]
+    },
+    {
+      title: "BPMN",
+      items: [
+        {
+          id: "bpmn-titulo-cadastro",
+          label: "Cadastrar Título",
+          icon: HiTemplate
+        },
+        {
+          id: "bpmn-titulo-consulta",
+          label: "Consultar Títulos",
+          icon: HiCollection
+        },
+        {
+          id: "bpmn-registro",
+          label: "Registrar BPMN",
+          icon: HiBookOpen
+        },
+        {
+          id: "bpmn-registros-consulta",
+          label: "Consultar Registros",
+          icon: HiViewBoards
+        },
+        {
+          id: "bpmn-visualizar",
+          label: "Visualizar BPMN",
+          icon: HiCubeTransparent
+        }
+      ]
+    },
+    {
+      title: "Configurações",
+      items: [
+        {
+          id: "configuracoes-filiais-cadastro",
+          label: "Cadastrar Filiais",
+          icon: HiBuilding
+        },
+        {
+          id: "configuracoes-filiais-consulta", 
+          label: "Consultar Filiais",
+          icon: HiSearch
+        }
+      ]
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed left-0 top-0 h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transition-all duration-300 z-50 flex flex-col",
-        sidebarCollapsed ? "w-16" : "w-64"
-      )}>
-        {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-slate-700/50 flex-shrink-0">
-          {!sidebarCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">Q</span>
-              </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                SGQ PRO
-              </span>
-            </div>
-          )}
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Navigation with ScrollArea */}
-        <ScrollArea className="flex-1 p-4">
-          <nav className="space-y-2">
-            {menuItems.map((item) => (
-              <div key={item.id}>
-                <button
-                  onClick={() => {
-                    if (item.subItems) {
-                      toggleSubmenu(item.id);
-                    } else {
-                      onPageChange?.(item.id);
-                    }
-                  }}
-                  className={cn(
-                    "w-full flex items-center space-x-3 p-3 rounded-xl transition-all duration-200",
-                    "hover:bg-white/50 dark:hover:bg-slate-800/50",
-                    currentPage.startsWith(item.id) && "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-200/50 dark:border-blue-800/50"
-                  )}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {!sidebarCollapsed && (
-                    <>
-                      <span className="flex-1 text-left">{item.label}</span>
-                      {item.subItems && (
-                        <BarChart3 className={cn(
-                          "w-4 h-4 transition-transform",
-                          expandedMenus.includes(item.id) && "rotate-90"
-                        )} />
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-40 w-full">
+        <div className="flex h-16 items-center px-4">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="mr-2">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription>
+                  Navegue pelas opções do sistema.
+                </SheetDescription>
+              </SheetHeader>
+              <Sidebar aria-label="Sidebar with multi-level dropdown example">
+                <Sidebar.Items>
+                  {menuItems.map((menuGroup, index) => (
+                    <div key={index}>
+                      {menuGroup.title && (
+                        <Sidebar.Title>{menuGroup.title}</Sidebar.Title>
                       )}
-                    </>
-                  )}
-                </button>
-
-                {/* Submenu */}
-                {item.subItems && !sidebarCollapsed && expandedMenus.includes(item.id) && (
-                  <div className="ml-8 mt-2 space-y-1">
-                    {item.subItems.map((subItem) => (
-                      <button
-                        key={subItem.id}
-                        onClick={() => onPageChange?.(subItem.id)}
-                        className={cn(
-                          "w-full text-left p-2 rounded-lg transition-colors text-sm",
-                          "hover:bg-white/30 dark:hover:bg-slate-800/30",
-                          currentPage === subItem.id && "bg-white/40 dark:bg-slate-800/40 font-medium"
-                        )}
-                      >
-                        {subItem.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
-        </ScrollArea>
-      </div>
-
-      {/* Main Content */}
-      <div className={cn(
-        "transition-all duration-300",
-        sidebarCollapsed ? "ml-16" : "ml-64"
-      )}>
-        {/* Header */}
-        <header className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 p-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-              Sistema de Gestão da Qualidade
-            </h1>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-white/50 dark:bg-slate-800/50 hover:bg-white/70 dark:hover:bg-slate-700/70 transition-colors"
-            >
-              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            </button>
+                      {menuGroup.items.map(item => (
+                        <Sidebar.Item
+                          key={item.id}
+                          href="#"
+                          active={currentPage === item.id}
+                          onClick={() => onPageChange(item.id)}
+                        >
+                          <span className="flex items-center space-x-2">
+                            <item.icon className="h-5 w-5" />
+                            <span>{item.label}</span>
+                          </span>
+                        </Sidebar.Item>
+                      ))}
+                    </div>
+                  ))}
+                </Sidebar.Items>
+              </Sidebar>
+            </SheetContent>
+          </Sheet>
+          <div className="font-bold text-xl">
+            <span className="text-blue-600">Easy</span>Toner
           </div>
-        </header>
+          <div className="ml-auto flex items-center space-x-2">
+            <ModeToggle />
+          </div>
+        </div>
+      </header>
 
-        {/* Page Content */}
-        <main className="p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 p-4">
+        <aside className="hidden lg:block col-span-1">
+          <Sidebar aria-label="Sidebar with multi-level dropdown example">
+            <Sidebar.Items>
+              {menuItems.map((menuGroup, index) => (
+                <div key={index}>
+                  {menuGroup.title && (
+                    <Sidebar.Title>{menuGroup.title}</Sidebar.Title>
+                  )}
+                  {menuGroup.items.map(item => (
+                    <Sidebar.Item
+                      key={item.id}
+                      href="#"
+                      active={currentPage === item.id}
+                      onClick={() => onPageChange(item.id)}
+                    >
+                      <span className="flex items-center space-x-2">
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </span>
+                    </Sidebar.Item>
+                  ))}
+                </div>
+              ))}
+            </Sidebar.Items>
+          </Sidebar>
+        </aside>
+
+        <main className="col-span-1 lg:col-span-4">
           {children}
         </main>
       </div>

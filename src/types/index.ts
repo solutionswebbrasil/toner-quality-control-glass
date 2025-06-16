@@ -1,4 +1,3 @@
-
 export interface Toner {
   id?: number;
   modelo: string;
@@ -102,3 +101,5 @@ export interface RegistroBpmn {
   data_registro: string; // Changed from Date to string
   registrado_por?: string;
 }
+
+export type { Filial } from './filial';

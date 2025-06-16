@@ -36,6 +36,39 @@ export type Database = {
         }
         Relationships: []
       }
+      filiais: {
+        Row: {
+          ativo: boolean
+          codigo: string | null
+          data_cadastro: string
+          email: string | null
+          endereco: string | null
+          id: number
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          codigo?: string | null
+          data_cadastro?: string
+          email?: string | null
+          endereco?: string | null
+          id?: number
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string | null
+          data_cadastro?: string
+          email?: string | null
+          endereco?: string | null
+          id?: number
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: []
+      }
       fornecedores: {
         Row: {
           data_cadastro: string

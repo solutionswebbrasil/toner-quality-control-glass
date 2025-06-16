@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { TonerForm } from '@/components/TonerForm';
@@ -23,6 +22,8 @@ import { ConsultaTitulosBpmn } from '@/components/ConsultaTitulosBpmn';
 import { RegistroBpmnForm } from '@/components/RegistroBpmnForm';
 import { ConsultaRegistrosBpmn } from '@/components/ConsultaRegistrosBpmn';
 import { VisualizadorBpmn } from '@/components/VisualizadorBpmn';
+import { FilialForm } from '@/components/FilialForm';
+import { FilialGrid } from '@/components/FilialGrid';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
@@ -73,6 +74,10 @@ const Index = () => {
         return <ConsultaRegistrosBpmn onSuccess={() => console.log('Registros BPMN consultados!')} />;
       case 'bpmn-visualizar':
         return <VisualizadorBpmn onSuccess={() => console.log('BPMN visualizado!')} />;
+      case 'configuracoes-filiais-cadastro':
+        return <FilialForm onSuccess={() => console.log('Filial cadastrada!')} />;
+      case 'configuracoes-filiais-consulta':
+        return <FilialGrid />;
       default:
         return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
     }
