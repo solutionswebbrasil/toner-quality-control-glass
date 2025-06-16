@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -262,39 +261,95 @@ export const RetornadoCharts: React.FC = () => {
         </CardContent>
       </Card>
       
-      <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
-        {/* Gráfico de Quantidade */}
-        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
-              Retornados {getPeriodLabel()}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExpandedChart('quantidade')}
-              className="bg-white/50 dark:bg-slate-800/50"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <ChartContainer config={chartConfig} className="h-72">
+      {/* Gráfico de Quantidade - Uma linha */}
+      <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
+            Retornados {getPeriodLabel()}
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setExpandedChart('quantidade')}
+            className="bg-white/50 dark:bg-slate-800/50"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <ChartContainer config={chartConfig} className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                <XAxis 
+                  dataKey="period" 
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis 
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
+                  }}
+                />
+                <Bar 
+                  dataKey="quantidade" 
+                  fill="#3b82f6" 
+                  radius={[6, 6, 0, 0]}
+                  name="Quantidade"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      {/* Gráfico Pizza - Destino Final - Uma linha */}
+      <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
+            Destino Final dos Retornados
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setExpandedChart('destino')}
+            className="bg-white/50 dark:bg-slate-800/50"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="pb-4">
+          {destinoData.length > 0 ? (
+            <ChartContainer config={chartConfig} className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
-                  <XAxis 
-                    dataKey="period" 
-                    tick={{ fontSize: 11, fill: '#64748b' }}
-                    axisLine={{ stroke: '#cbd5e1' }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 11, fill: '#64748b' }}
-                    axisLine={{ stroke: '#cbd5e1' }}
-                  />
+                <PieChart>
+                  <Pie
+                    data={destinoData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                    stroke="#fff"
+                    strokeWidth={3}
+                  >
+                    {destinoData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                    ))}
+                  </Pie>
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
                     contentStyle={{
@@ -304,76 +359,18 @@ export const RetornadoCharts: React.FC = () => {
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
                     }}
                   />
-                  <Bar 
-                    dataKey="quantidade" 
-                    fill="#3b82f6" 
-                    radius={[6, 6, 0, 0]}
-                    name="Quantidade"
-                  />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent>
-        </Card>
+          ) : (
+            <div className="h-80 flex items-center justify-center text-slate-500">
+              Nenhum dado disponível para o período selecionado
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Gráfico Pizza - Destino Final */}
-        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
-              Destino Final dos Retornados
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExpandedChart('destino')}
-              className="bg-white/50 dark:bg-slate-800/50"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="pb-4">
-            {destinoData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={destinoData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                      stroke="#fff"
-                      strokeWidth={3}
-                    >
-                      {destinoData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            ) : (
-              <div className="h-72 flex items-center justify-center text-slate-500">
-                Nenhum dado disponível para o período selecionado
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Gráfico de Valor Recuperado - Full Width */}
+      {/* Gráfico de Valor Recuperado - Uma linha */}
       <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
