@@ -32,7 +32,7 @@ export const NaoConformidadeForm: React.FC = () => {
       const naoConformidadeData = {
         ...data,
         necessita_acao_corretiva: necessitaAcaoCorretiva,
-        evidencias: [],
+        evidencias: [], // Changed to empty array that will be converted to JSONB
         status: 'Aberta' as const
       };
 

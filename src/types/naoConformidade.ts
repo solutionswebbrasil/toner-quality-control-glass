@@ -1,4 +1,6 @@
 
+import { Json } from '@/integrations/supabase/types';
+
 export interface NaoConformidade {
   id?: number;
   data_ocorrencia: string;
@@ -6,7 +8,7 @@ export interface NaoConformidade {
   setor_responsavel: string;
   tipo_nc: string; // Changed from union type to string to match Supabase
   descricao: string;
-  evidencias?: string[];
+  evidencias?: Json; // Changed to Json type to match Supabase
   classificacao: string; // Changed from union type to string to match Supabase
   identificado_por: string;
   responsavel_tratamento: string;
