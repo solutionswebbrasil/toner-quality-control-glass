@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
+import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { TonerForm } from '@/components/TonerForm';
 import { TonerGrid } from '@/components/TonerGrid';
 import { RetornadoForm } from '@/components/RetornadoForm';
@@ -38,11 +38,13 @@ import { CertificadoForm } from '@/components/CertificadoForm';
 import { CertificadoGrid } from '@/components/CertificadoGrid';
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState('toners-cadastro');
+  const [currentPage, setCurrentPage] = useState('welcome');
   const { naoConformidades } = useNaoConformidades();
 
   const renderContent = () => {
     switch (currentPage) {
+      case 'welcome':
+        return <WelcomeScreen />;
       case 'toners-cadastro':
         return <TonerForm />;
       case 'toners-consulta':
@@ -112,7 +114,7 @@ const Index = () => {
       case 'certificados-consulta':
         return <CertificadoGrid />;
       default:
-        return <TonerForm />;
+        return <WelcomeScreen />;
     }
   };
 
