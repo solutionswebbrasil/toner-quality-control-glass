@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,11 +10,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { naoConformidadeService } from '@/services/naoConformidadeService';
 import { NaoConformidade } from '@/types/naoConformidade';
+import { useFiliais } from '@/hooks/useFiliais';
 
 export const NaoConformidadeForm: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [necessitaAcaoCorretiva, setNecessitaAcaoCorretiva] = useState(false);
+  const { filiais, loading: loadingFiliais } = useFiliais();
 
   const {
     register,
@@ -82,13 +83,20 @@ export const NaoConformidadeForm: React.FC = () => {
 
               <div>
                 <Label htmlFor="unidade_filial">Unidade / Filial *</Label>
-                <Input
-                  id="unidade_filial"
-                  {...register('unidade_filial', { required: 'Campo obrigatório' })}
-                  placeholder="Ex: Matriz, Filial 01..."
-                />
+                <Select onValueChange={(value) => setValue('unidade_filial', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingFiliais ? "Carregando..." : "Selecione a filial"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filiais.map((filial) => (
+                      <SelectItem key={filial.id} value={filial.nome}>
+                        {filial.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.unidade_filial && (
-                  <p className="text-red-500 text-sm mt-1">{errors.unidade_filial.message}</p>
+                  <p className="text-red-500 text-sm mt-1">Campo obrigatório</p>
                 )}
               </div>
 
