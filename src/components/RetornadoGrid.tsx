@@ -132,15 +132,88 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleDownloadTemplate = () => {
     try {
-      const headers = ['id_cliente', 'modelo', 'filial', 'destino_final', 'valor_recuperado', 'data_registro'];
-      const exampleRow = ['12345', 'HP CF217A', 'Matriz', 'Estoque', '25.50', '2024-06-16'];
+      // Cabeçalhos mais completos e organizados
+      const headers = [
+        'id_cliente',
+        'modelo', 
+        'filial',
+        'destino_final',
+        'peso',
+        'valor_recuperado',
+        'data_registro'
+      ];
       
+      // Exemplos mais variados e realistas
+      const exemploRows = [
+        // Linha de exemplo 1 - Estoque
+        [
+          '12345',
+          '"HP CF217A"',
+          '"Matriz"',
+          '"Estoque"',
+          '125.50',
+          '25.50',
+          '2024-06-16'
+        ],
+        // Linha de exemplo 2 - Garantia
+        [
+          '12346',
+          '"Canon 045 Preto"',
+          '"Filial 1"',
+          '"Garantia"',
+          '180.75',
+          '30.00',
+          '2024-06-15'
+        ],
+        // Linha de exemplo 3 - Descarte
+        [
+          '12347',
+          '"Brother TN-421 Amarelo"',
+          '"Filial 2"',
+          '"Descarte"',
+          '95.20',
+          '0.00',
+          '2024-06-14'
+        ],
+        // Linha de exemplo 4 - Uso Interno
+        [
+          '12348',
+          '"Samsung MLT-D111S"',
+          '"Filial 3"',
+          '"Uso Interno"',
+          '165.30',
+          '15.75',
+          '2024-06-13'
+        ],
+        // Linha de exemplo 5 - Estoque com valor alto
+        [
+          '12349',
+          '"Xerox 106R02778 Ciano"',
+          '"Matriz"',
+          '"Estoque"',
+          '245.80',
+          '45.90',
+          '2024-06-12'
+        ]
+      ];
+
+      // Criar CSV com instruções e exemplos
       const csvContent = [
+        // Linha de cabeçalho
         headers.join(','),
-        exampleRow.join(','),
-        // Adicionar mais algumas linhas de exemplo
-        '12346,"Canon 045","Filial 1","Garantia","30.00","2024-06-15"',
-        '12347,"Brother TN-421","Filial 2","Descarte","0.00","2024-06-14"'
+        // Linha de comentários/instruções
+        '"# INSTRUÇÕES DE PREENCHIMENTO:"',
+        '"# id_cliente: Número identificador do cliente (apenas números)"',
+        '"# modelo: Nome/modelo do toner (entre aspas se contém espaços)"',
+        '"# filial: Nome da filial (Matriz, Filial 1, Filial 2, etc.)"',
+        '"# destino_final: Destino (Descarte, Garantia, Estoque, Uso Interno)"',
+        '"# peso: Peso em gramas (formato: 125.50)"',
+        '"# valor_recuperado: Valor recuperado em R$ (formato: 25.50 ou vazio)"',
+        '"# data_registro: Data no formato AAAA-MM-DD (ex: 2024-06-16)"',
+        '"#"',
+        '"# EXEMPLOS ABAIXO - SUBSTITUA PELOS SEUS DADOS:"',
+        // Exemplos
+        ...exemploRows.map(row => row.join(','))
       ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -155,7 +228,7 @@ export const RetornadoGrid: React.FC = () => {
 
       toast({
         title: "Sucesso",
-        description: "Modelo de planilha baixado com sucesso!",
+        description: "Modelo de planilha completo baixado com sucesso! Abra no Excel ou Google Sheets para editar.",
       });
     } catch (error) {
       toast({
