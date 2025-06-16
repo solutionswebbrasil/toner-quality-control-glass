@@ -4,9 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Download, Calendar, FileSpreadsheet } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Search, Download, Calendar, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { Retornado, RetornadoCSV } from '@/types';
-import { retornadoService } from '@/services/dataService';
+import { retornadoService } from '@/services/retornadoService';
 import { useToast } from '@/hooks/use-toast';
 
 const filiais = [
@@ -59,6 +70,28 @@ export const RetornadoGrid: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteRetornado = async (id: number) => {
+    try {
+      await retornadoService.delete(id);
+      
+      // Atualizar as listas localmente removendo o item excluído
+      setRetornados(prev => prev.filter(item => item.id !== id));
+      setFilteredRetornados(prev => prev.filter(item => item.id !== id));
+      
+      toast({
+        title: "Sucesso",
+        description: "Retornado excluído com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao excluir retornado:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir retornado.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -272,6 +305,7 @@ export const RetornadoGrid: React.FC = () => {
                   <th className="text-left p-3 font-semibold">Filial</th>
                   <th className="text-left p-3 font-semibold">Valor Recuperado</th>
                   <th className="text-left p-3 font-semibold">Data Registro</th>
+                  <th className="text-left p-3 font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,6 +328,37 @@ export const RetornadoGrid: React.FC = () => {
                       {retornado.valor_recuperado ? `R$ ${retornado.valor_recuperado.toFixed(2)}` : '-'}
                     </td>
                     <td className="p-3">{new Date(retornado.data_registro).toLocaleDateString('pt-BR')}</td>
+                    <td className="p-3">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir este retornado (ID: #{retornado.id})? 
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteRetornado(retornado.id!)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </td>
                   </tr>
                 ))}
               </tbody>
