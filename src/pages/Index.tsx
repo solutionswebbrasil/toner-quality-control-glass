@@ -57,7 +57,7 @@ const Index = () => {
       case 'garantias-graficos':
         return <GarantiaCharts />;
       case 'auditorias-registro':
-        return <AuditoriaForm />;
+        return <AuditoriaForm onSuccess={() => {}} />;
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
       case 'nao-conformidades-registro':
@@ -67,27 +67,27 @@ const Index = () => {
       case 'nao-conformidades-graficos':
         return <NaoConformidadeCharts naoConformidades={naoConformidades} />;
       case 'itpop-titulo-cadastro':
-        return <TituloItPopForm />;
+        return <TituloItPopForm onSuccess={() => {}} />;
       case 'itpop-titulo-consulta':
-        return <ConsultaTitulosItPop />;
+        return <ConsultaTitulosItPop onSuccess={() => {}} />;
       case 'itpop-registro':
-        return <RegistroItPopForm />;
+        return <RegistroItPopForm onSuccess={() => {}} />;
       case 'itpop-registros-consulta':
-        return <ConsultaRegistrosItPop />;
+        return <ConsultaRegistrosItPop onSuccess={() => {}} />;
       case 'itpop-visualizar':
-        return <VisualizadorItPop />;
+        return <VisualizadorItPop onSuccess={() => {}} />;
       case 'bpmn-titulo-cadastro':
-        return <TituloBpmnForm />;
+        return <TituloBpmnForm onSuccess={() => {}} />;
       case 'bpmn-titulo-consulta':
-        return <ConsultaTitulosBpmn />;
+        return <ConsultaTitulosBpmn onSuccess={() => {}} />;
       case 'bpmn-registro':
-        return <RegistroBpmnForm />;
+        return <RegistroBpmnForm onSuccess={() => {}} />;
       case 'bpmn-registros-consulta':
-        return <ConsultaRegistrosBpmn />;
+        return <ConsultaRegistrosBpmn onSuccess={() => {}} />;
       case 'bpmn-visualizar':
-        return <VisualizadorBpmn />;
+        return <VisualizadorBpmn onSuccess={() => {}} />;
       case 'configuracoes-filiais-cadastro':
-        return <FilialForm />;
+        return <FilialForm onSuccess={() => {}} />;
       case 'configuracoes-filiais-consulta':
         return <FilialGrid />;
       case 'configuracoes-retornado':

@@ -4,10 +4,10 @@ export interface NaoConformidade {
   data_ocorrencia: string;
   unidade_filial: string;
   setor_responsavel: string;
-  tipo_nc: 'Produto' | 'Processo' | 'Serviço' | 'Sistema' | 'Outros';
+  tipo_nc: string; // Changed from union type to string to match Supabase
   descricao: string;
   evidencias?: string[];
-  classificacao: 'Leve' | 'Moderada' | 'Grave' | 'Crítica';
+  classificacao: string; // Changed from union type to string to match Supabase
   identificado_por: string;
   responsavel_tratamento: string;
   data_limite_correcao: string;
@@ -15,7 +15,7 @@ export interface NaoConformidade {
   necessita_acao_corretiva?: boolean;
   acao_corretiva_proposta?: string;
   observacoes?: string;
-  status: 'Aberta' | 'Em andamento' | 'Corrigida' | 'Recusada' | 'Reaberta';
+  status: string; // Changed from union type to string to match Supabase
   data_registro: string;
   data_atualizacao?: string;
 }

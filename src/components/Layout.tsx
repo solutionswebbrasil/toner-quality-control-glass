@@ -15,9 +15,9 @@ import {
   HiAdjustments,
   HiCog,
   HiOfficeBuilding,
-  HiSearch,
-  HiExclamationTriangle
+  HiSearch
 } from 'react-icons/hi';
+import { AlertTriangle } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -123,7 +123,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         {
           id: "nao-conformidades-registro",
           label: "Registro de NC",
-          icon: HiExclamationTriangle
+          icon: AlertTriangle
         },
         {
           id: "nao-conformidades-consulta",
