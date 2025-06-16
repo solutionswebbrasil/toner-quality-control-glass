@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,19 +38,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -99,5 +93,95 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Enhanced hover effects for dark mode */
+  .dark .hover-enhanced {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .dark .hover-enhanced:hover {
+    @apply bg-slate-700/50 shadow-lg shadow-slate-900/20 border-slate-600;
+  }
+  
+  /* Card hover effects */
+  .dark .card-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .dark .card-hover:hover {
+    @apply bg-slate-800/60 shadow-xl shadow-slate-900/30 border-slate-600 transform scale-[1.02];
+  }
+  
+  /* Button hover enhancements for dark mode */
+  .dark button:hover {
+    @apply shadow-lg shadow-slate-900/20;
+  }
+  
+  .dark .btn-primary:hover {
+    @apply bg-blue-600 shadow-blue-900/30;
+  }
+  
+  .dark .btn-secondary:hover {
+    @apply bg-slate-600 shadow-slate-900/30;
+  }
+  
+  .dark .btn-destructive:hover {
+    @apply bg-red-600 shadow-red-900/30;
+  }
+  
+  /* Table row hover effects */
+  .dark tbody tr:hover {
+    @apply bg-slate-800/40 shadow-sm;
+  }
+  
+  /* Link hover effects */
+  .dark a:hover {
+    @apply text-blue-400 shadow-sm;
+  }
+  
+  /* Input focus and hover effects */
+  .dark input:hover,
+  .dark textarea:hover,
+  .dark select:hover {
+    @apply border-slate-500 bg-slate-800/50;
+  }
+  
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    @apply border-blue-500 shadow-blue-900/20;
+  }
+  
+  /* Dropdown and select hover effects */
+  .dark [data-radix-select-content] [data-radix-select-item]:hover {
+    @apply bg-slate-700 text-slate-100;
+  }
+  
+  /* Menu item hover effects */
+  .dark [role="menuitem"]:hover,
+  .dark [data-radix-dropdown-menu-item]:hover {
+    @apply bg-slate-700 text-slate-100 shadow-sm;
+  }
+  
+  /* Glass effect hover for cards */
+  .dark .glass-card {
+    @apply bg-slate-900/40 backdrop-blur-xl border-slate-700/50 transition-all duration-300;
+  }
+  
+  .dark .glass-card:hover {
+    @apply bg-slate-900/60 border-slate-600/70 shadow-2xl shadow-slate-900/40;
+  }
+  
+  /* Sidebar hover effects */
+  .dark [data-sidebar] [data-sidebar-menu-button]:hover {
+    @apply bg-slate-700/70 text-slate-100 shadow-sm;
+  }
+  
+  /* Action button hover effects */
+  .dark .action-btn:hover {
+    @apply transform scale-105 shadow-lg;
   }
 }
