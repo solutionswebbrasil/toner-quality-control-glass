@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { garantiaService } from '@/services/dataService';
+import { RmaChart } from './RmaChart';
 
 const getMonthName = (monthNumber: number) => {
   const months = [
@@ -318,6 +318,9 @@ export const GarantiaCharts: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Novo Gráfico de RMA */}
+      <RmaChart />
 
       {/* Modals para Gráficos Expandidos */}
       <ChartModal
