@@ -1,3 +1,4 @@
+
 export interface Toner {
   id?: number;
   modelo: string;
@@ -10,7 +11,7 @@ export interface Toner {
   impressoras_compat: string;
   cor: string;
   registrado_por: number;
-  data_registro: Date;
+  data_registro: string; // Changed from Date to string
 }
 
 export interface Retornado {
@@ -20,7 +21,7 @@ export interface Retornado {
   peso: number;
   destino_final: 'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno';
   filial: string;
-  data_registro: Date;
+  data_registro: string; // Changed from Date to string
   valor_recuperado?: number;
   modelo?: string; // Para joins
 }
@@ -38,7 +39,7 @@ export interface Fornecedor {
   nome: string;
   telefone: string;
   link_rma: string;
-  data_cadastro: Date;
+  data_cadastro: string; // Changed from Date to string
 }
 
 export interface Garantia {
@@ -48,30 +49,30 @@ export interface Garantia {
   defeito: string;
   fornecedor_id: number;
   fornecedor?: string; // Para joins
-  nf_compra_pdf?: File | string;
-  nf_remessa_pdf?: File | string;
-  nf_devolucao_pdf?: File | string;
-  status: 'aberta' | 'em_analise' | 'concluida' | 'recusada' | 'aguardando_fornecedor';
-  resultado?: 'devolucao_credito' | 'trocado' | 'consertado' | '';
+  nf_compra_pdf?: string; // Changed from File | string to string
+  nf_remessa_pdf?: string; // Changed from File | string to string
+  nf_devolucao_pdf?: string; // Changed from File | string to string
+  status: string; // Changed from union type to string to match Supabase
+  resultado?: string; // Changed from union type to string to match Supabase
   valor_unitario: number;
   valor_total: number;
-  data_registro: Date;
+  data_registro: string; // Changed from Date to string
 }
 
 export interface Auditoria {
   id?: number;
-  data_inicio: Date;
-  data_fim: Date;
+  data_inicio: string; // Changed from Date to string
+  data_fim: string; // Changed from Date to string
   unidade_auditada: string;
-  formulario_pdf?: File | string;
-  data_registro: Date;
+  formulario_pdf?: string; // Changed from File | string to string
+  data_registro: string; // Changed from Date to string
 }
 
 export interface TituloItPop {
   id?: number;
   titulo: string;
   descricao?: string;
-  data_cadastro: Date;
+  data_cadastro: string; // Changed from Date to string
 }
 
 export interface RegistroItPop {
@@ -79,9 +80,9 @@ export interface RegistroItPop {
   titulo_id: number;
   titulo?: string; // Para joins
   versao: number;
-  arquivo_pdf?: File | string;
-  arquivo_ppt?: File | string;
-  data_registro: Date;
+  arquivo_pdf?: string; // Changed from File | string to string
+  arquivo_ppt?: string; // Changed from File | string to string
+  data_registro: string; // Changed from Date to string
   registrado_por?: string;
 }
 
@@ -89,7 +90,7 @@ export interface TituloBpmn {
   id?: number;
   titulo: string;
   descricao?: string;
-  data_cadastro: Date;
+  data_cadastro: string; // Changed from Date to string
 }
 
 export interface RegistroBpmn {
@@ -97,10 +98,10 @@ export interface RegistroBpmn {
   titulo_id: number;
   titulo?: string; // Para joins
   versao: number;
-  arquivo_pdf?: File | string;
-  arquivo_jpg?: File | string;
-  arquivo_png?: File | string;
-  arquivo_bizagi?: File | string;
-  data_registro: Date;
+  arquivo_pdf?: string; // Changed from File | string to string
+  arquivo_jpg?: string; // Changed from File | string to string
+  arquivo_png?: string; // Changed from File | string to string
+  arquivo_bizagi?: string; // Changed from File | string to string
+  data_registro: string; // Changed from Date to string
   registrado_por?: string;
 }

@@ -53,6 +53,11 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
     // Aqui implementaria o download real
   };
 
+  const getFileName = (filePath: string | undefined): string => {
+    if (!filePath || typeof filePath !== 'string') return 'Arquivo';
+    return filePath.split('/').pop() || filePath;
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -129,7 +134,7 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                       <FileText className="h-4 w-4 text-red-500" />
                       <span className="text-sm font-medium">Arquivo PDF</span>
                       <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {ultimaVersao.arquivo_pdf}
+                        {getFileName(ultimaVersao.arquivo_pdf)}
                       </span>
                     </div>
                     <Button
@@ -149,7 +154,7 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                       <FileText className="h-4 w-4 text-orange-500" />
                       <span className="text-sm font-medium">Arquivo PPT</span>
                       <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {ultimaVersao.arquivo_ppt}
+                        {getFileName(ultimaVersao.arquivo_ppt)}
                       </span>
                     </div>
                     <Button
