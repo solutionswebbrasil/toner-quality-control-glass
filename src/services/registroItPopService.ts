@@ -103,7 +103,9 @@ export const registroItPopService = {
     
     const registroComVersao = {
       ...registro,
-      versao: nextVersion
+      versao: nextVersion,
+      // Remover arquivo_ppt do registro
+      arquivo_ppt: undefined
     };
     
     console.log('📝 Registro com versão calculada:', registroComVersao);

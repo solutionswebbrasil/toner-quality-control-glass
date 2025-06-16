@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Eye } from 'lucide-react';
+import { FileText, Download, Eye, Trash2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 import { tituloItPopService } from '@/services/tituloItPopService';
 import { registroItPopService } from '@/services/registroItPopService';
 import type { TituloItPop, RegistroItPop } from '@/types';
@@ -22,20 +24,6 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
   const [loadingRegistros, setLoadingRegistros] = useState(false);
 
   useEffect(() => {
-    const carregarTitulos = async () => {
-      try {
-        console.log('🔍 Carregando títulos IT/POP...');
-        setLoading(true);
-        const titulosData = await tituloItPopService.getAll();
-        setTitulos(titulosData);
-        console.log('✅ Títulos carregados:', titulosData.length);
-      } catch (error) {
-        console.error('❌ Erro ao carregar títulos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     carregarTitulos();
   }, []);
 
@@ -62,15 +50,75 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
     carregarRegistros();
   }, [tituloSelecionado]);
 
-  const handleDownload = (arquivo: string, tipo: string) => {
-    console.log(`📥 Iniciando download do arquivo ${tipo}:`, arquivo);
-    // Abrir o arquivo em uma nova aba para download
-    window.open(arquivo, '_blank');
+  const carregarTitulos = async () => {
+    try {
+      console.log('🔍 Carregando títulos IT/POP...');
+      setLoading(true);
+      const titulosData = await tituloItPopService.getAll();
+      setTitulos(titulosData);
+      console.log('✅ Títulos carregados:', titulosData.length);
+    } catch (error) {
+      console.error('❌ Erro ao carregar títulos:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getFileName = (filePath: string | undefined): string => {
-    if (!filePath || typeof filePath !== 'string') return 'Arquivo';
-    return filePath.split('/').pop() || filePath;
+  const handleExcluirTitulo = async (titulo: TituloItPop) => {
+    try {
+      console.log('🔍 Verificando se existem registros para o título:', titulo.id);
+      
+      // Verificar se existem registros para este título
+      const registrosDoTitulo = await registroItPopService.getByTituloId(titulo.id!);
+      
+      if (registrosDoTitulo.length > 0) {
+        toast({
+          title: 'Não é possível excluir',
+          description: `Este título possui ${registrosDoTitulo.length} registro(s) de IT/POP. Exclua primeiro os registros antes de excluir o título.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      console.log('🗑️ Excluindo título:', titulo.id);
+      const sucesso = await tituloItPopService.delete(titulo.id!);
+      
+      if (sucesso) {
+        toast({
+          title: 'Sucesso',
+          description: 'Título excluído com sucesso!',
+        });
+        
+        // Recarregar a lista de títulos
+        await carregarTitulos();
+        
+        // Limpar seleção se o título excluído estava selecionado
+        if (tituloSelecionado === titulo.id!.toString()) {
+          setTituloSelecionado('');
+          setRegistros([]);
+        }
+        
+        onSuccess();
+      } else {
+        toast({
+          title: 'Erro',
+          description: 'Erro ao excluir título. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao excluir título:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao excluir título. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDownload = (arquivo: string, tipo: string) => {
+    console.log(`📥 Iniciando download do arquivo ${tipo}:`, arquivo);
+    window.open(arquivo, '_blank');
   };
 
   const formatDate = (dateString: string): string => {
@@ -82,7 +130,7 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            Visualizar IT/POP
+            Consultar IT/POP
           </h2>
           <p className="text-slate-600 dark:text-slate-400">
             Carregando dados...
@@ -96,23 +144,99 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Visualizar IT/POP
+          Consultar IT/POP
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Visualize todas as versões de um IT/POP
+          Consulte e gerencie títulos e registros de IT/POP
         </p>
       </div>
 
+      {/* Lista de Títulos */}
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Títulos Cadastrados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {titulos.length === 0 ? (
+            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
+              Nenhum título cadastrado ainda.
+            </div>
+          ) : (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Data de Cadastro</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {titulos.map((titulo) => (
+                    <TableRow key={titulo.id}>
+                      <TableCell className="font-medium">{titulo.titulo}</TableCell>
+                      <TableCell>{titulo.descricao || 'Sem descrição'}</TableCell>
+                      <TableCell>{formatDate(titulo.data_cadastro)}</TableCell>
+                      <TableCell>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Excluir
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-red-500" />
+                                Confirmar Exclusão
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir o título "{titulo.titulo}"? 
+                                Esta ação não pode ser desfeita.
+                                {registros.length > 0 && tituloSelecionado === titulo.id!.toString() && (
+                                  <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded text-red-700 dark:text-red-300">
+                                    ⚠️ Este título possui registros associados e não pode ser excluído.
+                                  </div>
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleExcluirTitulo(titulo)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Seleção e Visualização de Registros */}
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Seleção de Título
+            Visualizar Registros
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Título IT/POP</label>
+            <label className="block text-sm font-medium mb-2">Selecione um Título</label>
             <Select onValueChange={setTituloSelecionado} value={tituloSelecionado}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o título" />
@@ -148,7 +272,7 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                       <TableHead>Versão</TableHead>
                       <TableHead>Data do Registro</TableHead>
                       <TableHead>Registrado por</TableHead>
-                      <TableHead>Arquivos</TableHead>
+                      <TableHead>Arquivo</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -168,47 +292,26 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
                           {registro.registrado_por || 'Não informado'}
                         </TableCell>
                         <TableCell>
-                          <div className="space-y-1">
-                            {registro.arquivo_pdf && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-3 w-3 text-red-500" />
-                                <span>PDF</span>
-                              </div>
-                            )}
-                            {registro.arquivo_ppt && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-3 w-3 text-orange-500" />
-                                <span>PPT</span>
-                              </div>
-                            )}
-                            {!registro.arquivo_pdf && !registro.arquivo_ppt && (
-                              <span className="text-sm text-slate-500">Sem arquivos</span>
-                            )}
-                          </div>
+                          {registro.arquivo_pdf ? (
+                            <div className="flex items-center gap-2 text-sm">
+                              <FileText className="h-3 w-3 text-red-500" />
+                              <span>PDF</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-slate-500">Sem arquivo</span>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            {registro.arquivo_pdf && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDownload(registro.arquivo_pdf!, 'PDF')}
-                              >
-                                <Download className="h-3 w-3 mr-1" />
-                                PDF
-                              </Button>
-                            )}
-                            {registro.arquivo_ppt && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDownload(registro.arquivo_ppt!, 'PPT')}
-                              >
-                                <Download className="h-3 w-3 mr-1" />
-                                PPT
-                              </Button>
-                            )}
-                          </div>
+                          {registro.arquivo_pdf && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(registro.arquivo_pdf!, 'PDF')}
+                            >
+                              <Download className="h-3 w-3 mr-1" />
+                              Baixar PDF
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
