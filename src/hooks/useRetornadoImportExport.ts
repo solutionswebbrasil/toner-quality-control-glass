@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Retornado } from '@/types';
 import { retornadoService } from '@/services/retornadoService';
@@ -80,7 +79,7 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
     }
   };
 
-  // Função para normalizar data de diferentes formatos
+  // Função para normalizar data - foco no formato brasileiro DD/MM/YYYY
   const normalizeDate = (dateValue: any): string => {
     if (!dateValue) {
       return new Date().toISOString().split('T')[0];
@@ -99,15 +98,26 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
       return excelDate.toISOString().split('T')[0];
     }
 
-    // Se é string, tentar vários formatos
+    // Se é string, priorizar formato brasileiro DD/MM/YYYY
     if (typeof dateValue === 'string') {
       const dateStr = dateValue.trim();
       
-      // Formato DD/MM/YYYY ou DD-MM-YYYY
-      const brDateMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      // Formato DD/MM/YYYY (formato brasileiro preferido)
+      const brDateMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
       if (brDateMatch) {
         const [, day, month, year] = brDateMatch;
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        const normalizedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        console.log(`Data convertida de ${dateStr} para ${normalizedDate}`);
+        return normalizedDate;
+      }
+
+      // Formato DD-MM-YYYY (alternativo)
+      const brDateDashMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+      if (brDateDashMatch) {
+        const [, day, month, year] = brDateDashMatch;
+        const normalizedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        console.log(`Data convertida de ${dateStr} para ${normalizedDate}`);
+        return normalizedDate;
       }
 
       // Formato YYYY/MM/DD ou YYYY-MM-DD
@@ -117,7 +127,7 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       }
 
-      // Tentar parser nativo
+      // Tentar parser nativo como último recurso
       try {
         const parsedDate = new Date(dateStr);
         if (!isNaN(parsedDate.getTime())) {
