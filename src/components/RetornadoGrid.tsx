@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Retornado } from '@/types';
 import { retornadoService } from '@/services/retornadoService';
@@ -132,17 +131,16 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleDownloadTemplate = () => {
     try {
-      // Cabeçalhos simples e diretos
+      // Criar CSV com encoding UTF-8 BOM para o Excel reconhecer corretamente
       const headers = ['id_cliente', 'modelo', 'filial', 'destino_final', 'peso', 'valor_recuperado', 'data_registro'];
-      
-      // Apenas uma linha de exemplo simples
       const exemploRow = ['12345', 'HP CF217A', 'Matriz', 'Estoque', '125.50', '25.50', '2024-06-16'];
 
-      // Criar CSV simples como uma tabela normal
-      const csvContent = [
-        headers.join(','),
-        exemploRow.join(',')
-      ].join('\n');
+      // Adicionar BOM para UTF-8 para garantir que o Excel abra corretamente
+      const BOM = '\uFEFF';
+      const csvContent = BOM + [
+        headers.join(';'), // Usar ponto e vírgula como separador para Excel brasileiro
+        exemploRow.join(';')
+      ].join('\r\n'); // Usar CRLF para compatibilidade com Windows/Excel
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
