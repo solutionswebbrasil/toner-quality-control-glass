@@ -6,31 +6,30 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Maximize2 } from 'lucide-react';
 import { ChartModal } from './ChartModal';
-import { ChartFilters, DateFilter } from './ChartFilters';
-import { ComparisonStats } from './ComparisonStats';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { garantiaService } from '@/services/dataService';
+
+const getMonthName = (monthNumber: number) => {
+  const months = [
+    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+  ];
+  return months[monthNumber];
+};
 
 export const GarantiaCharts: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [valorData, setValorData] = useState<any[]>([]);
   const [fornecedorData, setFornecedorData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
-  const [filter, setFilter] = useState<DateFilter>({
-    type: 'month',
-    month: new Date().getMonth(),
-    year: new Date().getFullYear()
-  });
-  const [comparisonStats, setComparisonStats] = useState<{
-    currentQuantity: number;
-    previousQuantity: number;
-    currentValue: number;
-    previousValue: number;
-  }>({
-    currentQuantity: 0,
-    previousQuantity: 0,
-    currentValue: 0,
-    previousValue: 0
-  });
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -40,79 +39,68 @@ export const GarantiaCharts: React.FC = () => {
       
       const garantias = await garantiaService.getAll();
       
-      // Filtrar dados baseado no filtro selecionado
+      // Filtrar dados baseado nas datas selecionadas
       const filteredData = garantias.filter(item => {
         const itemDate = new Date(item.data_registro);
         
-        if (filter.type === 'day' && filter.startDate && filter.endDate) {
-          return itemDate >= filter.startDate && itemDate <= filter.endDate;
-        } else if (filter.type === 'month' && filter.month !== undefined && filter.year) {
-          return itemDate.getMonth() === filter.month && itemDate.getFullYear() === filter.year;
-        } else if (filter.type === 'year' && filter.year) {
-          return itemDate.getFullYear() === filter.year;
+        if (startDate && endDate) {
+          return itemDate >= startDate && itemDate <= endDate;
         }
         
         return true;
       });
 
-      // Calcular dados para comparação (período anterior)
-      const previousPeriodData = garantias.filter(item => {
-        const itemDate = new Date(item.data_registro);
+      // Dados mensais ou por período
+      const dataMap = new Map();
+      
+      if (startDate && endDate) {
+        // Se há filtro de data, agrupar por dia
+        const startDay = new Date(startDate);
+        const endDay = new Date(endDate);
         
-        if (filter.type === 'month' && filter.month !== undefined && filter.year) {
-          const prevMonth = filter.month === 0 ? 11 : filter.month - 1;
-          const prevYear = filter.month === 0 ? filter.year - 1 : filter.year;
-          return itemDate.getMonth() === prevMonth && itemDate.getFullYear() === prevYear;
-        } else if (filter.type === 'year' && filter.year) {
-          return itemDate.getFullYear() === filter.year - 1;
+        for (let d = new Date(startDay); d <= endDay; d.setDate(d.getDate() + 1)) {
+          const key = format(new Date(d), 'dd/MM');
+          dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
         }
         
-        return false;
-      });
-
-      // Estatísticas de comparação
-      const currentQuantity = filteredData.reduce((sum, item) => sum + item.quantidade, 0);
-      const previousQuantity = previousPeriodData.reduce((sum, item) => sum + item.quantidade, 0);
-      const currentValue = filteredData.reduce((sum, item) => sum + item.valor_total, 0);
-      const previousValue = previousPeriodData.reduce((sum, item) => sum + item.valor_total, 0);
-
-      setComparisonStats({
-        currentQuantity,
-        previousQuantity,
-        currentValue,
-        previousValue
-      });
-
-      // Dados mensais (últimos 6 meses se não filtrado)
-      const monthlyDataMap = new Map();
-      
-      if (filter.type === 'month' && filter.year && filter.month !== undefined) {
-        // Se filtro específico, mostrar apenas esse mês
-        const key = `${String(filter.month + 1).padStart(2, '0')}/${String(filter.year).slice(-2)}`;
-        monthlyDataMap.set(key, { month: key, quantidade: 0, valor: 0 });
+        filteredData.forEach(item => {
+          const date = new Date(item.data_registro);
+          const key = format(date, 'dd/MM');
+          
+          if (dataMap.has(key)) {
+            const existing = dataMap.get(key);
+            existing.quantidade += item.quantidade;
+            existing.valor += item.valor_total || 0;
+          }
+        });
       } else {
-        // Últimos 6 meses
+        // Últimos 6 meses por padrão
         for (let i = 5; i >= 0; i--) {
           const date = new Date();
           date.setMonth(date.getMonth() - i);
-          const key = `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
-          monthlyDataMap.set(key, { month: key, quantidade: 0, valor: 0 });
+          const monthName = getMonthName(date.getMonth());
+          const year = date.getFullYear();
+          const key = `${monthName}/${year}`;
+          dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
         }
+        
+        filteredData.forEach(item => {
+          const date = new Date(item.data_registro);
+          const monthName = getMonthName(date.getMonth());
+          const year = date.getFullYear();
+          const key = `${monthName}/${year}`;
+          
+          if (dataMap.has(key)) {
+            const existing = dataMap.get(key);
+            existing.quantidade += item.quantidade;
+            existing.valor += item.valor_total || 0;
+          }
+        });
       }
 
-      filteredData.forEach(item => {
-        const date = new Date(item.data_registro);
-        const key = `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
-        
-        if (monthlyDataMap.has(key)) {
-          const existing = monthlyDataMap.get(key);
-          existing.quantidade += item.quantidade;
-          existing.valor += item.valor_total;
-        }
-      });
-
-      const monthlyArray = Array.from(monthlyDataMap.values());
-      setMonthlyData(monthlyArray);
+      const periodArray = Array.from(dataMap.values());
+      setMonthlyData(periodArray);
+      setValorData(periodArray);
 
       // Dados por fornecedor (apenas fornecedores com quantidade > 0)
       const fornecedorMap = new Map();
@@ -122,7 +110,7 @@ export const GarantiaCharts: React.FC = () => {
       });
 
       const fornecedorArray = Array.from(fornecedorMap.entries())
-        .filter(([_, value]) => value > 0) // Remover fornecedores com quantidade zero
+        .filter(([_, value]) => value > 0)
         .map(([nome, quantidade]) => ({ nome, quantidade }));
 
       setFornecedorData(fornecedorArray);
@@ -135,7 +123,7 @@ export const GarantiaCharts: React.FC = () => {
 
   useEffect(() => {
     loadChartData();
-  }, [filter]);
+  }, [startDate, endDate]);
 
   const chartConfig = {
     quantidade: {
@@ -146,6 +134,11 @@ export const GarantiaCharts: React.FC = () => {
       label: "Valor (R$)",
       color: "#10b981",
     },
+  };
+
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
   };
 
   if (isLoading) {
@@ -159,50 +152,99 @@ export const GarantiaCharts: React.FC = () => {
     );
   }
 
+  const periodLabel = startDate && endDate ? 
+    `${startDate && endDate && (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) <= 31 ? 'por Período' : 'por Mês'}` : 
+    'por Mês';
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Gráficos de Garantias</h2>
       
-      <ChartFilters filter={filter} onFilterChange={setFilter} />
+      {/* Filtros de Data */}
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Inicial:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-40 justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-      {/* Estatísticas de Comparação */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-        <ComparisonStats
-          currentValue={comparisonStats.currentQuantity}
-          previousValue={comparisonStats.previousQuantity}
-          label="Quantidade de Garantias"
-          format="number"
-        />
-        <ComparisonStats
-          currentValue={comparisonStats.currentValue}
-          previousValue={comparisonStats.previousValue}
-          label="Valor Total"
-          format="currency"
-        />
-      </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Final:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-40 justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "dd/MM/yyyy") : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <Button variant="outline" onClick={clearFilters}>
+              Limpar Filtros
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Gráfico de Garantias por Mês */}
+        {/* Gráfico de Quantidade */}
         <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Garantias por Período</CardTitle>
+            <CardTitle>Garantias {periodLabel}</CardTitle>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setExpandedChart('monthly')}
+              onClick={() => setExpandedChart('quantidade')}
             >
               <Maximize2 className="w-4 h-4" />
             </Button>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-64">
-              <LineChart data={monthlyData}>
+              <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey="period" />
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="quantidade" stroke="var(--color-quantidade)" />
-              </LineChart>
+                <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
+              </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -247,22 +289,50 @@ export const GarantiaCharts: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Novo Gráfico de Valor Total */}
+        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Valor Total das Garantias {periodLabel}</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExpandedChart('valor')}
+            >
+              <Maximize2 className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-64">
+              <BarChart data={valorData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor Total']}
+                />
+                <Bar dataKey="valor" fill="var(--color-valor)" />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modals para Gráficos Expandidos */}
       <ChartModal
-        isOpen={expandedChart === 'monthly'}
+        isOpen={expandedChart === 'quantidade'}
         onClose={() => setExpandedChart(null)}
-        title="Garantias por Período"
+        title={`Garantias ${periodLabel}`}
       >
         <ChartContainer config={chartConfig} className="h-96">
-          <LineChart data={monthlyData}>
+          <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
+            <XAxis dataKey="period" />
             <YAxis />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Line type="monotone" dataKey="quantidade" stroke="var(--color-quantidade)" strokeWidth={3} />
-          </LineChart>
+            <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
+          </BarChart>
         </ChartContainer>
       </ChartModal>
 
@@ -296,6 +366,25 @@ export const GarantiaCharts: React.FC = () => {
             Nenhum dado disponível para o período selecionado
           </div>
         )}
+      </ChartModal>
+
+      <ChartModal
+        isOpen={expandedChart === 'valor'}
+        onClose={() => setExpandedChart(null)}
+        title={`Valor Total das Garantias ${periodLabel}`}
+      >
+        <ChartContainer config={chartConfig} className="h-96">
+          <BarChart data={valorData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="period" />
+            <YAxis />
+            <ChartTooltip 
+              content={<ChartTooltipContent />}
+              formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor Total']}
+            />
+            <Bar dataKey="valor" fill="var(--color-valor)" />
+          </BarChart>
+        </ChartContainer>
       </ChartModal>
 
       {monthlyData.every(item => item.quantidade === 0) && fornecedorData.length === 0 && (
