@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +17,8 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { auditoriaService } from '@/services/auditoriaService';
 import { fileUploadService } from '@/services/fileUploadService';
+import { filialService } from '@/services/filialService';
+import type { Filial } from '@/types/filial';
 
 const auditoriaSchema = z.object({
   data_inicio: z.date({
@@ -39,22 +40,10 @@ interface AuditoriaFormProps {
   onSuccess: () => void;
 }
 
-const unidades = [
-  'Matriz - São Paulo',
-  'Filial Rio de Janeiro',
-  'Filial Belo Horizonte',
-  'Filial Brasília',
-  'Filial Salvador',
-  'Filial Recife',
-  'Filial Fortaleza',
-  'Filial Porto Alegre',
-  'Filial Curitiba',
-  'Filial Goiânia'
-];
-
 export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filiais, setFiliais] = useState<Filial[]>([]);
 
   const form = useForm<AuditoriaFormData>({
     resolver: zodResolver(auditoriaSchema),
@@ -62,6 +51,19 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
       unidade_auditada: '',
     },
   });
+
+  useEffect(() => {
+    loadFiliais();
+  }, []);
+
+  const loadFiliais = async () => {
+    try {
+      const data = await filialService.getAll();
+      setFiliais(data);
+    } catch (error) {
+      console.error('Erro ao carregar filiais:', error);
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -287,9 +289,9 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {unidades.map((unidade) => (
-                          <SelectItem key={unidade} value={unidade}>
-                            {unidade}
+                        {filiais.map((filial) => (
+                          <SelectItem key={filial.id} value={filial.nome}>
+                            {filial.nome}
                           </SelectItem>
                         ))}
                       </SelectContent>

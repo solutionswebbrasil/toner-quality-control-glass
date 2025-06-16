@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,21 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, Recycle } from 'lucide-react';
 import { Toner, Retornado } from '@/types';
-import { tonerService, retornadoService } from '@/services/dataService';
+import { tonerService, retornadoService, filialService } from '@/services/dataService';
 import { toast } from '@/hooks/use-toast';
+import type { Filial } from '@/types/filial';
 
 interface RetornadoFormProps {
   onSuccess?: () => void;
 }
-
-const filiais = [
-  'Matriz',
-  'Filial 1',
-  'Filial 2',
-  'Filial 3',
-  'Filial 4',
-  'Filial 5'
-];
 
 const destinosFinais = [
   'Descarte',
@@ -32,12 +23,13 @@ const destinosFinais = [
 
 export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   const [toners, setToners] = useState<Toner[]>([]);
+  const [filiais, setFiliais] = useState<Filial[]>([]);
   const [formData, setFormData] = useState({
     id_modelo: '',
     id_cliente: '',
     peso: '',
     destino_final: 'Descarte',
-    filial: 'Matriz',
+    filial: '',
     valor_recuperado: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +37,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
   useEffect(() => {
     loadToners();
+    loadFiliais();
   }, []);
 
   // Atualizar toner selecionado quando o modelo mudar
@@ -63,6 +56,19 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
       setToners(data);
     } catch (error) {
       console.error('Erro ao carregar toners:', error);
+    }
+  };
+
+  const loadFiliais = async () => {
+    try {
+      const data = await filialService.getAll();
+      setFiliais(data);
+      // Se houver filiais e nenhuma estiver selecionada, selecionar a primeira
+      if (data.length > 0 && !formData.filial) {
+        setFormData(prev => ({ ...prev, filial: data[0].nome }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar filiais:', error);
     }
   };
 
@@ -94,7 +100,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         id_cliente: '',
         peso: '',
         destino_final: 'Descarte',
-        filial: 'Matriz',
+        filial: '',
         valor_recuperado: ''
       });
       setSelectedToner(null);
@@ -185,12 +191,12 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
               <Label htmlFor="filial">Filial *</Label>
               <Select value={formData.filial} onValueChange={(value) => handleInputChange('filial', value)}>
                 <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione a filial" />
                 </SelectTrigger>
                 <SelectContent>
                   {filiais.map((filial) => (
-                    <SelectItem key={filial} value={filial}>
-                      {filial}
+                    <SelectItem key={filial.id} value={filial.nome}>
+                      {filial.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
