@@ -36,18 +36,13 @@ export const processImportData = async (
             id_modelo = tonerEncontrado.id;
             console.log(`Modelo ${item.modelo} encontrado com ID: ${id_modelo}`);
           } else {
-            console.warn(`Modelo ${item.modelo} não encontrado na base de toners, usando ID padrão`);
-            errors.push(`Linha ${index + 1}: Modelo "${item.modelo}" não encontrado na base de dados`);
-            errorCount++;
-            onProgress?.(importedCount, errorCount);
-            continue; // Pular este item se o modelo não for encontrado
+            console.warn(`Modelo ${item.modelo} não encontrado na base de toners, usando ID padrão (1)`);
+            // Não adicionar como erro, apenas continuar com ID padrão
           }
         } catch (modeloError) {
           console.error(`Erro ao buscar modelo ${item.modelo}:`, modeloError);
-          errors.push(`Linha ${index + 1}: Erro ao buscar modelo "${item.modelo}"`);
-          errorCount++;
-          onProgress?.(importedCount, errorCount);
-          continue;
+          console.warn(`Usando ID padrão (1) para o modelo ${item.modelo}`);
+          // Não interromper por erro de busca de modelo
         }
       }
 
