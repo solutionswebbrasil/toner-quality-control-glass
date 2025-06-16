@@ -179,12 +179,15 @@ export const RetornadoGrid: React.FC = () => {
         throw new Error('Arquivo deve conter pelo menos o cabeçalho e uma linha de dados');
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const expectedHeaders = ['id_cliente', 'modelo', 'filial', 'destino_final', 'valor_recuperado', 'data_registro'];
+      // Suportar tanto vírgula quanto ponto e vírgula como separadores
+      const separator = lines[0].includes(';') ? ';' : ',';
+      const headers = lines[0].split(separator).map(h => h.trim().replace(/"/g, ''));
+      const expectedHeaders = ['id_cliente', 'modelo', 'filial', 'destino_final', 'peso', 'valor_recuperado', 'data_registro'];
       
-      // Verificar se os cabeçalhos estão corretos
-      if (!expectedHeaders.every(h => headers.includes(h))) {
-        throw new Error('Cabeçalhos incorretos. Use o modelo de planilha fornecido.');
+      // Verificar se os cabeçalhos estão corretos (aceitar em qualquer ordem)
+      const hasAllHeaders = expectedHeaders.every(h => headers.includes(h));
+      if (!hasAllHeaders) {
+        throw new Error(`Cabeçalhos incorretos. Esperados: ${expectedHeaders.join(', ')}. Encontrados: ${headers.join(', ')}`);
       }
 
       const dataLines = lines.slice(1);
@@ -193,21 +196,38 @@ export const RetornadoGrid: React.FC = () => {
 
       for (const line of dataLines) {
         try {
-          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const values = line.split(separator).map(v => v.trim().replace(/"/g, ''));
           const data: any = {};
           
           headers.forEach((header, index) => {
             data[header] = values[index];
           });
 
+          // Função para converter valor brasileiro para número
+          const parseValorBrasileiro = (valor: string): number | undefined => {
+            if (!valor || valor.trim() === '') return undefined;
+            
+            // Remover R$, espaços e outros caracteres não numéricos exceto vírgula e ponto
+            let cleanValue = valor.replace(/[R$\s]/g, '');
+            
+            // Se tem vírgula, assumir formato brasileiro (1.234,56)
+            if (cleanValue.includes(',')) {
+              // Remover pontos (separadores de milhares) e trocar vírgula por ponto
+              cleanValue = cleanValue.replace(/\./g, '').replace(',', '.');
+            }
+            
+            const numero = parseFloat(cleanValue);
+            return isNaN(numero) ? undefined : numero;
+          };
+
           // Validar e converter dados
           const retornadoData = {
             id_cliente: parseInt(data.id_cliente),
             id_modelo: 1, // Valor padrão - seria ideal ter uma lookup table
-            peso: 100, // Valor padrão
+            peso: parseValorBrasileiro(data.peso) || 100, // Valor padrão se não conseguir converter
             destino_final: data.destino_final,
             filial: data.filial,
-            valor_recuperado: data.valor_recuperado ? parseFloat(data.valor_recuperado) : undefined,
+            valor_recuperado: parseValorBrasileiro(data.valor_recuperado),
             data_registro: data.data_registro
           };
 
