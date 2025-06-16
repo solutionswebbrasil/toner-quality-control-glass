@@ -125,7 +125,7 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
         return;
       }
 
-      // Criar objeto registro para salvar no banco
+      // Criar objeto registro para salvar no banco - APENAS com campos que existem no banco
       const registro: Omit<RegistroBpmn, 'id' | 'versao' | 'titulo'> = {
         titulo_id: parseInt(data.titulo_id),
         arquivo_png: arquivo_png_url || undefined,

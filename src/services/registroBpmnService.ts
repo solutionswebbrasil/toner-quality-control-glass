@@ -98,9 +98,19 @@ export const registroBpmnService = {
   create: async (registro: Omit<RegistroBpmn, 'id' | 'versao'>): Promise<RegistroBpmn> => {
     console.log('📝 Criando novo registro BPMN:', registro);
     
+    // Garantir que apenas campos válidos sejam enviados
+    const registroLimpo = {
+      titulo_id: registro.titulo_id,
+      arquivo_png: registro.arquivo_png,
+      data_registro: registro.data_registro,
+      registrado_por: registro.registrado_por
+    };
+    
+    console.log('📝 Registro BPMN a ser criado:', registroLimpo);
+    
     const { data, error } = await supabase
       .from('registros_bpmn')
-      .insert([registro])
+      .insert([registroLimpo])
       .select(`
         *,
         titulos_bpmn:titulo_id (
