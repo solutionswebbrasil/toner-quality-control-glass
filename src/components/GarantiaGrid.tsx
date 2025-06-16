@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { garantiaService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
 import { Garantia } from '@/types';
-import { Edit, Printer, FileText, Trash2 } from 'lucide-react';
+import { Edit, Printer, FileText, Trash2, Download, Eye } from 'lucide-react';
 import { GarantiaEditForm } from './GarantiaEditForm';
 
 export const GarantiaGrid: React.FC = () => {
@@ -139,6 +138,39 @@ export const GarantiaGrid: React.FC = () => {
     }
   };
 
+  const handleViewPdf = (pdfUrl: string, fileName: string) => {
+    if (!pdfUrl) {
+      toast({
+        title: "Erro",
+        description: "Arquivo não encontrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Abrir PDF em nova aba
+    window.open(pdfUrl, '_blank');
+  };
+
+  const handleDownloadPdf = (pdfUrl: string, fileName: string) => {
+    if (!pdfUrl) {
+      toast({
+        title: "Erro",
+        description: "Arquivo não encontrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Criar link temporário para download
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const getStatusColor = (status: string) => {
     const colors = {
       'aberta': 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30',
@@ -201,6 +233,9 @@ export const GarantiaGrid: React.FC = () => {
                     <TableHead>Valor Unit.</TableHead>
                     <TableHead>Valor Total</TableHead>
                     <TableHead>Data</TableHead>
+                    <TableHead>NF Compra</TableHead>
+                    <TableHead>NF Remessa</TableHead>
+                    <TableHead>NF Devolução</TableHead>
                     <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -261,6 +296,91 @@ export const GarantiaGrid: React.FC = () => {
                       <TableCell>
                         {new Date(garantia.data_registro).toLocaleDateString('pt-BR')}
                       </TableCell>
+                      
+                      {/* NF Compra */}
+                      <TableCell>
+                        {garantia.nf_compra_pdf ? (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewPdf(garantia.nf_compra_pdf!, `NF_Compra_${garantia.id}.pdf`)}
+                              className="p-1"
+                              title="Visualizar NF Compra"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadPdf(garantia.nf_compra_pdf!, `NF_Compra_${garantia.id}.pdf`)}
+                              className="p-1"
+                              title="Baixar NF Compra"
+                            >
+                              <Download className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">Não anexado</span>
+                        )}
+                      </TableCell>
+                      
+                      {/* NF Remessa */}
+                      <TableCell>
+                        {garantia.nf_remessa_pdf ? (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewPdf(garantia.nf_remessa_pdf!, `NF_Remessa_${garantia.id}.pdf`)}
+                              className="p-1"
+                              title="Visualizar NF Remessa"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadPdf(garantia.nf_remessa_pdf!, `NF_Remessa_${garantia.id}.pdf`)}
+                              className="p-1"
+                              title="Baixar NF Remessa"
+                            >
+                              <Download className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">Não anexado</span>
+                        )}
+                      </TableCell>
+                      
+                      {/* NF Devolução */}
+                      <TableCell>
+                        {garantia.nf_devolucao_pdf ? (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewPdf(garantia.nf_devolucao_pdf!, `NF_Devolucao_${garantia.id}.pdf`)}
+                              className="p-1"
+                              title="Visualizar NF Devolução"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadPdf(garantia.nf_devolucao_pdf!, `NF_Devolucao_${garantia.id}.pdf`)}
+                              className="p-1"
+                              title="Baixar NF Devolução"
+                            >
+                              <Download className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">Não anexado</span>
+                        )}
+                      </TableCell>
+                      
                       <TableCell>
                         <div className="flex justify-center gap-2">
                           <Button
