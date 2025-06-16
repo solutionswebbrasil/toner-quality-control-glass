@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -189,6 +188,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           id: "configuracoes-filiais-consulta", 
           label: "Consultar Filiais",
           icon: HiSearch
+        },
+        {
+          id: "configuracoes-retornado",
+          label: "Regras de Retornado",
+          icon: HiAdjustments
         }
       ]
     }
