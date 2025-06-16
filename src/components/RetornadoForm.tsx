@@ -20,6 +20,7 @@ const destinosFinais = [
   'Descarte',
   'Garantia',
   'Estoque',
+  'Estoque Semi Novo',
   'Uso Interno'
 ];
 

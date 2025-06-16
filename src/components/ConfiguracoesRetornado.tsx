@@ -21,13 +21,20 @@ const regrasIniciais: RegraRetornado[] = [
     id: 'estoque',
     destino: 'Estoque',
     percentual_min: 0,
-    percentual_max: 30,
-    orientacoes: 'Toners com baixo uso, adequados para reuso futuro. Verificar condições de armazenamento.'
+    percentual_max: 20,
+    orientacoes: 'Toners com baixíssimo uso, adequados para reuso futuro. Verificar condições de armazenamento.'
+  },
+  {
+    id: 'estoque_semi_novo',
+    destino: 'Estoque Semi Novo',
+    percentual_min: 21,
+    percentual_max: 40,
+    orientacoes: 'Toners com uso baixo a moderado, em bom estado para uso como semi novos.'
   },
   {
     id: 'uso_interno',
     destino: 'Uso Interno',
-    percentual_min: 31,
+    percentual_min: 41,
     percentual_max: 70,
     orientacoes: 'Toners com uso moderado, utilizáveis para impressões internas e testes.'
   },
@@ -112,6 +119,8 @@ export const ConfiguracoesRetornado: React.FC = () => {
     switch (destino) {
       case 'Estoque':
         return 'border-green-500 bg-green-50 dark:bg-green-950';
+      case 'Estoque Semi Novo':
+        return 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950';
       case 'Uso Interno':
         return 'border-blue-500 bg-blue-50 dark:bg-blue-950';
       case 'Garantia':
