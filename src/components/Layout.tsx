@@ -1,32 +1,27 @@
 
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserMenu } from '@/components/UserMenu';
+import { ModeToggle } from '@/components/ModeToggle';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { 
-  HiChartPie, 
-  HiViewBoards, 
-  HiUser, 
-  HiShoppingBag, 
-  HiArrowSmRight,
-  HiDocumentText,
-  HiFolder,
-  HiTemplate,
-  HiCollection,
-  HiBookOpen,
-  HiOutlineDocumentText,
-  HiCubeTransparent,
-  HiAdjustments,
-  HiCog,
-  HiOfficeBuilding,
-  HiSearch
-} from 'react-icons/hi';
-import { AlertTriangle, FileText, Wrench, ChevronDown, ChevronRight } from 'lucide-react';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/ModeToggle"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+  Menu, 
+  X, 
+  Home, 
+  Package, 
+  RotateCcw, 
+  Shield, 
+  ClipboardCheck,
+  AlertTriangle,
+  FileText,
+  Workflow,
+  Building2,
+  Settings,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,330 +29,251 @@ interface LayoutProps {
   onPageChange: (page: string) => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
-  const { theme, toggleTheme } = useTheme();
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  subItems?: {
+    id: string;
+    label: string;
+    modulo: string;
+    submenu: string;
+  }[];
+}
 
-  const toggleSection = (sectionTitle: string) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [sectionTitle]: !prev[sectionTitle]
-    }));
+export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['toners', 'retornados']);
+  const { hasPermission } = useAuth();
+
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
   };
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
-      title: "Toners",
-      items: [
-        {
-          id: "toners-cadastro",
-          label: "Cadastrar Toner",
-          icon: HiShoppingBag
-        },
-        {
-          id: "toners-consulta",
-          label: "Consultar Toners",
-          icon: HiViewBoards
-        }
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: <Home className="h-4 w-4" />,
+      subItems: [
+        { id: 'dashboard-overview', label: 'Visão Geral', modulo: 'Dashboard', submenu: 'Visualização Geral' }
       ]
     },
     {
-      title: "Retornados",
-      items: [
-        {
-          id: "retornados-registro",
-          label: "Registrar Retorno",
-          icon: HiArrowSmRight
-        },
-        {
-          id: "retornados-consulta",
-          label: "Consultar Retornos",
-          icon: HiChartPie
-        },
-        {
-          id: "retornados-graficos",
-          label: "Gráficos",
-          icon: HiChartPie
-        }
+      id: 'toners',
+      label: 'Toners',
+      icon: <Package className="h-4 w-4" />,
+      subItems: [
+        { id: 'toners-cadastro', label: 'Cadastro', modulo: 'Toners', submenu: 'Cadastro' },
+        { id: 'toners-consulta', label: 'Consulta', modulo: 'Toners', submenu: 'Consulta' }
       ]
     },
     {
-      title: "Cadastro de Fornecedores",
-      items: [
-        {
-          id: "garantias-fornecedores-cadastro",
-          label: "Cadastrar Fornecedor",
-          icon: HiUser
-        },
-        {
-          id: "garantias-fornecedores-consulta",
-          label: "Consultar Fornecedores",
-          icon: HiViewBoards
-        }
+      id: 'retornados',
+      label: 'Retornados',
+      icon: <RotateCcw className="h-4 w-4" />,
+      subItems: [
+        { id: 'retornados-registro', label: 'Registro', modulo: 'Retornados', submenu: 'Registro' },
+        { id: 'retornados-consulta', label: 'Consulta', modulo: 'Retornados', submenu: 'Consulta' },
+        { id: 'retornados-graficos', label: 'Gráficos', modulo: 'Retornados', submenu: 'Gráficos' }
       ]
     },
     {
-      title: "Garantias Gerais",
-      items: [
-        {
-          id: "garantias-registro",
-          label: "Registrar Garantia",
-          icon: HiDocumentText
-        },
-        {
-          id: "garantias-consulta",
-          label: "Consultar Garantias",
-          icon: HiViewBoards
-        },
-        {
-          id: "garantias-gerais-graficos",
-          label: "Gráficos",
-          icon: HiChartPie
-        }
+      id: 'garantias',
+      label: 'Garantias',
+      icon: <Shield className="h-4 w-4" />,
+      subItems: [
+        { id: 'garantias-fornecedores-cadastro', label: 'Fornecedores - Cadastro', modulo: 'Garantias', submenu: 'Fornecedores Cadastro' },
+        { id: 'garantias-fornecedores-consulta', label: 'Fornecedores - Consulta', modulo: 'Garantias', submenu: 'Fornecedores Consulta' },
+        { id: 'garantias-registro', label: 'Registro', modulo: 'Garantias', submenu: 'Registro' },
+        { id: 'garantias-consulta', label: 'Consulta', modulo: 'Garantias', submenu: 'Consulta' },
+        { id: 'garantias-gerais-graficos', label: 'Gráficos Gerais', modulo: 'Garantias', submenu: 'Gráficos Gerais' },
+        { id: 'garantias-toners', label: 'Garantias Toners', modulo: 'Garantias', submenu: 'Garantias Toners' },
+        { id: 'garantias-toners-consulta', label: 'Toners - Consulta', modulo: 'Garantias', submenu: 'Toners Consulta' },
+        { id: 'garantias-toners-graficos', label: 'Toners - Gráficos', modulo: 'Garantias', submenu: 'Toners Gráficos' }
       ]
     },
     {
-      title: "Garantias de Toners",
-      items: [
-        {
-          id: "garantias-toners",
-          label: "Garantias de Toners Pendentes",
-          icon: Wrench
-        },
-        {
-          id: "garantias-toners-consulta",
-          label: "Garantias de Toners Concluídas",
-          icon: HiViewBoards
-        },
-        {
-          id: "garantias-toners-graficos",
-          label: "Gráficos",
-          icon: HiChartPie
-        }
+      id: 'auditorias',
+      label: 'Auditorias',
+      icon: <ClipboardCheck className="h-4 w-4" />,
+      subItems: [
+        { id: 'auditorias-registro', label: 'Registro', modulo: 'Auditorias', submenu: 'Registro' },
+        { id: 'auditorias-consulta', label: 'Consulta', modulo: 'Auditorias', submenu: 'Consulta' }
       ]
     },
     {
-      title: "Auditorias",
-      items: [
-        {
-          id: "auditorias-registro",
-          label: "Registrar Auditoria",
-          icon: HiOutlineDocumentText
-        },
-        {
-          id: "auditorias-consulta",
-          label: "Consultar Auditorias",
-          icon: HiViewBoards
-        }
+      id: 'nao-conformidades',
+      label: 'Não Conformidades',
+      icon: <AlertTriangle className="h-4 w-4" />,
+      subItems: [
+        { id: 'nao-conformidades-registro', label: 'Registro', modulo: 'Não Conformidades', submenu: 'Registro' },
+        { id: 'nao-conformidades-consulta', label: 'Consulta', modulo: 'Não Conformidades', submenu: 'Consulta' },
+        { id: 'nao-conformidades-graficos', label: 'Gráficos', modulo: 'Não Conformidades', submenu: 'Gráficos' }
       ]
     },
     {
-      title: "Não Conformidades",
-      items: [
-        { 
-          id: 'nao-conformidades-registro',
-          label: 'Registro de NC',
-          icon: AlertTriangle
-        },
-        { 
-          id: 'nao-conformidades-consulta',
-          label: 'Consulta de NC',
-          icon: HiViewBoards
-        },
-        { 
-          id: 'nao-conformidades-graficos',
-          label: 'Gráficos de NC',
-          icon: HiChartPie
-        },
+      id: 'itpop',
+      label: 'IT/POP',
+      icon: <FileText className="h-4 w-4" />,
+      subItems: [
+        { id: 'itpop-titulo-cadastro', label: 'Título - Cadastro', modulo: 'IT/POP', submenu: 'Título Cadastro' },
+        { id: 'itpop-titulo-consulta', label: 'Título - Consulta', modulo: 'IT/POP', submenu: 'Título Consulta' },
+        { id: 'itpop-registro', label: 'Registro', modulo: 'IT/POP', submenu: 'Registro' },
+        { id: 'itpop-registros-consulta', label: 'Registros - Consulta', modulo: 'IT/POP', submenu: 'Registros Consulta' },
+        { id: 'itpop-visualizar', label: 'Visualizar', modulo: 'IT/POP', submenu: 'Visualizar' }
       ]
     },
     {
-      title: 'Certificados',
-      items: [
-        { 
-          id: 'certificados-registro',
-          label: 'Registro de Certificados',
-          icon: FileText
-        },
-        { 
-          id: 'certificados-consulta',
-          label: 'Consulta de Certificados',
-          icon: HiViewBoards
-        },
+      id: 'bpmn',
+      label: 'BPMN',
+      icon: <Workflow className="h-4 w-4" />,
+      subItems: [
+        { id: 'bpmn-titulo-cadastro', label: 'Título - Cadastro', modulo: 'BPMN', submenu: 'Título Cadastro' },
+        { id: 'bpmn-titulo-consulta', label: 'Título - Consulta', modulo: 'BPMN', submenu: 'Título Consulta' },
+        { id: 'bpmn-registro', label: 'Registro', modulo: 'BPMN', submenu: 'Registro' },
+        { id: 'bpmn-registros-consulta', label: 'Registros - Consulta', modulo: 'BPMN', submenu: 'Registros Consulta' },
+        { id: 'bpmn-visualizar', label: 'Visualizar', modulo: 'BPMN', submenu: 'Visualizar' }
       ]
     },
     {
-      title: "IT/POP",
-      items: [
-        {
-          id: "itpop-titulo-cadastro",
-          label: "Cadastrar Título",
-          icon: HiTemplate
-        },
-        {
-          id: "itpop-titulo-consulta",
-          label: "Consultar Títulos",
-          icon: HiCollection
-        },
-        {
-          id: "itpop-registro",
-          label: "Registrar IT/POP",
-          icon: HiBookOpen
-        },
-        {
-          id: "itpop-registros-consulta",
-          label: "Consultar Registros",
-          icon: HiViewBoards
-        },
-        {
-          id: "itpop-visualizar",
-          label: "Visualizar IT/POP",
-          icon: HiCubeTransparent
-        }
+      id: 'certificados',
+      label: 'Certificados',
+      icon: <Shield className="h-4 w-4" />,
+      subItems: [
+        { id: 'certificados-registro', label: 'Registro', modulo: 'Certificados', submenu: 'Registro' },
+        { id: 'certificados-consulta', label: 'Consulta', modulo: 'Certificados', submenu: 'Consulta' }
       ]
     },
     {
-      title: "BPMN",
-      items: [
-        {
-          id: "bpmn-titulo-cadastro",
-          label: "Cadastrar Título",
-          icon: HiTemplate
-        },
-        {
-          id: "bpmn-titulo-consulta",
-          label: "Consultar Títulos",
-          icon: HiCollection
-        },
-        {
-          id: "bpmn-registro",
-          label: "Registrar BPMN",
-          icon: HiBookOpen
-        },
-        {
-          id: "bpmn-registros-consulta",
-          label: "Consultar Registros",
-          icon: HiViewBoards
-        },
-        {
-          id: "bpmn-visualizar",
-          label: "Visualizar BPMN",
-          icon: HiCubeTransparent
-        }
-      ]
-    },
-    {
-      title: "Configurações",
-      items: [
-        {
-          id: "configuracoes-filiais-cadastro",
-          label: "Cadastrar Filiais",
-          icon: HiOfficeBuilding
-        },
-        {
-          id: "configuracoes-filiais-consulta", 
-          label: "Consultar Filiais",
-          icon: HiSearch
-        },
-        {
-          id: "configuracoes-retornado",
-          label: "Regras de Retornado",
-          icon: HiAdjustments
-        }
+      id: 'configuracoes',
+      label: 'Configurações',
+      icon: <Settings className="h-4 w-4" />,
+      subItems: [
+        { id: 'configuracoes-filiais-cadastro', label: 'Filiais - Cadastro', modulo: 'Configurações', submenu: 'Filiais Cadastro' },
+        { id: 'configuracoes-filiais-consulta', label: 'Filiais - Consulta', modulo: 'Configurações', submenu: 'Filiais Consulta' },
+        { id: 'configuracoes-retornado', label: 'Retornado', modulo: 'Configurações', submenu: 'Retornado' },
+        { id: 'configuracoes-usuarios', label: 'Usuários', modulo: 'Configurações', submenu: 'Usuários' }
       ]
     }
   ];
 
-  const SidebarContent = () => (
-    <ScrollArea className="h-full py-6 px-4">
-      <div className="space-y-2">
-        {menuItems.map((menuGroup, index) => (
-          <div key={index}>
-            <Collapsible 
-              open={!collapsedSections[menuGroup.title]} 
-              onOpenChange={() => toggleSection(menuGroup.title)}
-            >
-              <CollapsibleTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  <span>{menuGroup.title}</span>
-                  {collapsedSections[menuGroup.title] ? (
-                    <ChevronRight className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-1 mt-2">
-                {menuGroup.items.map(item => {
-                  const IconComponent = item.icon;
-                  return (
-                    <Button
-                      key={item.id}
-                      variant={currentPage === item.id ? "default" : "ghost"}
-                      className="w-full justify-start pl-6"
-                      onClick={() => onPageChange(item.id)}
-                    >
-                      <IconComponent className="mr-2 h-4 w-4" />
-                      {item.label}
-                    </Button>
-                  );
-                })}
-              </CollapsibleContent>
-            </Collapsible>
-            {index < menuItems.length - 1 && <Separator className="mt-2" />}
+  const renderMenuItem = (item: MenuItem) => {
+    const isExpanded = expandedMenus.includes(item.id);
+    const hasVisibleSubItems = item.subItems?.some(subItem => 
+      hasPermission(subItem.modulo, subItem.submenu, 'ver')
+    );
+
+    if (!hasVisibleSubItems) return null;
+
+    return (
+      <div key={item.id} className="space-y-1">
+        <Button
+          variant="ghost"
+          onClick={() => toggleMenu(item.id)}
+          className={cn(
+            "w-full justify-between text-left font-normal hover-enhanced",
+            "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+          )}
+        >
+          <div className="flex items-center gap-2">
+            {item.icon}
+            {item.label}
           </div>
-        ))}
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </Button>
+        
+        {isExpanded && item.subItems && (
+          <div className="ml-6 space-y-1">
+            {item.subItems.map(subItem => {
+              if (!hasPermission(subItem.modulo, subItem.submenu, 'ver')) {
+                return null;
+              }
+              
+              return (
+                <Button
+                  key={subItem.id}
+                  variant="ghost"
+                  onClick={() => {
+                    onPageChange(subItem.id);
+                    setSidebarOpen(false);
+                  }}
+                  className={cn(
+                    "w-full justify-start text-left font-normal hover-enhanced",
+                    currentPage === subItem.id 
+                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100" 
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  )}
+                >
+                  {subItem.label}
+                </Button>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </ScrollArea>
-  );
+    );
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-40 w-full">
-        <div className="flex h-16 items-center px-4">
-          {/* Menu móvel */}
-          <div className="lg:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="mr-2">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>
-                    Navegue pelas opções do sistema.
-                  </SheetDescription>
-                </SheetHeader>
-                <SidebarContent />
-              </SheetContent>
-            </Sheet>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Header */}
+      <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden"
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">Q</span>
+              </div>
+              <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+                SGQ PRO
+              </h1>
+            </div>
           </div>
           
-          <div className="font-bold text-xl">
-            <span className="text-blue-600">SGQ</span> DJ
-          </div>
-          <div className="ml-auto flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <ModeToggle />
+            <UserMenu />
           </div>
         </div>
       </header>
 
-      <div className="flex-1 flex">
-        {/* Sidebar fixo para desktop */}
-        <aside className="hidden lg:block w-80 border-r border-gray-200 dark:border-gray-700">
-          <div className="bg-white dark:bg-gray-800 h-full">
-            <SidebarContent />
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-50 w-72 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <div className="flex flex-col h-full pt-16 md:pt-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {menuItems.map(renderMenuItem)}
+            </div>
           </div>
         </aside>
 
-        {/* Conteúdo principal */}
-        <main className="flex-1 p-4">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-40 md:hidden" 
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main content */}
+        <main className="flex-1 p-6">
           {children}
         </main>
       </div>

@@ -287,6 +287,50 @@ export type Database = {
         }
         Relationships: []
       }
+      permissoes: {
+        Row: {
+          id: string
+          modulo: string
+          pode_baixar: boolean
+          pode_cadastrar: boolean
+          pode_editar: boolean
+          pode_excluir: boolean
+          pode_ver: boolean
+          submenu: string
+          usuario_id: string
+        }
+        Insert: {
+          id?: string
+          modulo: string
+          pode_baixar?: boolean
+          pode_cadastrar?: boolean
+          pode_editar?: boolean
+          pode_excluir?: boolean
+          pode_ver?: boolean
+          submenu: string
+          usuario_id: string
+        }
+        Update: {
+          id?: string
+          modulo?: string
+          pode_baixar?: boolean
+          pode_cadastrar?: boolean
+          pode_editar?: boolean
+          pode_excluir?: boolean
+          pode_ver?: boolean
+          submenu?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissoes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_bpmn: {
         Row: {
           arquivo_png: string | null
@@ -485,6 +529,30 @@ export type Database = {
           preco_produto?: number
           registrado_por?: number
           valor_por_folha?: number
+        }
+        Relationships: []
+      }
+      usuarios: {
+        Row: {
+          criado_em: string
+          id: string
+          nome_completo: string
+          senha: string
+          usuario: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          nome_completo: string
+          senha: string
+          usuario: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nome_completo?: string
+          senha?: string
+          usuario?: string
         }
         Relationships: []
       }
