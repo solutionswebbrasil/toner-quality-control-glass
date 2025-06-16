@@ -41,8 +41,10 @@ const menuItems = [
   ]},
   { id: 'bpmn', label: 'BPMN', icon: Layers, subItems: [
     { id: 'bpmn-titulo-cadastro', label: 'Cadastro Títulos' },
+    { id: 'bpmn-titulo-consulta', label: 'Consulta Títulos' },
     { id: 'bpmn-registro', label: 'Registro BPMN' },
-    { id: 'bpmn-baixar', label: 'Baixar BPMN' }
+    { id: 'bpmn-registros-consulta', label: 'BPMNs Cadastrados' },
+    { id: 'bpmn-visualizar', label: 'Visualizar BPMN' }
   ]}
 ];
 

@@ -126,7 +126,7 @@ export type Database = {
           id: number
           registrado_por: string | null
           titulo_id: number
-          versao: number
+          versao: number | null
         }
         Insert: {
           arquivo_bizagi?: string | null
@@ -137,7 +137,7 @@ export type Database = {
           id?: number
           registrado_por?: string | null
           titulo_id: number
-          versao: number
+          versao?: number | null
         }
         Update: {
           arquivo_bizagi?: string | null
@@ -148,7 +148,7 @@ export type Database = {
           id?: number
           registrado_por?: string | null
           titulo_id?: number
-          versao?: number
+          versao?: number | null
         }
         Relationships: [
           {
@@ -331,7 +331,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_next_bpmn_version: {
+        Args: { titulo_id_param: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

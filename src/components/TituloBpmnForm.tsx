@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
+import { tituloBpmnService } from '@/services/tituloBpmnService';
 import type { TituloBpmn } from '@/types';
 
 const tituloSchema = z.object({
@@ -36,14 +37,17 @@ export const TituloBpmnForm: React.FC<TituloBpmnFormProps> = ({ onSuccess }) => 
   const onSubmit = async (data: TituloFormData) => {
     try {
       setIsSubmitting(true);
+      console.log('🚀 Iniciando cadastro de título BPMN...', data);
       
-      const titulo: TituloBpmn = {
+      const titulo: Omit<TituloBpmn, 'id'> = {
         titulo: data.titulo,
         descricao: data.descricao,
-        data_cadastro: new Date().toISOString(), // Convert Date to string
+        data_cadastro: new Date().toISOString(),
       };
 
-      console.log('Título BPMN cadastrado:', titulo);
+      console.log('💾 Salvando título BPMN no banco:', titulo);
+      const novoTitulo = await tituloBpmnService.create(titulo);
+      console.log('✅ Título BPMN salvo com sucesso:', novoTitulo);
 
       toast({
         title: 'Sucesso',
@@ -53,10 +57,10 @@ export const TituloBpmnForm: React.FC<TituloBpmnFormProps> = ({ onSuccess }) => 
       form.reset();
       onSuccess();
     } catch (error) {
-      console.error('Erro ao cadastrar título:', error);
+      console.error('❌ Erro ao cadastrar título BPMN:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao cadastrar título. Tente novamente.',
+        description: 'Erro ao cadastrar título BPMN. Verifique os dados e tente novamente.',
         variant: 'destructive',
       });
     } finally {

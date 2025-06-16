@@ -19,8 +19,10 @@ import { RegistroItPopForm } from '@/components/RegistroItPopForm';
 import { ConsultaRegistrosItPop } from '@/components/ConsultaRegistrosItPop';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
 import { TituloBpmnForm } from '@/components/TituloBpmnForm';
+import { ConsultaTitulosBpmn } from '@/components/ConsultaTitulosBpmn';
 import { RegistroBpmnForm } from '@/components/RegistroBpmnForm';
-import { BaixarBpmn } from '@/components/BaixarBpmn';
+import { ConsultaRegistrosBpmn } from '@/components/ConsultaRegistrosBpmn';
+import { VisualizadorBpmn } from '@/components/VisualizadorBpmn';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
@@ -63,10 +65,14 @@ const Index = () => {
         return <VisualizadorItPop onSuccess={() => console.log('IT/POP visualizado!')} />;
       case 'bpmn-titulo-cadastro':
         return <TituloBpmnForm onSuccess={() => console.log('Título BPMN cadastrado!')} />;
+      case 'bpmn-titulo-consulta':
+        return <ConsultaTitulosBpmn onSuccess={() => console.log('Títulos BPMN consultados!')} />;
       case 'bpmn-registro':
         return <RegistroBpmnForm onSuccess={() => console.log('BPMN registrado!')} />;
-      case 'bpmn-baixar':
-        return <BaixarBpmn onSuccess={() => console.log('BPMN baixado!')} />;
+      case 'bpmn-registros-consulta':
+        return <ConsultaRegistrosBpmn onSuccess={() => console.log('Registros BPMN consultados!')} />;
+      case 'bpmn-visualizar':
+        return <VisualizadorBpmn onSuccess={() => console.log('BPMN visualizado!')} />;
       default:
         return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
     }
