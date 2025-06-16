@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Edit, Trash2, Eye, AlertTriangle } from 'lucide-react';
+import { Search, Edit, Trash2, Eye, AlertTriangle, Package } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/tonerService';
 import { retornadoService } from '@/services/retornadoService';
