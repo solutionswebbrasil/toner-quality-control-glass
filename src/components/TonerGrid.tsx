@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -243,7 +242,7 @@ export const TonerGrid: React.FC = () => {
                           <div className="flex items-center gap-2">
                             {toner.modelo}
                             {needsUpdateFlag && (
-                              <AlertTriangle className="w-4 h-4 text-yellow-600" title="Precisa ser atualizado" />
+                              <AlertTriangle className="w-4 h-4 text-yellow-600" />
                             )}
                           </div>
                         </td>
