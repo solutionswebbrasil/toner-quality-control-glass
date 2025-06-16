@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -15,7 +14,7 @@ import {
   HiCubeTransparent,
   HiAdjustments,
   HiCog,
-  HiBuilding,
+  HiOfficeBuilding,
   HiSearch
 } from 'react-icons/hi';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -183,7 +182,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         {
           id: "configuracoes-filiais-cadastro",
           label: "Cadastrar Filiais",
-          icon: HiBuilding
+          icon: HiOfficeBuilding
         },
         {
           id: "configuracoes-filiais-consulta", 
