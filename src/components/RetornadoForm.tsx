@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, Recycle } from 'lucide-react';
 import { Toner, Retornado } from '@/types';
 import { tonerService, retornadoService, filialService } from '@/services/dataService';
+import { garantiaTonerService } from '@/services/garantiaTonerService';
 import { toast } from '@/hooks/use-toast';
 import { TonerSelector } from './retornado/TonerSelector';
 import { RetornadoFormFields } from './retornado/RetornadoFormFields';
 import { RetornadoInfoDisplay } from './retornado/RetornadoInfoDisplay';
+import { GarantiaTonerModal, GarantiaTonerData } from './retornado/GarantiaTonerModal';
 import type { Filial } from '@/types/filial';
 
 interface RetornadoFormProps {
@@ -27,6 +29,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedToner, setSelectedToner] = useState<Toner | null>(null);
   const [destinoSelecionado, setDestinoSelecionado] = useState(false);
+  const [isGarantiaModalOpen, setIsGarantiaModalOpen] = useState(false);
 
   useEffect(() => {
     loadToners();
@@ -90,8 +93,65 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     return valorRecuperado;
   };
 
+  const handleGarantiaConfirm = async (garantiaData: GarantiaTonerData) => {
+    try {
+      if (!selectedToner) return;
+
+      const garantiaToner = {
+        modelo_toner: selectedToner.modelo,
+        filial_origem: formData.filial,
+        fornecedor: garantiaData.fornecedor,
+        defeito: garantiaData.defeito,
+        responsavel_envio: garantiaData.responsavel_envio,
+        status: 'Pendente' as const,
+        data_envio: new Date().toISOString()
+      };
+
+      const result = await garantiaTonerService.create(garantiaToner);
+      
+      toast({
+        title: "Garantia Registrada!",
+        description: `Ticket ${result.ticket_numero} criado com sucesso. O toner foi enviado para o módulo de garantias.`,
+      });
+
+      // Reset form
+      setFormData({
+        id_modelo: '',
+        id_cliente: '',
+        peso: '',
+        destino_final: '',
+        filial: filiais.length > 0 ? filiais[0].nome : ''
+      });
+      setSelectedToner(null);
+      setDestinoSelecionado(false);
+      setIsGarantiaModalOpen(false);
+
+      onSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar garantia do toner.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Se o destino for garantia, abrir modal
+    if (formData.destino_final === 'Garantia') {
+      if (!destinoSelecionado) {
+        toast({
+          title: "Destino Necessário",
+          description: "Por favor, selecione o destino final antes de continuar.",
+          variant: "destructive"
+        });
+        return;
+      }
+      setIsGarantiaModalOpen(true);
+      return;
+    }
     
     if (!destinoSelecionado) {
       toast({
@@ -167,48 +227,58 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Recycle className="w-5 h-5" />
-          Registro de Retornados
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TonerSelector
-              toners={toners}
-              selectedTonerId={formData.id_modelo}
-              onTonerChange={(tonerId) => handleInputChange('id_modelo', tonerId)}
-            />
+    <>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Recycle className="w-5 h-5" />
+            Registro de Retornados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TonerSelector
+                toners={toners}
+                selectedTonerId={formData.id_modelo}
+                onTonerChange={(tonerId) => handleInputChange('id_modelo', tonerId)}
+              />
 
-            <RetornadoFormFields
-              idCliente={formData.id_cliente}
+              <RetornadoFormFields
+                idCliente={formData.id_cliente}
+                peso={formData.peso}
+                filial={formData.filial}
+                filiais={filiais}
+                onFieldChange={handleInputChange}
+              />
+            </div>
+
+            <RetornadoInfoDisplay
+              selectedToner={selectedToner}
               peso={formData.peso}
-              filial={formData.filial}
-              filiais={filiais}
-              onFieldChange={handleInputChange}
+              destinoFinal={formData.destino_final}
+              onDestinoChange={handleDestinoChange}
             />
-          </div>
 
-          <RetornadoInfoDisplay
-            selectedToner={selectedToner}
-            peso={formData.peso}
-            destinoFinal={formData.destino_final}
-            onDestinoChange={handleDestinoChange}
-          />
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !isFormValid()}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting ? 'Salvando...' : formData.destino_final === 'Garantia' ? 'Registrar Garantia' : 'Registrar Retornado'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-          <Button 
-            type="submit" 
-            disabled={isSubmitting || !isFormValid()}
-            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSubmitting ? 'Salvando...' : 'Registrar Retornado'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      <GarantiaTonerModal
+        isOpen={isGarantiaModalOpen}
+        onClose={() => setIsGarantiaModalOpen(false)}
+        onConfirm={handleGarantiaConfirm}
+        selectedToner={selectedToner}
+        filial={formData.filial}
+      />
+    </>
   );
 };
