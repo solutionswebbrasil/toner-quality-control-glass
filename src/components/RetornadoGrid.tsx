@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Search, Download, Calendar, FileSpreadsheet, Trash2 } from 'lucide-react';
-import { Retornado, RetornadoCSV } from '@/types';
+import { Search, Download, Upload, FileSpreadsheet, Trash2 } from 'lucide-react';
+import { Retornado } from '@/types';
 import { retornadoService } from '@/services/retornadoService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,6 +44,7 @@ export const RetornadoGrid: React.FC = () => {
   const [retornados, setRetornados] = useState<Retornado[]>([]);
   const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   
   // Filtros
   const [dataInicio, setDataInicio] = useState('');
@@ -126,23 +128,16 @@ export const RetornadoGrid: React.FC = () => {
 
   const handleExportCSV = () => {
     try {
-      const csvData: RetornadoCSV[] = filteredRetornados.map(item => ({
-        id_cliente: item.id_cliente,
-        modelo: item.modelo || '',
-        destino_final: item.destino_final as RetornadoCSV['destino_final'],
-        data_registro: new Date(item.data_registro).toISOString(), // Convert string back to Date for CSV
-        filial: item.filial
-      }));
-
-      const headers = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
+      const headers = ['ID Cliente', 'Modelo', 'Filial', 'Destino Final', 'Valor Recuperado', 'Data Registro'];
       const csvContent = [
         headers.join(','),
-        ...csvData.map(row => [
+        ...filteredRetornados.map(row => [
           row.id_cliente,
-          `"${row.modelo}"`,
+          `"${row.modelo || ''}"`,
+          `"${row.filial}"`,
           `"${row.destino_final}"`,
-          new Date(row.data_registro).toLocaleDateString('pt-BR'),
-          `"${row.filial}"`
+          row.valor_recuperado || '',
+          new Date(row.data_registro).toLocaleDateString('pt-BR')
         ].join(','))
       ].join('\n');
 
@@ -166,6 +161,118 @@ export const RetornadoGrid: React.FC = () => {
         description: "Erro ao exportar CSV.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    try {
+      const headers = ['id_cliente', 'modelo', 'filial', 'destino_final', 'valor_recuperado', 'data_registro'];
+      const exampleRow = ['12345', 'HP CF217A', 'Matriz', 'Estoque', '25.50', '2024-06-16'];
+      
+      const csvContent = [
+        headers.join(','),
+        exampleRow.join(','),
+        // Adicionar mais algumas linhas de exemplo
+        '12346,"Canon 045","Filial 1","Garantia","30.00","2024-06-15"',
+        '12347,"Brother TN-421","Filial 2","Descarte","0.00","2024-06-14"'
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'modelo_importacao_retornados.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Sucesso",
+        description: "Modelo de planilha baixado com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao baixar modelo de planilha.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error('Arquivo deve conter pelo menos o cabeçalho e uma linha de dados');
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const expectedHeaders = ['id_cliente', 'modelo', 'filial', 'destino_final', 'valor_recuperado', 'data_registro'];
+      
+      // Verificar se os cabeçalhos estão corretos
+      if (!expectedHeaders.every(h => headers.includes(h))) {
+        throw new Error('Cabeçalhos incorretos. Use o modelo de planilha fornecido.');
+      }
+
+      const dataLines = lines.slice(1);
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (const line of dataLines) {
+        try {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const data: any = {};
+          
+          headers.forEach((header, index) => {
+            data[header] = values[index];
+          });
+
+          // Validar e converter dados
+          const retornadoData = {
+            id_cliente: parseInt(data.id_cliente),
+            id_modelo: 1, // Valor padrão - seria ideal ter uma lookup table
+            peso: 100, // Valor padrão
+            destino_final: data.destino_final,
+            filial: data.filial,
+            valor_recuperado: data.valor_recuperado ? parseFloat(data.valor_recuperado) : undefined,
+            data_registro: data.data_registro
+          };
+
+          await retornadoService.create(retornadoData);
+          importedCount++;
+        } catch (error) {
+          console.error('Erro ao importar linha:', line, error);
+          errorCount++;
+        }
+      }
+
+      // Recarregar dados
+      await loadRetornados();
+
+      toast({
+        title: "Importação Concluída",
+        description: `${importedCount} registros importados com sucesso. ${errorCount > 0 ? `${errorCount} erros encontrados.` : ''}`,
+      });
+
+    } catch (error) {
+      console.error('Erro na importação:', error);
+      toast({
+        title: "Erro na Importação",
+        description: error instanceof Error ? error.message : "Erro ao processar arquivo.",
+        variant: "destructive"
+      });
+    } finally {
+      setImporting(false);
+      // Limpar o input
+      event.target.value = '';
     }
   };
 
@@ -279,10 +386,39 @@ export const RetornadoGrid: React.FC = () => {
             <div className="text-sm text-slate-600 dark:text-slate-400">
               {filteredRetornados.length} registro(s) encontrado(s)
             </div>
-            <Button onClick={handleExportCSV} className="flex items-center gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
-              Exportar CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadTemplate} variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Baixar Modelo
+              </Button>
+              
+              <label htmlFor="import-csv">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2 cursor-pointer"
+                  disabled={importing}
+                  asChild
+                >
+                  <span>
+                    <Upload className="h-4 w-4" />
+                    {importing ? 'Importando...' : 'Importar CSV'}
+                  </span>
+                </Button>
+              </label>
+              <input
+                id="import-csv"
+                type="file"
+                accept=".csv"
+                onChange={handleImportCSV}
+                className="hidden"
+                disabled={importing}
+              />
+              
+              <Button onClick={handleExportCSV} className="flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Exportar CSV
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -297,12 +433,10 @@ export const RetornadoGrid: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/20 dark:border-slate-700/50">
-                  <th className="text-left p-3 font-semibold">ID</th>
-                  <th className="text-left p-3 font-semibold">Cliente</th>
+                  <th className="text-left p-3 font-semibold">ID Cliente</th>
                   <th className="text-left p-3 font-semibold">Modelo</th>
-                  <th className="text-left p-3 font-semibold">Peso</th>
-                  <th className="text-left p-3 font-semibold">Destino</th>
                   <th className="text-left p-3 font-semibold">Filial</th>
+                  <th className="text-left p-3 font-semibold">Destino Final</th>
                   <th className="text-left p-3 font-semibold">Valor Recuperado</th>
                   <th className="text-left p-3 font-semibold">Data Registro</th>
                   <th className="text-left p-3 font-semibold">Ações</th>
@@ -314,16 +448,14 @@ export const RetornadoGrid: React.FC = () => {
                     key={retornado.id} 
                     className="border-b border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20 transition-colors"
                   >
-                    <td className="p-3 font-medium">#{retornado.id}</td>
-                    <td className="p-3">{retornado.id_cliente}</td>
-                    <td className="p-3 font-medium">{retornado.modelo}</td>
-                    <td className="p-3">{retornado.peso}g</td>
+                    <td className="p-3 font-medium">{retornado.id_cliente}</td>
+                    <td className="p-3">{retornado.modelo}</td>
+                    <td className="p-3">{retornado.filial}</td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDestinoColor(retornado.destino_final)}`}>
                         {retornado.destino_final}
                       </span>
                     </td>
-                    <td className="p-3">{retornado.filial}</td>
                     <td className="p-3">
                       {retornado.valor_recuperado ? `R$ ${retornado.valor_recuperado.toFixed(2)}` : '-'}
                     </td>
@@ -343,7 +475,7 @@ export const RetornadoGrid: React.FC = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Tem certeza que deseja excluir este retornado (ID: #{retornado.id})? 
+                              Tem certeza que deseja excluir este retornado (Cliente: {retornado.id_cliente})? 
                               Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
