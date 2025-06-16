@@ -2,7 +2,7 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Info, AlertTriangle } from 'lucide-react';
+import { Info, AlertTriangle, DollarSign } from 'lucide-react';
 import { Toner } from '@/types';
 import { useRegrasRetornado } from '@/hooks/useRegrasRetornado';
 
@@ -38,6 +38,19 @@ export const RetornadoInfoDisplay: React.FC<RetornadoInfoDisplayProps> = ({
     if (!selectedToner) return '0';
     const gramaturaRestante = calculateGramaturaRestante();
     return ((gramaturaRestante / selectedToner.gramatura) * 100).toFixed(1);
+  };
+
+  const calculateValorRecuperado = () => {
+    if (!selectedToner || !peso || (destinoFinal !== 'Estoque' && destinoFinal !== 'Estoque Semi Novo')) {
+      return null;
+    }
+    
+    const gramaturaRestante = calculateGramaturaRestante();
+    const percentualGramatura = (gramaturaRestante / selectedToner.gramatura) * 100;
+    const folhasRestantes = (percentualGramatura / 100) * selectedToner.capacidade_folhas;
+    const valorRecuperado = folhasRestantes * selectedToner.valor_por_folha;
+    
+    return valorRecuperado.toFixed(2);
   };
 
   const getDestinoSugeridoInfo = () => {
@@ -125,6 +138,23 @@ export const RetornadoInfoDisplay: React.FC<RetornadoInfoDisplayProps> = ({
           </SelectContent>
         </Select>
       </div>
+
+      {calculateValorRecuperado() && (
+        <div className="bg-green-50 dark:bg-green-950/50 p-4 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="w-4 h-4 text-green-600" />
+            <span className="font-semibold text-green-800 dark:text-green-200">
+              Valor Recuperado Calculado
+            </span>
+          </div>
+          <div className="text-lg font-bold text-green-700 dark:text-green-300">
+            R$ {calculateValorRecuperado()}
+          </div>
+          <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+            Baseado na gramatura restante e valor por folha do toner
+          </p>
+        </div>
+      )}
     </div>
   );
 };

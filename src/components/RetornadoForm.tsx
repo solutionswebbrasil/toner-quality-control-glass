@@ -23,8 +23,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     id_cliente: '',
     peso: '',
     destino_final: '',
-    filial: '',
-    valor_recuperado: ''
+    filial: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedToner, setSelectedToner] = useState<Toner | null>(null);
@@ -78,6 +77,20 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const calculateValorRecuperado = () => {
+    if (!selectedToner || !formData.peso || (formData.destino_final !== 'Estoque' && formData.destino_final !== 'Estoque Semi Novo')) {
+      return undefined;
+    }
+    
+    const pesoAtual = parseFloat(formData.peso);
+    const gramaturaRestante = Math.max(0, pesoAtual - selectedToner.peso_vazio);
+    const percentualGramatura = (gramaturaRestante / selectedToner.gramatura) * 100;
+    const folhasRestantes = (percentualGramatura / 100) * selectedToner.capacidade_folhas;
+    const valorRecuperado = folhasRestantes * selectedToner.valor_por_folha;
+    
+    return valorRecuperado;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -93,13 +106,15 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
+      const valorRecuperado = calculateValorRecuperado();
+
       const retornado: Omit<Retornado, 'id' | 'modelo'> = {
         id_modelo: parseInt(formData.id_modelo),
         id_cliente: parseInt(formData.id_cliente),
         peso: parseFloat(formData.peso),
         destino_final: formData.destino_final,
         filial: formData.filial,
-        valor_recuperado: formData.valor_recuperado ? parseFloat(formData.valor_recuperado) : undefined,
+        valor_recuperado: valorRecuperado,
         data_registro: new Date().toISOString()
       };
 
@@ -116,8 +131,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         id_cliente: '',
         peso: '',
         destino_final: '',
-        filial: filiais.length > 0 ? filiais[0].nome : '',
-        valor_recuperado: ''
+        filial: filiais.length > 0 ? filiais[0].nome : ''
       });
       setSelectedToner(null);
       setDestinoSelecionado(false);
@@ -174,7 +188,6 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
               idCliente={formData.id_cliente}
               peso={formData.peso}
               filial={formData.filial}
-              valorRecuperado={formData.valor_recuperado}
               filiais={filiais}
               onFieldChange={handleInputChange}
             />

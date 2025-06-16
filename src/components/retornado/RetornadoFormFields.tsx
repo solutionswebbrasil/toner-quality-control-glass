@@ -9,7 +9,6 @@ interface RetornadoFormFieldsProps {
   idCliente: string;
   peso: string;
   filial: string;
-  valorRecuperado: string;
   filiais: Filial[];
   onFieldChange: (field: string, value: string) => void;
 }
@@ -18,7 +17,6 @@ export const RetornadoFormFields: React.FC<RetornadoFormFieldsProps> = ({
   idCliente,
   peso,
   filial,
-  valorRecuperado,
   filiais,
   onFieldChange
 }) => {
@@ -65,19 +63,6 @@ export const RetornadoFormFields: React.FC<RetornadoFormFieldsProps> = ({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="valor_recuperado">Valor Recuperado (R$)</Label>
-        <Input
-          id="valor_recuperado"
-          type="number"
-          step="0.01"
-          placeholder="25.50"
-          value={valorRecuperado}
-          onChange={(e) => onFieldChange('valor_recuperado', e.target.value)}
-          className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
-        />
       </div>
     </>
   );
