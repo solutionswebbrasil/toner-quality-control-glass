@@ -24,6 +24,7 @@ import { ConsultaRegistrosBpmn } from '@/components/ConsultaRegistrosBpmn';
 import { VisualizadorBpmn } from '@/components/VisualizadorBpmn';
 import { FilialForm } from '@/components/FilialForm';
 import { FilialGrid } from '@/components/FilialGrid';
+import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('toners-cadastro');
@@ -78,6 +79,8 @@ const Index = () => {
         return <FilialForm onSuccess={() => console.log('Filial cadastrada!')} />;
       case 'configuracoes-filiais-consulta':
         return <FilialGrid />;
+      case 'configuracoes-retornado':
+        return <ConfiguracoesRetornado />;
       default:
         return <TonerForm onSuccess={() => console.log('Toner cadastrado!')} />;
     }

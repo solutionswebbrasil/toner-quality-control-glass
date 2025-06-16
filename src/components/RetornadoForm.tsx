@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, Recycle } from 'lucide-react';
+import { Save, Recycle, Info, AlertTriangle } from 'lucide-react';
 import { Toner, Retornado } from '@/types';
 import { tonerService, retornadoService, filialService } from '@/services/dataService';
 import { toast } from '@/hooks/use-toast';
+import { useRegrasRetornado } from '@/hooks/useRegrasRetornado';
 import type { Filial } from '@/types/filial';
 
 interface RetornadoFormProps {
@@ -34,6 +36,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedToner, setSelectedToner] = useState<Toner | null>(null);
+  const { obterDestinoSugerido, obterOrientacoes } = useRegrasRetornado();
 
   useEffect(() => {
     loadToners();
@@ -49,6 +52,18 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
       setSelectedToner(null);
     }
   }, [formData.id_modelo, toners]);
+
+  // Sugerir destino baseado nas regras quando peso for alterado
+  useEffect(() => {
+    if (selectedToner && formData.peso) {
+      const percentualUso = parseFloat(calculatePercentualUso());
+      const destinoSugerido = obterDestinoSugerido(percentualUso);
+      
+      if (destinoSugerido && formData.destino_final === 'Descarte') {
+        setFormData(prev => ({ ...prev, destino_final: destinoSugerido.destino }));
+      }
+    }
+  }, [selectedToner, formData.peso, obterDestinoSugerido]);
 
   const loadToners = async () => {
     try {
@@ -128,9 +143,19 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   };
 
   const calculatePercentualUso = () => {
-    if (!selectedToner) return 0;
+    if (!selectedToner) return '0';
     const gramaturaUsada = calculateGramaturaUsada();
     return ((gramaturaUsada / selectedToner.gramatura) * 100).toFixed(1);
+  };
+
+  const getDestinoSugeridoInfo = () => {
+    if (!selectedToner || !formData.peso) return null;
+    const percentualUso = parseFloat(calculatePercentualUso());
+    return obterDestinoSugerido(percentualUso);
+  };
+
+  const getOrientacoesAtual = () => {
+    return obterOrientacoes(formData.destino_final);
   };
 
   return (
@@ -234,8 +259,9 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
           </div>
 
           {selectedToner && formData.peso && (
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg space-y-2">
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg space-y-4">
               <h3 className="font-semibold text-lg">Informações Calculadas</h3>
+              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <Label>Peso Cheio Original</Label>
@@ -254,6 +280,34 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
                   </div>
                 </div>
               </div>
+
+              {getDestinoSugeridoInfo() && (
+                <div className="bg-blue-50 dark:bg-blue-950/50 p-3 rounded border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info className="w-4 h-4 text-blue-600" />
+                    <span className="font-semibold text-blue-800 dark:text-blue-200">
+                      Destino Sugerido: {getDestinoSugeridoInfo()?.destino}
+                    </span>
+                  </div>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Baseado no percentual de uso de {calculatePercentualUso()}%
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {getOrientacoesAtual() && (
+            <div className="bg-amber-50 dark:bg-amber-950/50 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <span className="font-semibold text-amber-800 dark:text-amber-200">
+                  Orientações para {formData.destino_final}
+                </span>
+              </div>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                {getOrientacoesAtual()}
+              </p>
             </div>
           )}
 
