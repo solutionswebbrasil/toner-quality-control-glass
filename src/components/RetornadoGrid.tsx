@@ -32,8 +32,10 @@ export const RetornadoGrid: React.FC = () => {
   const loadRetornados = async () => {
     try {
       const data = await retornadoService.getAll();
+      console.log('Retornados carregados:', data);
       setRetornados(data);
     } catch (error) {
+      console.error('Erro ao carregar retornados:', error);
       toast({
         title: "Erro",
         description: "Erro ao carregar retornados.",
@@ -161,42 +163,71 @@ export const RetornadoGrid: React.FC = () => {
     setImporting(true);
     
     try {
+      console.log('Iniciando importação com dados:', data);
+      
       let importedCount = 0;
       let errorCount = 0;
+      const errors: string[] = [];
 
-      for (const item of data) {
+      for (const [index, item] of data.entries()) {
         try {
+          console.log(`Processando item ${index + 1}:`, item);
+          
+          // Validação mais rigorosa dos dados
+          if (!item.id_cliente || item.id_cliente <= 0) {
+            throw new Error(`ID do cliente inválido: ${item.id_cliente}`);
+          }
+          
+          if (!item.peso || item.peso <= 0) {
+            throw new Error(`Peso inválido: ${item.peso}`);
+          }
+
           // Normalizar e validar dados
           const retornadoData = {
-            id_cliente: parseInt(item.id_cliente) || 0,
-            id_modelo: 1, // Valor padrão - seria ideal ter uma lookup table
-            peso: parseFloat(item.peso) || 100,
-            destino_final: item.destino_final || '',
-            filial: item.filial || '',
-            valor_recuperado: parseFloat(item.valor_recuperado) || null,
+            id_cliente: parseInt(String(item.id_cliente)) || 1,
+            id_modelo: 1, // ID padrão - seria ideal ter uma lookup table
+            peso: parseFloat(String(item.peso)) || 100,
+            destino_final: String(item.destino_final || 'Estoque').trim(),
+            filial: String(item.filial || 'Matriz').trim(),
+            valor_recuperado: item.valor_recuperado ? parseFloat(String(item.valor_recuperado)) : null,
             data_registro: item.data_registro || new Date().toISOString().split('T')[0]
           };
 
-          console.log('Importando retornado:', retornadoData);
-          await retornadoService.create(retornadoData);
+          console.log(`Dados preparados para importação item ${index + 1}:`, retornadoData);
+          
+          const novoRetornado = await retornadoService.create(retornadoData);
+          console.log(`Item ${index + 1} importado com sucesso:`, novoRetornado);
+          
           importedCount++;
         } catch (error) {
-          console.error('Erro ao importar item:', item, error);
+          console.error(`Erro ao importar item ${index + 1}:`, item, error);
           errorCount++;
+          errors.push(`Linha ${index + 1}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       }
 
-      // Recarregar dados
+      console.log(`Importação concluída: ${importedCount} sucessos, ${errorCount} erros`);
+      
+      // Recarregar dados após importação
       await loadRetornados();
       setIsImportModalOpen(false);
 
-      toast({
-        title: "Importação Concluída",
-        description: `${importedCount} registros importados com sucesso. ${errorCount > 0 ? `${errorCount} erros encontrados.` : ''}`,
-      });
+      if (errorCount > 0) {
+        console.log('Erros encontrados:', errors);
+        toast({
+          title: "Importação Parcial",
+          description: `${importedCount} registros importados. ${errorCount} erros encontrados. Verifique o console para detalhes.`,
+          variant: errorCount > importedCount ? "destructive" : "default"
+        });
+      } else {
+        toast({
+          title: "Importação Concluída",
+          description: `${importedCount} registros importados com sucesso!`,
+        });
+      }
 
     } catch (error) {
-      console.error('Erro na importação:', error);
+      console.error('Erro geral na importação:', error);
       toast({
         title: "Erro na Importação",
         description: error instanceof Error ? error.message : "Erro ao processar arquivo.",
@@ -207,7 +238,6 @@ export const RetornadoGrid: React.FC = () => {
     }
   };
 
-  // Função obsoleta - removida para usar o ImportModal
   const handleImportCSV = () => {
     setIsImportModalOpen(true);
   };
@@ -266,6 +296,7 @@ export const RetornadoGrid: React.FC = () => {
         onDownloadTemplate={handleDownloadTemplate}
         title="Importar Planilha de Retornados"
         templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, peso, valor_recuperado, data_registro"
+        requiredColumns={['id_cliente', 'peso']}
       />
     </div>
   );

@@ -36,6 +36,8 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
+        console.log('Dados brutos da planilha:', jsonData);
+
         if (jsonData.length === 0) {
           toast({
             title: "Erro",
@@ -50,7 +52,7 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
           const firstRow = jsonData[0] as any;
           const hasRequiredColumns = requiredColumns.every(col => 
             Object.keys(firstRow).some(key => 
-              key.toLowerCase().includes(col.toLowerCase())
+              key.toLowerCase().trim().includes(col.toLowerCase())
             )
           );
 
@@ -64,35 +66,60 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
           }
         }
 
-        // Normalizar os dados
-        const normalizedData = jsonData.map((row: any) => {
+        // Normalizar os dados com melhor mapeamento
+        const normalizedData = jsonData.map((row: any, index: number) => {
           const normalizedRow: any = {};
+          
+          console.log(`Processando linha ${index + 1}:`, row);
+          
           Object.keys(row).forEach(key => {
-            const lowerKey = key.toLowerCase();
+            const value = row[key];
+            const lowerKey = key.toLowerCase().trim();
             
-            // Mapear colunas comuns
-            if (lowerKey.includes('modelo')) {
-              normalizedRow.modelo = row[key];
-            } else if (lowerKey.includes('quantidade')) {
-              normalizedRow.quantidade = Number(row[key]) || 0;
-            } else if (lowerKey.includes('fornecedor')) {
-              normalizedRow.fornecedor = row[key];
-            } else if (lowerKey.includes('id_cliente')) {
-              normalizedRow.id_cliente = row[key];
-            } else if (lowerKey.includes('filial')) {
-              normalizedRow.filial = row[key];
-            } else if (lowerKey.includes('destino_final')) {
-              normalizedRow.destino_final = row[key];
-            } else if (lowerKey.includes('peso')) {
-              normalizedRow.peso = Number(row[key]) || 0;
-            } else if (lowerKey.includes('valor_recuperado')) {
-              normalizedRow.valor_recuperado = Number(row[key]) || 0;
-            } else if (lowerKey.includes('data_registro')) {
-              normalizedRow.data_registro = row[key];
+            // Mapear colunas com mais variações
+            if (lowerKey.includes('modelo') || lowerKey.includes('model')) {
+              normalizedRow.modelo = String(value || '').trim();
+            } else if (lowerKey.includes('quantidade') || lowerKey.includes('qtd') || lowerKey.includes('qty')) {
+              normalizedRow.quantidade = Number(value) || 0;
+            } else if (lowerKey.includes('fornecedor') || lowerKey.includes('supplier')) {
+              normalizedRow.fornecedor = String(value || '').trim();
+            } else if (lowerKey.includes('id_cliente') || lowerKey.includes('cliente') || lowerKey.includes('customer')) {
+              normalizedRow.id_cliente = Number(value) || 0;
+            } else if (lowerKey.includes('filial') || lowerKey.includes('branch')) {
+              normalizedRow.filial = String(value || '').trim();
+            } else if (lowerKey.includes('destino') || lowerKey.includes('destination')) {
+              normalizedRow.destino_final = String(value || '').trim();
+            } else if (lowerKey.includes('peso') || lowerKey.includes('weight')) {
+              normalizedRow.peso = Number(value) || 0;
+            } else if (lowerKey.includes('valor') && lowerKey.includes('recuperado')) {
+              normalizedRow.valor_recuperado = Number(value) || 0;
+            } else if (lowerKey.includes('data') || lowerKey.includes('date')) {
+              normalizedRow.data_registro = value;
             }
           });
+
+          // Valores padrão para campos obrigatórios
+          if (!normalizedRow.id_cliente) {
+            normalizedRow.id_cliente = 1; // ID padrão
+          }
+          if (!normalizedRow.peso || normalizedRow.peso <= 0) {
+            normalizedRow.peso = 100; // Peso padrão
+          }
+          if (!normalizedRow.filial) {
+            normalizedRow.filial = 'Matriz'; // Filial padrão
+          }
+          if (!normalizedRow.destino_final) {
+            normalizedRow.destino_final = 'Estoque'; // Destino padrão
+          }
+          if (!normalizedRow.data_registro) {
+            normalizedRow.data_registro = new Date().toISOString().split('T')[0];
+          }
+
+          console.log(`Linha ${index + 1} normalizada:`, normalizedRow);
           return normalizedRow;
         });
+
+        console.log('Dados normalizados finais:', normalizedData);
 
         // Validação customizada se fornecida
         if (validateData && !validateData(normalizedData)) {
