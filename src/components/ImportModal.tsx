@@ -76,7 +76,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         
         <div className="space-y-4">
           <div className="text-sm text-slate-600 dark:text-slate-400">
-            {templateDescription}
+            A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, valor_recuperado, data_registro. 
+            O formato da data pode ser DD/MM/AAAA ou DD-MM-AAAA. A coluna peso foi removida do modelo.
           </div>
 
           <FileDropZone

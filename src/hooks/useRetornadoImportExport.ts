@@ -50,8 +50,16 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
 
   const handleDownloadTemplate = () => {
     try {
+      // Modelo sem a coluna peso, já que não é necessária
       const template = [
-        { id_cliente: 12345, modelo: 'HP CF217A', filial: 'Matriz', destino_final: 'Estoque', peso: 125.50, valor_recuperado: 25.50, data_registro: '2024-06-16' }
+        { 
+          id_cliente: 12345, 
+          modelo: 'HP CF217A', 
+          filial: 'Matriz', 
+          destino_final: 'Estoque',
+          valor_recuperado: 25.50, 
+          data_registro: '16/06/2024' // Formato brasileiro
+        }
       ];
 
       const ws = XLSX.utils.json_to_sheet(template);
@@ -72,6 +80,59 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
     }
   };
 
+  // Função para normalizar data de diferentes formatos
+  const normalizeDate = (dateValue: any): string => {
+    if (!dateValue) {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    console.log('Processando data:', dateValue, 'Tipo:', typeof dateValue);
+
+    // Se já é uma string no formato correto YYYY-MM-DD
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return dateValue;
+    }
+
+    // Se é uma data do Excel (número)
+    if (typeof dateValue === 'number') {
+      const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
+      return excelDate.toISOString().split('T')[0];
+    }
+
+    // Se é string, tentar vários formatos
+    if (typeof dateValue === 'string') {
+      const dateStr = dateValue.trim();
+      
+      // Formato DD/MM/YYYY ou DD-MM-YYYY
+      const brDateMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (brDateMatch) {
+        const [, day, month, year] = brDateMatch;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+
+      // Formato YYYY/MM/DD ou YYYY-MM-DD
+      const isoDateMatch = dateStr.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if (isoDateMatch) {
+        const [, year, month, day] = isoDateMatch;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+
+      // Tentar parser nativo
+      try {
+        const parsedDate = new Date(dateStr);
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.log('Erro ao parsear data:', e);
+      }
+    }
+
+    // Se chegou aqui, usar data atual
+    console.log('Usando data atual como fallback para:', dateValue);
+    return new Date().toISOString().split('T')[0];
+  };
+
   const handleImportUpload = async (data: any[]) => {
     setImporting(true);
     
@@ -90,20 +151,16 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
           if (!item.id_cliente || item.id_cliente <= 0) {
             throw new Error(`ID do cliente inválido: ${item.id_cliente}`);
           }
-          
-          if (!item.peso || item.peso <= 0) {
-            throw new Error(`Peso inválido: ${item.peso}`);
-          }
 
           // Normalizar e validar dados
           const retornadoData = {
             id_cliente: parseInt(String(item.id_cliente)) || 1,
             id_modelo: 1, // ID padrão - seria ideal ter uma lookup table
-            peso: parseFloat(String(item.peso)) || 100,
+            peso: 100, // Peso padrão fixo, já que não é obrigatório na planilha
             destino_final: String(item.destino_final || 'Estoque').trim(),
             filial: String(item.filial || 'Matriz').trim(),
             valor_recuperado: item.valor_recuperado ? parseFloat(String(item.valor_recuperado)) : null,
-            data_registro: item.data_registro || new Date().toISOString().split('T')[0]
+            data_registro: normalizeDate(item.data_registro)
           };
 
           console.log(`Dados preparados para importação item ${index + 1}:`, retornadoData);

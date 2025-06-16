@@ -89,21 +89,18 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
               normalizedRow.filial = String(value || '').trim();
             } else if (lowerKey.includes('destino') || lowerKey.includes('destination')) {
               normalizedRow.destino_final = String(value || '').trim();
-            } else if (lowerKey.includes('peso') || lowerKey.includes('weight')) {
-              normalizedRow.peso = Number(value) || 0;
-            } else if (lowerKey.includes('valor') && lowerKey.includes('recuperado')) {
+            } else if (lowerKey.includes('valor') && (lowerKey.includes('recuperado') || lowerKey.includes('recovery'))) {
               normalizedRow.valor_recuperado = Number(value) || 0;
             } else if (lowerKey.includes('data') || lowerKey.includes('date')) {
+              // Manter o valor original da data para processamento posterior
               normalizedRow.data_registro = value;
             }
+            // Remover mapeamento de peso - não é mais obrigatório
           });
 
           // Valores padrão para campos obrigatórios
-          if (!normalizedRow.id_cliente) {
+          if (!normalizedRow.id_cliente || normalizedRow.id_cliente <= 0) {
             normalizedRow.id_cliente = 1; // ID padrão
-          }
-          if (!normalizedRow.peso || normalizedRow.peso <= 0) {
-            normalizedRow.peso = 100; // Peso padrão
           }
           if (!normalizedRow.filial) {
             normalizedRow.filial = 'Matriz'; // Filial padrão
@@ -112,7 +109,7 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
             normalizedRow.destino_final = 'Estoque'; // Destino padrão
           }
           if (!normalizedRow.data_registro) {
-            normalizedRow.data_registro = new Date().toISOString().split('T')[0];
+            normalizedRow.data_registro = new Date().toLocaleDateString('pt-BR');
           }
 
           console.log(`Linha ${index + 1} normalizada:`, normalizedRow);
