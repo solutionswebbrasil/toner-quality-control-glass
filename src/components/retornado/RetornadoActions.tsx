@@ -2,22 +2,25 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { ZerarRetornosButton } from './ZerarRetornosButton';
 
 interface RetornadoActionsProps {
   onExportCSV: () => void;
   onDownloadTemplate: () => void;
   onImportCSV: () => void;
   importing: boolean;
+  onZerarComplete: () => void;
 }
 
 export const RetornadoActions: React.FC<RetornadoActionsProps> = ({
   onExportCSV,
   onDownloadTemplate,
   onImportCSV,
-  importing
+  importing,
+  onZerarComplete
 }) => {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap">
       <Button onClick={onDownloadTemplate} variant="outline" className="flex items-center gap-2">
         <Download className="h-4 w-4" />
         Baixar Modelo
@@ -37,6 +40,8 @@ export const RetornadoActions: React.FC<RetornadoActionsProps> = ({
         <FileSpreadsheet className="h-4 w-4" />
         Exportar CSV
       </Button>
+
+      <ZerarRetornosButton onZerarComplete={onZerarComplete} />
     </div>
   );
 };

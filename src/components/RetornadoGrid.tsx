@@ -37,6 +37,10 @@ export const RetornadoGrid: React.FC = () => {
     handleImportCSV
   } = useRetornadoImportExport(loadRetornados);
 
+  const handleZerarComplete = () => {
+    loadRetornados(); // Recarregar a lista após zerar
+  };
+
   if (loading) {
     return (
       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50 rounded-lg p-8 text-center">
@@ -76,6 +80,7 @@ export const RetornadoGrid: React.FC = () => {
           onDownloadTemplate={handleDownloadTemplate}
           onImportCSV={handleImportCSV}
           importing={importing}
+          onZerarComplete={handleZerarComplete}
         />
       </div>
 

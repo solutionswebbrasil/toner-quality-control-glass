@@ -177,6 +177,18 @@ export const retornadoService = {
     }
   },
 
+  async deleteAll(): Promise<void> {
+    const { error } = await supabase
+      .from('retornados')
+      .delete()
+      .neq('id', 0); // Deleta todos os registros (usando uma condição que sempre é verdadeira)
+
+    if (error) {
+      console.error('Error deleting all retornados:', error);
+      throw error;
+    }
+  },
+
   async getByFilters(filters: {
     dataInicio?: string;
     dataFim?: string;
