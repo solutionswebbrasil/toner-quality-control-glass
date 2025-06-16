@@ -1,9 +1,10 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Retornado } from '@/types';
 import { tonerService } from './tonerService';
 
 export const retornadoService = {
-  async getAll(): Promise<Retornado[]> => {
+  async getAll(): Promise<Retornado[]> {
     const { data, error } = await supabase
       .from('retornados')
       .select(`
@@ -43,7 +44,7 @@ export const retornadoService = {
     });
   },
 
-  async getById(id: number): Promise<Retornado> => {
+  async getById(id: number): Promise<Retornado> {
     const { data, error } = await supabase
       .from('retornados')
       .select(`
@@ -81,7 +82,7 @@ export const retornadoService = {
     };
   },
 
-  async create(retornado: Omit<Retornado, 'id' | 'modelo'>): Promise<Retornado> => {
+  async create(retornado: Omit<Retornado, 'id' | 'modelo'>): Promise<Retornado> {
     // Buscar dados do toner para calcular valor recuperado se necessário
     let valorRecuperado = retornado.valor_recuperado;
     
@@ -122,7 +123,7 @@ export const retornadoService = {
     };
   },
 
-  async update(id: number, updates: Partial<Retornado>): Promise<Retornado> => {
+  async update(id: number, updates: Partial<Retornado>): Promise<Retornado> {
     // Se estiver atualizando para destino estoque, calcular valor recuperado
     let valorRecuperado = updates.valor_recuperado;
     
