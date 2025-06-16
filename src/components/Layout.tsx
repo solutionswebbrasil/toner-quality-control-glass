@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   HiChartPie, 
@@ -251,7 +252,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           </div>
           
           <div className="font-bold text-xl">
-            <span className="text-blue-600">Easy</span>Toner
+            <span className="text-blue-600">SGQ</span> DJ
           </div>
           <div className="ml-auto flex items-center space-x-2">
             <ModeToggle />
