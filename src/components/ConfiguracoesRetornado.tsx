@@ -5,68 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, Settings } from 'lucide-react';
+import { Save, Settings, RotateCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-interface RegraRetornado {
-  id: string;
-  destino: string;
-  percentual_min: number;
-  percentual_max: number;
-  orientacoes: string;
-}
-
-const regrasIniciais: RegraRetornado[] = [
-  {
-    id: 'estoque',
-    destino: 'Estoque',
-    percentual_min: 0,
-    percentual_max: 20,
-    orientacoes: 'Toners com baixíssimo uso, adequados para reuso futuro. Verificar condições de armazenamento.'
-  },
-  {
-    id: 'estoque_semi_novo',
-    destino: 'Estoque Semi Novo',
-    percentual_min: 21,
-    percentual_max: 40,
-    orientacoes: 'Toners com uso baixo a moderado, em bom estado para uso como semi novos.'
-  },
-  {
-    id: 'uso_interno',
-    destino: 'Uso Interno',
-    percentual_min: 41,
-    percentual_max: 70,
-    orientacoes: 'Toners com uso moderado, utilizáveis para impressões internas e testes.'
-  },
-  {
-    id: 'descarte',
-    destino: 'Descarte',
-    percentual_min: 71,
-    percentual_max: 100,
-    orientacoes: 'Toners com uso alto, destinados ao descarte ecológico adequado.'
-  }
-];
+import { useRegrasRetornado } from '@/hooks/useRegrasRetornado';
 
 export const ConfiguracoesRetornado: React.FC = () => {
-  const [regras, setRegras] = useState<RegraRetornado[]>(regrasIniciais);
+  const { regras, setRegras, restaurarPadrao } = useRegrasRetornado();
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    carregarRegras();
-  }, []);
-
-  const carregarRegras = () => {
-    // Carregar regras do localStorage por enquanto
-    const regrasStorage = localStorage.getItem('regras_retornado');
-    if (regrasStorage) {
-      setRegras(JSON.parse(regrasStorage));
-    }
-  };
 
   const salvarRegras = async () => {
     setIsLoading(true);
     try {
-      // Salvar no localStorage sem validação de sobreposição
       localStorage.setItem('regras_retornado', JSON.stringify(regras));
       
       toast({
@@ -84,7 +33,15 @@ export const ConfiguracoesRetornado: React.FC = () => {
     }
   };
 
-  const atualizarRegra = (index: number, campo: keyof RegraRetornado, valor: string | number) => {
+  const handleRestaurarPadrao = () => {
+    restaurarPadrao();
+    toast({
+      title: "Restaurado!",
+      description: "Regras restauradas para o padrão do sistema.",
+    });
+  };
+
+  const atualizarRegra = (index: number, campo: keyof typeof regras[0], valor: string | number) => {
     const novasRegras = [...regras];
     if (campo === 'percentual_min' || campo === 'percentual_max') {
       novasRegras[index][campo] = Number(valor);
@@ -95,18 +52,16 @@ export const ConfiguracoesRetornado: React.FC = () => {
   };
 
   const getDestinoColor = (destino: string) => {
-    switch (destino) {
-      case 'Estoque':
-        return 'border-green-500 bg-green-50 dark:bg-green-950';
-      case 'Estoque Semi Novo':
-        return 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950';
-      case 'Uso Interno':
-        return 'border-blue-500 bg-blue-50 dark:bg-blue-950';
-      case 'Descarte':
-        return 'border-red-500 bg-red-50 dark:bg-red-950';
-      default:
-        return 'border-gray-500 bg-gray-50 dark:bg-gray-950';
+    if (destino.includes('Descarte')) {
+      return 'border-red-500 bg-red-50 dark:bg-red-950';
+    } else if (destino.includes('Uso Interno')) {
+      return 'border-orange-500 bg-orange-50 dark:bg-orange-950';
+    } else if (destino.includes('Semi Novo')) {
+      return 'border-blue-500 bg-blue-50 dark:bg-blue-950';
+    } else if (destino.includes('Novo')) {
+      return 'border-green-500 bg-green-50 dark:bg-green-950';
     }
+    return 'border-gray-500 bg-gray-50 dark:bg-gray-950';
   };
 
   return (
@@ -122,9 +77,9 @@ export const ConfiguracoesRetornado: React.FC = () => {
           <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-950/50 p-4 rounded-lg">
             <h4 className="font-semibold mb-2">Como funciona:</h4>
             <p>
-              Configure os percentuais de uso de gramatura para sugerir automaticamente o destino final dos toners retornados.
-              O sistema calculará o percentual de uso baseado na gramatura usada vs gramatura total do toner.
-              <strong> As regras são apenas sugestões</strong> e os percentuais podem se sobrepor conforme necessário.
+              Configure os percentuais de gramatura restante para sugerir automaticamente o destino final dos toners retornados.
+              O sistema calcula: <strong>Gramatura Restante = Peso Atual - Peso Vazio</strong>, depois compara com a gramatura total para obter a porcentagem.
+              As regras são sugestões e os percentuais podem se sobrepor conforme necessário.
             </p>
           </div>
 
@@ -174,20 +129,31 @@ export const ConfiguracoesRetornado: React.FC = () => {
                 </div>
 
                 <div className="text-sm font-medium text-center p-2 bg-white/50 dark:bg-slate-800/50 rounded">
-                  Faixa: {regra.percentual_min}% - {regra.percentual_max}% de uso
+                  Faixa: {regra.percentual_min}% - {regra.percentual_max}% de gramatura restante
                 </div>
               </CardContent>
             </Card>
           ))}
 
-          <Button 
-            onClick={salvarRegras}
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isLoading ? 'Salvando...' : 'Salvar Configurações'}
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              onClick={salvarRegras}
+              disabled={isLoading}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isLoading ? 'Salvando...' : 'Salvar Configurações'}
+            </Button>
+
+            <Button 
+              onClick={handleRestaurarPadrao}
+              variant="outline"
+              className="bg-white/70 dark:bg-slate-800/70"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Restaurar Padrão
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

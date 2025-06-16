@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,12 +30,13 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     id_modelo: '',
     id_cliente: '',
     peso: '',
-    destino_final: 'Descarte',
+    destino_final: '',
     filial: '',
     valor_recuperado: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedToner, setSelectedToner] = useState<Toner | null>(null);
+  const [destinoSelecionado, setDestinoSelecionado] = useState(false);
   const { obterDestinoSugerido, obterOrientacoes } = useRegrasRetornado();
 
   useEffect(() => {
@@ -47,22 +49,22 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     if (formData.id_modelo) {
       const toner = toners.find(t => t.id?.toString() === formData.id_modelo);
       setSelectedToner(toner || null);
+      // Reset destino quando mudar o toner
+      setFormData(prev => ({ ...prev, destino_final: '' }));
+      setDestinoSelecionado(false);
     } else {
       setSelectedToner(null);
+      setDestinoSelecionado(false);
     }
   }, [formData.id_modelo, toners]);
 
-  // Sugerir destino baseado nas regras quando peso for alterado
+  // Reset destino quando peso mudar
   useEffect(() => {
-    if (selectedToner && formData.peso) {
-      const percentualUso = parseFloat(calculatePercentualUso());
-      const destinoSugerido = obterDestinoSugerido(percentualUso);
-      
-      if (destinoSugerido && formData.destino_final === 'Descarte') {
-        setFormData(prev => ({ ...prev, destino_final: destinoSugerido.destino }));
-      }
+    if (formData.peso) {
+      setFormData(prev => ({ ...prev, destino_final: '' }));
+      setDestinoSelecionado(false);
     }
-  }, [selectedToner, formData.peso, obterDestinoSugerido]);
+  }, [formData.peso]);
 
   const loadToners = async () => {
     try {
@@ -77,7 +79,6 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     try {
       const data = await filialService.getAll();
       setFiliais(data);
-      // Se houver filiais e nenhuma estiver selecionada, selecionar a primeira
       if (data.length > 0 && !formData.filial) {
         setFormData(prev => ({ ...prev, filial: data[0].nome }));
       }
@@ -88,6 +89,16 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!destinoSelecionado) {
+      toast({
+        title: "Destino Necessário",
+        description: "Por favor, selecione o destino final antes de registrar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -113,11 +124,12 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         id_modelo: '',
         id_cliente: '',
         peso: '',
-        destino_final: 'Descarte',
-        filial: '',
+        destino_final: '',
+        filial: filiais.length > 0 ? filiais[0].nome : '',
         valor_recuperado: ''
       });
       setSelectedToner(null);
+      setDestinoSelecionado(false);
 
       onSuccess?.();
     } catch (error) {
@@ -133,30 +145,42 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'destino_final' && value) {
+      setDestinoSelecionado(true);
+    }
   };
 
-  const calculateGramaturaUsada = () => {
+  const calculateGramaturaRestante = () => {
     if (!selectedToner || !formData.peso) return 0;
     const pesoAtual = parseFloat(formData.peso);
-    // Correção: gramatura usada = peso cheio - peso atual
-    return selectedToner.peso_cheio - pesoAtual;
+    // Gramatura restante = peso atual - peso vazio
+    return Math.max(0, pesoAtual - selectedToner.peso_vazio);
   };
 
-  const calculatePercentualUso = () => {
+  const calculatePercentualGramaturaRestante = () => {
     if (!selectedToner) return '0';
-    const gramaturaUsada = calculateGramaturaUsada();
-    // Percentual de uso baseado na gramatura total do toner
-    return ((gramaturaUsada / selectedToner.gramatura) * 100).toFixed(1);
+    const gramaturaRestante = calculateGramaturaRestante();
+    // Percentual de gramatura restante baseado na gramatura total do toner
+    return ((gramaturaRestante / selectedToner.gramatura) * 100).toFixed(1);
   };
 
   const getDestinoSugeridoInfo = () => {
     if (!selectedToner || !formData.peso) return null;
-    const percentualUso = parseFloat(calculatePercentualUso());
-    return obterDestinoSugerido(percentualUso);
+    const percentualGramaturaRestante = parseFloat(calculatePercentualGramaturaRestante());
+    return obterDestinoSugerido(percentualGramaturaRestante);
   };
 
   const getOrientacoesAtual = () => {
-    return obterOrientacoes(formData.destino_final);
+    const destinoSugerido = getDestinoSugeridoInfo();
+    return destinoSugerido ? destinoSugerido.orientacoes : '';
+  };
+
+  const isFormValid = () => {
+    return formData.id_modelo && 
+           formData.id_cliente && 
+           formData.peso && 
+           formData.filial && 
+           destinoSelecionado;
   };
 
   return (
@@ -230,22 +254,6 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="destino_final">Destino Final *</Label>
-              <Select value={formData.destino_final} onValueChange={(value) => handleInputChange('destino_final', value)}>
-                <SelectTrigger className="bg-white/50 dark:bg-slash-800/50 backdrop-blur">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {destinosFinais.map((destino) => (
-                    <SelectItem key={destino} value={destino}>
-                      {destino}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="valor_recuperado">Valor Recuperado (R$)</Label>
               <Input
                 id="valor_recuperado"
@@ -263,21 +271,25 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg space-y-4">
               <h3 className="font-semibold text-lg">Informações Calculadas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <Label>Peso Cheio Original</Label>
-                  <div className="font-medium">{selectedToner.peso_cheio}g</div>
+                  <Label>Peso Vazio</Label>
+                  <div className="font-medium">{selectedToner.peso_vazio}g</div>
                 </div>
                 <div>
-                  <Label>Gramatura Usada</Label>
-                  <div className="font-medium text-orange-600 dark:text-orange-400">
-                    {calculateGramaturaUsada().toFixed(2)}g
+                  <Label>Peso Atual</Label>
+                  <div className="font-medium">{formData.peso}g</div>
+                </div>
+                <div>
+                  <Label>Gramatura Restante</Label>
+                  <div className="font-medium text-blue-600 dark:text-blue-400">
+                    {calculateGramaturaRestante().toFixed(2)}g
                   </div>
                 </div>
                 <div>
-                  <Label>Percentual de Uso</Label>
-                  <div className="font-medium text-red-600 dark:text-red-400">
-                    {calculatePercentualUso()}%
+                  <Label>% Gramatura Restante</Label>
+                  <div className="font-medium text-green-600 dark:text-green-400">
+                    {calculatePercentualGramaturaRestante()}%
                   </div>
                 </div>
               </div>
@@ -291,30 +303,46 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
                     </span>
                   </div>
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Baseado no percentual de uso de {calculatePercentualUso()}%
+                    Baseado em {calculatePercentualGramaturaRestante()}% de gramatura restante
                   </p>
                 </div>
               )}
-            </div>
-          )}
 
-          {getOrientacoesAtual() && (
-            <div className="bg-amber-50 dark:bg-amber-950/50 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                <span className="font-semibold text-amber-800 dark:text-amber-200">
-                  Orientações para {formData.destino_final}
-                </span>
+              {getOrientacoesAtual() && (
+                <div className="bg-amber-50 dark:bg-amber-950/50 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span className="font-semibold text-amber-800 dark:text-amber-200">
+                      Orientações
+                    </span>
+                  </div>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    {getOrientacoesAtual()}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="destino_final">Destino Final *</Label>
+                <Select value={formData.destino_final} onValueChange={(value) => handleInputChange('destino_final', value)}>
+                  <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+                    <SelectValue placeholder="Selecione o destino final" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {destinosFinais.map((destino) => (
+                      <SelectItem key={destino} value={destino}>
+                        {destino}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <p className="text-sm text-amber-700 dark:text-amber-300">
-                {getOrientacoesAtual()}
-              </p>
             </div>
           )}
 
           <Button 
             type="submit" 
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isFormValid()}
             className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
           >
             <Save className="w-4 h-4 mr-2" />

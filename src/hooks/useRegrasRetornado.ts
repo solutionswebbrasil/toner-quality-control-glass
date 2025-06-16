@@ -11,32 +11,32 @@ export interface RegraRetornado {
 
 const regrasIniciais: RegraRetornado[] = [
   {
-    id: 'estoque',
-    destino: 'Estoque',
-    percentual_min: 0,
-    percentual_max: 20,
-    orientacoes: 'Toners com baixíssimo uso, adequados para reuso futuro. Verificar condições de armazenamento.'
-  },
-  {
-    id: 'estoque_semi_novo',
-    destino: 'Estoque Semi Novo',
-    percentual_min: 21,
-    percentual_max: 40,
-    orientacoes: 'Toners com uso baixo a moderado, em bom estado para uso como semi novos.'
-  },
-  {
-    id: 'uso_interno',
-    destino: 'Uso Interno',
-    percentual_min: 41,
-    percentual_max: 70,
-    orientacoes: 'Toners com uso moderado, utilizáveis para impressões internas e testes.'
-  },
-  {
     id: 'descarte',
     destino: 'Descarte',
-    percentual_min: 71,
+    percentual_min: 0,
+    percentual_max: 20,
+    orientacoes: 'Toner com pouca gramatura restante. Recomendado descartar.'
+  },
+  {
+    id: 'uso_interno_teste',
+    destino: 'Uso Interno (Teste)',
+    percentual_min: 21,
+    percentual_max: 39,
+    orientacoes: 'Teste o toner: se a qualidade estiver boa, você pode usar internamente. Se estiver ruim, pode descartar.'
+  },
+  {
+    id: 'estoque_semi_novo_teste',
+    destino: 'Estoque Semi Novo (Teste)',
+    percentual_min: 40,
+    percentual_max: 80,
+    orientacoes: 'Teste o toner: se a qualidade estiver boa, você pode enviar para o estoque como semi novo. Se estiver ruim, pode enviar para a garantia.'
+  },
+  {
+    id: 'estoque_novo_teste',
+    destino: 'Estoque Novo (Teste)',
+    percentual_min: 81,
     percentual_max: 100,
-    orientacoes: 'Toners com uso alto, destinados ao descarte ecológico adequado.'
+    orientacoes: 'Teste o toner: se a qualidade estiver boa, você pode enviar para o estoque como novo. Se estiver ruim, pode enviar para a garantia.'
   }
 ];
 
@@ -54,9 +54,14 @@ export const useRegrasRetornado = () => {
     }
   };
 
-  const obterDestinoSugerido = (percentualUso: number): RegraRetornado | null => {
+  const restaurarPadrao = () => {
+    setRegras(regrasIniciais);
+    localStorage.setItem('regras_retornado', JSON.stringify(regrasIniciais));
+  };
+
+  const obterDestinoSugerido = (percentualGramaturaRestante: number): RegraRetornado | null => {
     return regras.find(regra => 
-      percentualUso >= regra.percentual_min && percentualUso <= regra.percentual_max
+      percentualGramaturaRestante >= regra.percentual_min && percentualGramaturaRestante <= regra.percentual_max
     ) || null;
   };
 
@@ -67,8 +72,10 @@ export const useRegrasRetornado = () => {
 
   return {
     regras,
+    setRegras,
     obterDestinoSugerido,
     obterOrientacoes,
-    carregarRegras
+    carregarRegras,
+    restaurarPadrao
   };
 };
