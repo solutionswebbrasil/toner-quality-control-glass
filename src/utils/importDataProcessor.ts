@@ -54,7 +54,7 @@ export const processImportData = async (
         throw new Error(`ID do cliente inválido: ${item.id_cliente}. Use 0 para retornados sem identificação.`);
       }
 
-      // Buscar o ID do modelo na tabela de toners
+      // Buscar o ID do modelo na tabela de toners ou criar novo se não existir
       let id_modelo = idTonerPadrao; // Usar o ID padrão válido
       if (item.modelo && typeof item.modelo === 'string') {
         try {
@@ -67,10 +67,26 @@ export const processImportData = async (
             id_modelo = tonerEncontrado.id;
             console.log(`Modelo ${item.modelo} encontrado com ID: ${id_modelo}`);
           } else {
-            console.warn(`Modelo ${item.modelo} não encontrado na base de toners, usando ID padrão (${idTonerPadrao})`);
+            // Criar novo toner automaticamente
+            console.log(`Modelo ${item.modelo} não encontrado, criando novo toner...`);
+            const novoToner = await tonerService.create({
+              modelo: item.modelo.trim(),
+              cor: '', // Campo em branco para atualização posterior
+              impressoras_compat: '', // Campo em branco para atualização posterior
+              peso_vazio: 0, // Valor padrão
+              peso_cheio: 0, // Valor padrão
+              gramatura: 0, // Valor padrão
+              capacidade_folhas: 0, // Valor padrão
+              preco_produto: 0, // Valor padrão
+              valor_por_folha: 0, // Valor padrão
+              registrado_por: 0, // Indica que foi criado automaticamente na importação
+              data_registro: new Date().toISOString()
+            });
+            id_modelo = novoToner.id;
+            console.log(`Novo toner criado para modelo ${item.modelo} com ID: ${id_modelo}`);
           }
         } catch (modeloError) {
-          console.error(`Erro ao buscar modelo ${item.modelo}:`, modeloError);
+          console.error(`Erro ao buscar/criar modelo ${item.modelo}:`, modeloError);
           console.warn(`Usando ID padrão (${idTonerPadrao}) para o modelo ${item.modelo}`);
         }
       }

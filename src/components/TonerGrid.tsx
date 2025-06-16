@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Edit, Trash2, Eye, AlertTriangle, Package } from 'lucide-react';
+import { Search, Edit, Trash2, Eye, AlertTriangle, Package, Info } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/tonerService';
 import { retornadoService } from '@/services/retornadoService';
@@ -115,6 +115,21 @@ export const TonerGrid: React.FC = () => {
     }
   };
 
+  // Função para verificar se o toner precisa ser atualizado
+  const needsUpdate = (toner: Toner) => {
+    return toner.registrado_por === 0 || 
+           !toner.cor || 
+           !toner.impressoras_compat || 
+           toner.peso_vazio === 0 || 
+           toner.peso_cheio === 0 || 
+           toner.gramatura === 0 || 
+           toner.capacidade_folhas === 0 || 
+           toner.preco_produto === 0;
+  };
+
+  // Contar toners que precisam de atualização
+  const tonersNeedingUpdate = filteredToners.filter(needsUpdate).length;
+
   if (editingToner) {
     return (
       <TonerEditForm
@@ -147,12 +162,36 @@ export const TonerGrid: React.FC = () => {
         </p>
       </div>
 
+      {tonersNeedingUpdate > 0 && (
+        <Card className="bg-yellow-50/50 dark:bg-yellow-900/10 backdrop-blur-xl border-yellow-200/50 dark:border-yellow-800/50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                  Toners pendentes de atualização
+                </h4>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  {tonersNeedingUpdate} toner(s) foram criados automaticamente durante a importação e precisam ter seus dados atualizados. 
+                  Eles estão destacados em amarelo na tabela abaixo.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Eye className="w-5 h-5" />
               Lista de Toners ({filteredToners.length})
+              {tonersNeedingUpdate > 0 && (
+                <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full text-xs font-medium">
+                  {tonersNeedingUpdate} pendentes
+                </span>
+              )}
             </span>
             <div className="flex items-center gap-2">
               <Search className="w-4 h-4" />
@@ -191,53 +230,69 @@ export const TonerGrid: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredToners.map((toner) => (
-                    <tr 
-                      key={toner.id} 
-                      className="border-b border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20 transition-colors"
-                    >
-                      <td className="p-3 font-medium">{toner.modelo}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          toner.cor === 'Preto' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' :
-                          toner.cor === 'Ciano' ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' :
-                          toner.cor === 'Magenta' ? 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200' :
-                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        }`}>
-                          {toner.cor}
-                        </span>
-                      </td>
-                      <td className="p-3">{toner.peso_cheio}g</td>
-                      <td className="p-3">{toner.peso_vazio}g</td>
-                      <td className="p-3 font-medium text-blue-600 dark:text-blue-400">{toner.gramatura}g</td>
-                      <td className="p-3">R$ {toner.preco_produto.toFixed(2)}</td>
-                      <td className="p-3">{toner.capacidade_folhas.toLocaleString()}</td>
-                      <td className="p-3 font-medium text-green-600 dark:text-green-400">R$ {toner.valor_por_folha.toFixed(4)}</td>
-                      <td className="p-3">{new Date(toner.data_registro).toLocaleDateString('pt-BR')}</td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(toner)}
-                            className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800 text-blue-700 hover:text-blue-800"
-                            title="Editar toner"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toner.id && handleDelete(toner.id, toner.modelo)}
-                            className="bg-red-500/10 hover:bg-red-500/20 border-red-200 dark:border-red-800 text-red-600 hover:text-red-700"
-                            title="Excluir toner"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredToners.map((toner) => {
+                    const needsUpdateFlag = needsUpdate(toner);
+                    return (
+                      <tr 
+                        key={toner.id} 
+                        className={`border-b border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20 transition-colors ${
+                          needsUpdateFlag ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : ''
+                        }`}
+                      >
+                        <td className="p-3 font-medium">
+                          <div className="flex items-center gap-2">
+                            {toner.modelo}
+                            {needsUpdateFlag && (
+                              <AlertTriangle className="w-4 h-4 text-yellow-600" title="Precisa ser atualizado" />
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          {toner.cor ? (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              toner.cor === 'Preto' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' :
+                              toner.cor === 'Ciano' ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' :
+                              toner.cor === 'Magenta' ? 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200' :
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            }`}>
+                              {toner.cor}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic">Não informado</span>
+                          )}
+                        </td>
+                        <td className="p-3">{toner.peso_cheio || 0}g</td>
+                        <td className="p-3">{toner.peso_vazio || 0}g</td>
+                        <td className="p-3 font-medium text-blue-600 dark:text-blue-400">{toner.gramatura || 0}g</td>
+                        <td className="p-3">R$ {(toner.preco_produto || 0).toFixed(2)}</td>
+                        <td className="p-3">{(toner.capacidade_folhas || 0).toLocaleString()}</td>
+                        <td className="p-3 font-medium text-green-600 dark:text-green-400">R$ {(toner.valor_por_folha || 0).toFixed(4)}</td>
+                        <td className="p-3">{new Date(toner.data_registro).toLocaleDateString('pt-BR')}</td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEdit(toner)}
+                              className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800 text-blue-700 hover:text-blue-800"
+                              title="Editar toner"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => toner.id && handleDelete(toner.id, toner.modelo)}
+                              className="bg-red-500/10 hover:bg-red-500/20 border-red-200 dark:border-red-800 text-red-600 hover:text-red-700"
+                              title="Excluir toner"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
