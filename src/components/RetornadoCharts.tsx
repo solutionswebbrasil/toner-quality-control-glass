@@ -12,15 +12,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterva
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { retornadoService } from '@/services/dataService';
-
-const getMonthName = (monthNumber: number) => {
-  const months = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-  return months[monthNumber];
-};
+import { retornadoService } from '@/services/retornadoService';
 
 export const RetornadoCharts: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
@@ -39,17 +31,24 @@ export const RetornadoCharts: React.FC = () => {
       setIsLoading(true);
       
       const retornados = await retornadoService.getAll();
+      console.log('Dados carregados para gráficos:', retornados.length, 'registros');
+      
+      // Log das datas únicas para debug
+      const datasUnicas = [...new Set(retornados.map(item => 
+        format(new Date(item.data_registro), 'yyyy-MM-dd')
+      ))].sort();
+      console.log('Datas únicas nos dados:', datasUnicas);
       
       // Filtrar dados baseado nas datas selecionadas
-      const filteredData = retornados.filter(item => {
-        const itemDate = new Date(item.data_registro);
-        
-        if (startDate && endDate) {
+      let filteredData = retornados;
+      
+      if (startDate && endDate) {
+        filteredData = retornados.filter(item => {
+          const itemDate = new Date(item.data_registro);
           return itemDate >= startDate && itemDate <= endDate;
-        }
-        
-        return true;
-      });
+        });
+        console.log('Dados filtrados por período:', filteredData.length, 'registros');
+      }
 
       // Preparar dados baseado no período selecionado
       let dataMap = new Map();
@@ -98,23 +97,24 @@ export const RetornadoCharts: React.FC = () => {
           });
         }
       } else {
-        // Mostrar últimos 6 meses por padrão
-        const today = new Date();
-        const sixMonthsAgo = subMonths(today, 5);
-        const monthsInterval = eachMonthOfInterval({ start: startOfMonth(sixMonthsAgo), end: endOfMonth(today) });
+        // Mostrar todos os dados agrupados por mês quando não há filtro
+        const allDates = retornados.map(item => new Date(item.data_registro));
+        const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+        const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+        
+        console.log('Período total dos dados:', format(minDate, 'dd/MM/yyyy'), 'até', format(maxDate, 'dd/MM/yyyy'));
+        
+        const monthsInterval = eachMonthOfInterval({ 
+          start: startOfMonth(minDate), 
+          end: endOfMonth(maxDate) 
+        });
         
         monthsInterval.forEach(month => {
           const key = format(month, 'MMM/yy', { locale: ptBR });
           dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
         });
         
-        // Filtrar dados dos últimos 6 meses
-        const filteredLastSixMonths = retornados.filter(item => {
-          const itemDate = new Date(item.data_registro);
-          return itemDate >= sixMonthsAgo;
-        });
-        
-        filteredLastSixMonths.forEach(item => {
+        retornados.forEach(item => {
           const date = new Date(item.data_registro);
           const key = format(date, 'MMM/yy', { locale: ptBR });
           
@@ -127,6 +127,8 @@ export const RetornadoCharts: React.FC = () => {
       }
 
       periodArray = Array.from(dataMap.values());
+      console.log('Dados processados para gráfico:', periodArray);
+      
       setMonthlyData(periodArray);
       setValorData(periodArray);
 
@@ -141,6 +143,7 @@ export const RetornadoCharts: React.FC = () => {
         .filter(([_, value]) => value > 0)
         .map(([name, value]) => ({ name, value }));
 
+      console.log('Dados por destino:', destinoArray);
       setDestinoData(destinoArray);
     } catch (error) {
       console.error('Erro ao carregar dados dos gráficos:', error);
@@ -185,7 +188,7 @@ export const RetornadoCharts: React.FC = () => {
       const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
       return daysDifference <= 31 ? 'por Período Diário' : 'por Período Mensal';
     }
-    return 'Últimos 6 Meses';
+    return 'Todos os Períodos';
   };
 
   return (

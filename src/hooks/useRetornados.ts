@@ -7,13 +7,14 @@ import { useToast } from '@/hooks/use-toast';
 export const useRetornados = () => {
   const { toast } = useToast();
   const [retornados, setRetornados] = useState<Retornado[]>([]);
-  const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadRetornados = async () => {
+    setLoading(true);
     try {
       const data = await retornadoService.getAll();
-      console.log('Retornados carregados:', data);
+      console.log('Dados carregados do Supabase:', data.length, 'registros');
+      console.log('Primeiros 3 registros:', data.slice(0, 3));
       setRetornados(data);
     } catch (error) {
       console.error('Erro ao carregar retornados:', error);
@@ -33,7 +34,6 @@ export const useRetornados = () => {
       
       // Atualizar as listas localmente removendo o item excluído
       setRetornados(prev => prev.filter(item => item.id !== id));
-      setFilteredRetornados(prev => prev.filter(item => item.id !== id));
       
       toast({
         title: "Sucesso",
@@ -56,8 +56,6 @@ export const useRetornados = () => {
   return {
     retornados,
     setRetornados,
-    filteredRetornados,
-    setFilteredRetornados,
     loading,
     loadRetornados,
     handleDeleteRetornado

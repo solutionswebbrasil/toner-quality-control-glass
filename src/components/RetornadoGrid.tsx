@@ -60,6 +60,9 @@ export const RetornadoGrid: React.FC = () => {
         <p className="text-slate-600 dark:text-slate-400">
           Consulte e exporte dados dos toners retornados
         </p>
+        <div className="mt-2 text-sm text-slate-500">
+          Total de registros no banco: {retornados.length} | Exibindo: {filteredRetornados.length}
+        </div>
       </div>
 
       <RetornadoFilters
