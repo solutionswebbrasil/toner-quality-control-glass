@@ -17,7 +17,7 @@ import {
   HiOfficeBuilding,
   HiSearch
 } from 'react-icons/hi';
-import { AlertTriangle, FileText } from 'lucide-react';
+import { AlertTriangle, FileText, Wrench } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -99,6 +99,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           id: "garantias-graficos",
           label: "Gráficos",
           icon: HiChartPie
+        },
+        {
+          id: "garantias-toners",
+          label: "Garantias de Toners",
+          icon: Wrench
         }
       ]
     },
