@@ -31,7 +31,7 @@ export const fileUploadService = {
       return urlData.publicUrl;
     } catch (error) {
       console.error('❌ Erro no upload de arquivo:', error);
-      return null;
+      throw error; // Re-throw para que o erro seja tratado no componente
     }
   },
 
@@ -40,7 +40,12 @@ export const fileUploadService = {
       console.log('🗑️ Deletando arquivo:', fileUrl);
       
       // Extrair o caminho do arquivo da URL
-      const filePath = fileUrl.split('/').slice(-2).join('/');
+      const urlParts = fileUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const folder = urlParts[urlParts.length - 2];
+      const filePath = `${folder}/${fileName}`;
+      
+      console.log('📍 Caminho do arquivo:', filePath);
       
       const { error } = await supabase.storage
         .from('documents')

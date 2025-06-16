@@ -82,7 +82,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         });
         return;
       }
-      console.log('📎 Arquivo PDF selecionado:', file.name);
+      console.log('📎 Arquivo PDF selecionado:', file.name, 'Tamanho:', file.size);
       setPdfFile(file);
       form.setValue('formulario_pdf', file);
     }
@@ -91,15 +91,34 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
   const onSubmit = async (data: AuditoriaFormData) => {
     try {
       setIsSubmitting(true);
-      console.log('🚀 Iniciando registro de auditoria...');
+      console.log('🚀 Iniciando registro de auditoria...', { 
+        dataInicio: data.data_inicio, 
+        dataFim: data.data_fim, 
+        unidade: data.unidade_auditada,
+        temPDF: !!pdfFile 
+      });
       
-      let formulario_pdf_url = undefined;
+      let formulario_pdf_url = null;
       
       // Upload do arquivo PDF se existir
       if (pdfFile) {
         console.log('📤 Fazendo upload do PDF...');
-        formulario_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'auditoria');
-        console.log('✅ PDF uploaded com sucesso:', formulario_pdf_url);
+        try {
+          formulario_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'auditoria');
+          console.log('✅ PDF uploaded com sucesso:', formulario_pdf_url);
+          
+          if (!formulario_pdf_url) {
+            throw new Error('URL do arquivo não foi retornada');
+          }
+        } catch (uploadError) {
+          console.error('❌ Erro no upload do PDF:', uploadError);
+          toast({
+            title: 'Erro no Upload',
+            description: 'Erro ao fazer upload do PDF. Tente novamente.',
+            variant: 'destructive',
+          });
+          return;
+        }
       }
 
       // Criar objeto auditoria para salvar no banco
@@ -120,7 +139,9 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
 
       toast({
         title: 'Sucesso',
-        description: 'Auditoria registrada com sucesso!',
+        description: formulario_pdf_url 
+          ? 'Auditoria registrada com sucesso e PDF anexado!' 
+          : 'Auditoria registrada com sucesso!',
       });
 
       // Limpar formulário
@@ -138,7 +159,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
       console.error('❌ Erro ao registrar auditoria:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao registrar auditoria. Tente novamente.',
+        description: 'Erro ao registrar auditoria. Verifique os dados e tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -295,7 +316,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
                 </div>
                 {pdfFile && (
                   <p className="text-sm text-green-600 dark:text-green-400">
-                    PDF selecionado: {pdfFile.name}
+                    PDF selecionado: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
                   </p>
                 )}
               </div>
