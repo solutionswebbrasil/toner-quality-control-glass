@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Search, Download, Calendar, Building2, FileText } from 'lucide-react';
+import { Search, Download, Calendar, Building2, FileText, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { auditoriaService } from '@/services/auditoriaService';
+import { fileUploadService } from '@/services/fileUploadService';
 import type { Auditoria } from '@/types';
 
 const unidades = [
@@ -74,15 +77,17 @@ export const AuditoriaGrid: React.FC = () => {
   const loadAuditorias = async () => {
     try {
       setIsLoading(true);
-      // Simular carregamento de dados
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setAuditorias(mockAuditorias);
+      // Tentar carregar do banco de dados primeiro
+      const data = await auditoriaService.getAll();
+      setAuditorias(data.length > 0 ? data : mockAuditorias);
     } catch (error) {
       console.error('Erro ao carregar auditorias:', error);
+      // Usar dados mock em caso de erro
+      setAuditorias(mockAuditorias);
       toast({
-        title: 'Erro',
-        description: 'Erro ao carregar auditorias. Tente novamente.',
-        variant: 'destructive',
+        title: 'Aviso',
+        description: 'Carregando dados de exemplo. Verifique a conexão com o banco.',
+        variant: 'default',
       });
     } finally {
       setIsLoading(false);
@@ -110,23 +115,79 @@ export const AuditoriaGrid: React.FC = () => {
     setFilteredAuditorias(filtered);
   };
 
-  const handleDownloadPDF = (auditoria: Auditoria) => {
+  const handleDownloadPDF = async (auditoria: Auditoria) => {
     if (auditoria.formulario_pdf) {
-      // Simular download do PDF
-      toast({
-        title: 'Download iniciado',
-        description: `Baixando formulário da auditoria de ${auditoria.unidade_auditada}`,
-      });
-      
-      // Aqui você implementaria a lógica real de download
-      // Por exemplo, fazer uma requisição para o backend para obter a URL do arquivo
-      console.log('Downloading PDF:', auditoria.formulario_pdf);
+      try {
+        // Se a URL começa com http, é uma URL completa do Supabase Storage
+        if (auditoria.formulario_pdf.startsWith('http')) {
+          const link = document.createElement('a');
+          link.href = auditoria.formulario_pdf;
+          link.download = `auditoria_${auditoria.id}_formulario.pdf`;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast({
+            title: 'Download iniciado',
+            description: `Baixando formulário da auditoria de ${auditoria.unidade_auditada}`,
+          });
+        } else {
+          // Para compatibilidade com dados antigos
+          toast({
+            title: 'Download simulado',
+            description: `Baixando formulário da auditoria de ${auditoria.unidade_auditada}`,
+          });
+          console.log('Downloading PDF:', auditoria.formulario_pdf);
+        }
+      } catch (error) {
+        console.error('Erro ao baixar PDF:', error);
+        toast({
+          title: 'Erro no download',
+          description: 'Erro ao baixar o arquivo. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
     } else {
       toast({
         title: 'Arquivo não disponível',
         description: 'Esta auditoria não possui formulário anexado.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleDeleteAuditoria = async (auditoria: Auditoria) => {
+    try {
+      setIsLoading(true);
+      
+      // Se existe PDF anexado, deletar do storage primeiro
+      if (auditoria.formulario_pdf && auditoria.formulario_pdf.startsWith('http')) {
+        await fileUploadService.deletePdf(auditoria.formulario_pdf);
+      }
+      
+      const success = await auditoriaService.delete(auditoria.id);
+      
+      if (success) {
+        // Atualizar a lista local
+        setAuditorias(prev => prev.filter(a => a.id !== auditoria.id));
+        
+        toast({
+          title: 'Sucesso',
+          description: 'Auditoria excluída com sucesso.',
+        });
+      } else {
+        throw new Error('Falha ao excluir auditoria');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir auditoria:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao excluir auditoria. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,7 +204,7 @@ export const AuditoriaGrid: React.FC = () => {
           Consulta de Auditorias
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
-          Consulte e baixe os formulários das auditorias realizadas
+          Consulte, baixe os formulários e gerencie as auditorias realizadas
         </p>
       </div>
 
@@ -273,16 +334,49 @@ export const AuditoriaGrid: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadPDF(auditoria)}
-                          disabled={!auditoria.formulario_pdf}
-                          className="flex items-center gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          Baixar PDF
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadPDF(auditoria)}
+                            disabled={!auditoria.formulario_pdf}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Baixar PDF
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Excluir
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir a auditoria #{auditoria.id} da unidade {auditoria.unidade_auditada}?
+                                  Esta ação não pode ser desfeita e todos os arquivos anexados serão removidos.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteAuditoria(auditoria)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
