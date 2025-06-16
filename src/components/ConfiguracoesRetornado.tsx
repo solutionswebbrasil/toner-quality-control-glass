@@ -39,18 +39,11 @@ const regrasIniciais: RegraRetornado[] = [
     orientacoes: 'Toners com uso moderado, utilizáveis para impressões internas e testes.'
   },
   {
-    id: 'garantia',
-    destino: 'Garantia',
-    percentual_min: 71,
-    percentual_max: 90,
-    orientacoes: 'Toners com alto uso, verificar se ainda estão no período de garantia.'
-  },
-  {
     id: 'descarte',
     destino: 'Descarte',
-    percentual_min: 91,
+    percentual_min: 71,
     percentual_max: 100,
-    orientacoes: 'Toners com uso muito alto, destinados ao descarte ecológico adequado.'
+    orientacoes: 'Toners com uso alto, destinados ao descarte ecológico adequado.'
   }
 ];
 
@@ -73,21 +66,7 @@ export const ConfiguracoesRetornado: React.FC = () => {
   const salvarRegras = async () => {
     setIsLoading(true);
     try {
-      // Validar se os percentuais não se sobrepõem
-      const regrasOrdenadas = [...regras].sort((a, b) => a.percentual_min - b.percentual_min);
-      
-      for (let i = 0; i < regrasOrdenadas.length - 1; i++) {
-        if (regrasOrdenadas[i].percentual_max >= regrasOrdenadas[i + 1].percentual_min) {
-          toast({
-            title: "Erro de Validação",
-            description: "Os percentuais não podem se sobrepor entre as regras.",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-
-      // Salvar no localStorage por enquanto
+      // Salvar no localStorage sem validação de sobreposição
       localStorage.setItem('regras_retornado', JSON.stringify(regras));
       
       toast({
@@ -123,8 +102,6 @@ export const ConfiguracoesRetornado: React.FC = () => {
         return 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950';
       case 'Uso Interno':
         return 'border-blue-500 bg-blue-50 dark:bg-blue-950';
-      case 'Garantia':
-        return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950';
       case 'Descarte':
         return 'border-red-500 bg-red-50 dark:bg-red-950';
       default:
@@ -145,8 +122,9 @@ export const ConfiguracoesRetornado: React.FC = () => {
           <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-950/50 p-4 rounded-lg">
             <h4 className="font-semibold mb-2">Como funciona:</h4>
             <p>
-              Configure os percentuais de uso de gramatura para determinar automaticamente o destino final dos toners retornados.
+              Configure os percentuais de uso de gramatura para sugerir automaticamente o destino final dos toners retornados.
               O sistema calculará o percentual de uso baseado na gramatura usada vs gramatura total do toner.
+              <strong> As regras são apenas sugestões</strong> e os percentuais podem se sobrepor conforme necessário.
             </p>
           </div>
 

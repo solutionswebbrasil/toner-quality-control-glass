@@ -32,18 +32,11 @@ const regrasIniciais: RegraRetornado[] = [
     orientacoes: 'Toners com uso moderado, utilizáveis para impressões internas e testes.'
   },
   {
-    id: 'garantia',
-    destino: 'Garantia',
-    percentual_min: 71,
-    percentual_max: 90,
-    orientacoes: 'Toners com alto uso, verificar se ainda estão no período de garantia.'
-  },
-  {
     id: 'descarte',
     destino: 'Descarte',
-    percentual_min: 91,
+    percentual_min: 71,
     percentual_max: 100,
-    orientacoes: 'Toners com uso muito alto, destinados ao descarte ecológico adequado.'
+    orientacoes: 'Toners com uso alto, destinados ao descarte ecológico adequado.'
   }
 ];
 
