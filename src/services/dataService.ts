@@ -10,3 +10,4 @@ export { tituloItPopService } from './tituloItPopService';
 export { registroItPopService } from './registroItPopService';
 export { tituloBpmnService } from './tituloBpmnService';
 export { registroBpmnService } from './registroBpmnService';
+export { filialService } from './filialService';
