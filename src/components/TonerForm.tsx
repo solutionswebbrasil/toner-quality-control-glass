@@ -8,14 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, Calculator } from 'lucide-react';
 import { Toner } from '@/types';
-import { tonerService } from '@/services/dataService';
-import { toast } from '@/hooks/use-toast';
+import { tonerService } from '@/services/tonerService';
+import { useToast } from '@/hooks/use-toast';
 
 interface TonerFormProps {
   onSuccess?: () => void;
 }
 
 export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     modelo: '',
     peso_cheio: '',
@@ -53,10 +54,12 @@ export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
         impressoras_compat: formData.impressoras_compat,
         cor: formData.cor,
         registrado_por: 1, // Mock user ID
-        data_registro: new Date().toISOString() // Convert Date to string
+        data_registro: new Date().toISOString()
       };
 
-      await tonerService.create(toner);
+      console.log('Criando toner:', toner);
+      const result = await tonerService.create(toner);
+      console.log('Toner criado:', result);
       
       toast({
         title: "Sucesso!",
@@ -76,6 +79,7 @@ export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
 
       onSuccess?.();
     } catch (error) {
+      console.error('Erro ao cadastrar toner:', error);
       toast({
         title: "Erro",
         description: "Erro ao cadastrar toner.",

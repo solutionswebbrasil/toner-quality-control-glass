@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toner } from '@/types';
-import { tonerService } from '@/services/dataService';
+import { tonerService } from '@/services/tonerService';
 import { useToast } from '@/hooks/use-toast';
 
 interface TonerEditFormProps {
@@ -25,13 +25,20 @@ export const TonerEditForm: React.FC<TonerEditFormProps> = ({ toner, onSuccess, 
     setLoading(true);
     
     try {
-      await tonerService.update(toner.id!, formData);
-      toast({
-        title: "Sucesso",
-        description: "Toner atualizado com sucesso.",
-      });
-      onSuccess();
+      console.log('Atualizando toner:', formData);
+      const result = await tonerService.update(toner.id!, formData);
+      
+      if (result) {
+        toast({
+          title: "Sucesso",
+          description: "Toner atualizado com sucesso.",
+        });
+        onSuccess();
+      } else {
+        throw new Error('Falha na atualização');
+      }
     } catch (error) {
+      console.error('Erro ao atualizar toner:', error);
       toast({
         title: "Erro",
         description: "Erro ao atualizar toner.",

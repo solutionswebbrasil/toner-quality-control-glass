@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Toner } from '@/types';
-import { tonerService } from '@/services/dataService';
+import { tonerService } from '@/services/tonerService';
 import { useToast } from '@/hooks/use-toast';
 import { TonerEditForm } from './TonerEditForm';
 
@@ -32,9 +32,12 @@ export const TonerGrid: React.FC = () => {
 
   const loadToners = async () => {
     try {
+      console.log('Carregando toners...');
       const data = await tonerService.getAll();
+      console.log('Toners carregados:', data);
       setToners(data);
     } catch (error) {
+      console.error('Erro ao carregar toners:', error);
       toast({
         title: "Erro",
         description: "Erro ao carregar toners.",
@@ -55,18 +58,35 @@ export const TonerGrid: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este toner?')) {
+    if (window.confirm('Tem certeza que deseja excluir este toner? Esta ação pode falhar se existirem retornados vinculados a este toner.')) {
       try {
-        await tonerService.delete(id);
-        await loadToners();
-        toast({
-          title: "Sucesso",
-          description: "Toner excluído com sucesso.",
-        });
-      } catch (error) {
+        console.log(`Tentando excluir toner com ID: ${id}`);
+        const success = await tonerService.delete(id);
+        
+        if (success) {
+          await loadToners();
+          toast({
+            title: "Sucesso",
+            description: "Toner excluído com sucesso.",
+          });
+        } else {
+          throw new Error('Falha na exclusão');
+        }
+      } catch (error: any) {
+        console.error('Erro ao excluir toner:', error);
+        
+        let errorMessage = "Erro ao excluir toner.";
+        
+        // Verificar se é erro de chave estrangeira
+        if (error.message && error.message.includes('foreign key')) {
+          errorMessage = "Não é possível excluir este toner pois existem retornados vinculados a ele. Exclua primeiro os retornados relacionados.";
+        } else if (error.message && error.message.includes('violates foreign key constraint')) {
+          errorMessage = "Este toner não pode ser excluído pois está sendo usado em registros de retornados.";
+        }
+        
         toast({
           title: "Erro",
-          description: "Erro ao excluir toner.",
+          description: errorMessage,
           variant: "destructive"
         });
       }
