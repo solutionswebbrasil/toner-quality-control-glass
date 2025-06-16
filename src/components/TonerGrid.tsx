@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,11 +115,13 @@ export const TonerGrid: React.FC = () => {
     }
   };
 
-  // Função para verificar se o toner precisa ser atualizado
+  // Função aprimorada para verificar se o toner precisa ser atualizado
   const needsUpdate = (toner: Toner) => {
     return toner.registrado_por === 0 || 
            !toner.cor || 
+           toner.cor.trim() === '' ||
            !toner.impressoras_compat || 
+           toner.impressoras_compat.trim() === '' ||
            toner.peso_vazio === 0 || 
            toner.peso_cheio === 0 || 
            toner.gramatura === 0 || 

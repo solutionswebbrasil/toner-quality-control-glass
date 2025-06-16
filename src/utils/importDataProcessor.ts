@@ -25,15 +25,15 @@ export const processImportData = async (
       console.log('Nenhum toner encontrado na base, criando toner padrão...');
       const tonerPadrao = await tonerService.create({
         modelo: 'MODELO_PADRAO_IMPORTACAO',
-        cor: 'Preto',
-        impressoras_compat: 'Genérica',
-        peso_vazio: 100,
-        peso_cheio: 200,
-        gramatura: 100,
-        capacidade_folhas: 1000,
-        preco_produto: 50,
-        valor_por_folha: 0.05,
-        registrado_por: 1,
+        cor: '',
+        impressoras_compat: '',
+        peso_vazio: 0,
+        peso_cheio: 0,
+        gramatura: 0,
+        capacidade_folhas: 0,
+        preco_produto: 0,
+        valor_por_folha: 0,
+        registrado_por: 0,
         data_registro: new Date().toISOString()
       });
       idTonerPadrao = tonerPadrao.id;
@@ -71,15 +71,15 @@ export const processImportData = async (
             console.log(`Modelo ${item.modelo} não encontrado, criando novo toner...`);
             const novoToner = await tonerService.create({
               modelo: item.modelo.trim(),
-              cor: '', // Campo em branco para atualização posterior
-              impressoras_compat: '', // Campo em branco para atualização posterior
-              peso_vazio: 0, // Valor padrão
-              peso_cheio: 0, // Valor padrão
-              gramatura: 0, // Valor padrão
-              capacidade_folhas: 0, // Valor padrão
-              preco_produto: 0, // Valor padrão
-              valor_por_folha: 0, // Valor padrão
-              registrado_por: 0, // Indica que foi criado automaticamente na importação
+              cor: '',
+              impressoras_compat: '',
+              peso_vazio: 0,
+              peso_cheio: 0,
+              gramatura: 0,
+              capacidade_folhas: 0,
+              preco_produto: 0,
+              valor_por_folha: 0,
+              registrado_por: 0,
               data_registro: new Date().toISOString()
             });
             id_modelo = novoToner.id;
@@ -91,6 +91,34 @@ export const processImportData = async (
         }
       }
 
+      // Processar valor recuperado da planilha
+      let valorRecuperado = null;
+      if (item.valor_recuperado !== undefined && item.valor_recuperado !== null && item.valor_recuperado !== '') {
+        // Converter valores em formato brasileiro para número
+        let valorStr = String(item.valor_recuperado);
+        
+        // Remover "R$" e espaços
+        valorStr = valorStr.replace(/R\$\s*/g, '');
+        
+        // Substituir vírgula por ponto para decimais
+        if (valorStr.includes(',') && !valorStr.includes('.')) {
+          valorStr = valorStr.replace(',', '.');
+        }
+        
+        // Remover pontos de milhares (mantém apenas o último ponto para decimais)
+        const parts = valorStr.split('.');
+        if (parts.length > 2) {
+          // Se há mais de um ponto, os primeiros são separadores de milhares
+          valorStr = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
+        }
+        
+        const valorNumerico = parseFloat(valorStr);
+        if (!isNaN(valorNumerico) && valorNumerico > 0) {
+          valorRecuperado = valorNumerico;
+          console.log(`Valor recuperado processado: ${item.valor_recuperado} -> ${valorRecuperado}`);
+        }
+      }
+
       // Normalizar e validar dados
       const retornadoData = {
         id_cliente: idCliente,
@@ -98,7 +126,7 @@ export const processImportData = async (
         peso: 100, // Peso padrão fixo, já que não é obrigatório na planilha
         destino_final: String(item.destino_final || 'Estoque').trim(),
         filial: String(item.filial || 'Matriz').trim(),
-        valor_recuperado: item.valor_recuperado ? parseFloat(String(item.valor_recuperado)) : null,
+        valor_recuperado: valorRecuperado,
         data_registro: normalizeDate(item.data_registro)
       };
 

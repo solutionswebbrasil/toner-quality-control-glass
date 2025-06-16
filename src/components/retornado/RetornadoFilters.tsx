@@ -14,7 +14,10 @@ const filiais = [
   'Filial 2',
   'Filial 3',
   'Filial 4',
-  'Filial 5'
+  'Filial 5',
+  'Jundiaí',
+  'São Paulo',
+  'Campinas'
 ];
 
 const destinosFinais = [
@@ -22,6 +25,7 @@ const destinosFinais = [
   'Descarte',
   'Garantia',
   'Estoque',
+  'Estoque Semi Novo',
   'Uso Interno'
 ];
 
@@ -81,7 +85,7 @@ export const RetornadoFilters: React.FC<RetornadoFiltersProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Filial</Label>
+            <Label>Unidade/Filial</Label>
             <Select value={filialSelecionada} onValueChange={setFilialSelecionada}>
               <SelectTrigger>
                 <SelectValue />

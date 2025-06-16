@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,8 @@ import { retornadoService } from '@/services/dataService';
 
 const getMonthName = (monthNumber: number) => {
   const months = [
-    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
   return months[monthNumber];
 };
@@ -30,7 +31,8 @@ export const RetornadoCharts: React.FC = () => {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
-  const pieColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+  // Cores mais vibrantes para os gráficos
+  const pieColors = ['#2563eb', '#16a34a', '#dc2626', '#ea580c', '#7c3aed', '#db2777'];
 
   const loadChartData = async () => {
     try {
@@ -78,19 +80,16 @@ export const RetornadoCharts: React.FC = () => {
           const date = new Date();
           date.setMonth(date.getMonth() - i);
           const monthName = getMonthName(date.getMonth());
-          const year = date.getFullYear();
-          const key = `${monthName}/${year}`;
+          const key = monthName;
           dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
         }
         
         filteredData.forEach(item => {
           const date = new Date(item.data_registro);
           const monthName = getMonthName(date.getMonth());
-          const year = date.getFullYear();
-          const key = `${monthName}/${year}`;
           
-          if (dataMap.has(key)) {
-            const existing = dataMap.get(key);
+          if (dataMap.has(monthName)) {
+            const existing = dataMap.get(monthName);
             existing.quantidade += 1;
             existing.valor += item.valor_recuperado || 0;
           }
@@ -127,11 +126,11 @@ export const RetornadoCharts: React.FC = () => {
   const chartConfig = {
     quantidade: {
       label: "Quantidade",
-      color: "#3b82f6",
+      color: "#2563eb",
     },
     valor: {
       label: "Valor (R$)",
-      color: "#10b981",
+      color: "#16a34a",
     },
   };
 
@@ -153,7 +152,7 @@ export const RetornadoCharts: React.FC = () => {
 
   const periodLabel = startDate && endDate ? 
     `${startDate && endDate && (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) <= 31 ? 'por Período' : 'por Mês'}` : 
-    'por Mês';
+    'Últimos 6 Meses';
 
   return (
     <div className="space-y-6">
@@ -223,10 +222,12 @@ export const RetornadoCharts: React.FC = () => {
       </Card>
       
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Gráfico de Quantidade */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Retornados {periodLabel}</CardTitle>
+        {/* Gráfico de Quantidade - Melhorado */}
+        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
+              Retornados {periodLabel}
+            </CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -236,22 +237,44 @@ export const RetornadoCharts: React.FC = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-64">
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="quantidade" fill="var(--color-quantidade)" />
+            <ChartContainer config={chartConfig} className="h-80">
+              <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="period" 
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Bar 
+                  dataKey="quantidade" 
+                  fill="#2563eb" 
+                  radius={[4, 4, 0, 0]}
+                  name="Quantidade"
+                />
               </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Gráfico Pizza - Destino Final */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Destino Final dos Retornados</CardTitle>
+        {/* Gráfico Pizza - Destino Final - Melhorado */}
+        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
+              Destino Final dos Retornados
+            </CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -262,37 +285,49 @@ export const RetornadoCharts: React.FC = () => {
           </CardHeader>
           <CardContent>
             {destinoData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-64">
+              <ChartContainer config={chartConfig} className="h-80">
                 <PieChart>
                   <Pie
                     data={destinoData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
+                    label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                    outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
+                    stroke="#fff"
+                    strokeWidth={2}
                   >
                     {destinoData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                     ))}
                   </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
                 </PieChart>
               </ChartContainer>
             ) : (
-              <div className="h-64 flex items-center justify-center text-slate-500">
+              <div className="h-80 flex items-center justify-center text-slate-500">
                 Nenhum dado disponível para o período selecionado
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Novo Gráfico de Valor Recuperado */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Valor Recuperado {periodLabel}</CardTitle>
+        {/* Novo Gráfico de Valor Recuperado - Melhorado */}
+        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-lg lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
+              Valor Recuperado {periodLabel}
+            </CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -302,16 +337,35 @@ export const RetornadoCharts: React.FC = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-64">
-              <BarChart data={valorData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis />
+            <ChartContainer config={chartConfig} className="h-80">
+              <BarChart data={valorData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="period" 
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                  tickFormatter={(value) => `R$ ${value.toFixed(0)}`}
+                />
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                   formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor Recuperado']}
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
                 />
-                <Bar dataKey="valor" fill="var(--color-valor)" />
+                <Bar 
+                  dataKey="valor" 
+                  fill="#16a34a" 
+                  radius={[4, 4, 0, 0]}
+                  name="Valor Recuperado"
+                />
               </BarChart>
             </ChartContainer>
           </CardContent>
