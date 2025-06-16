@@ -34,6 +34,7 @@ const menuItems = [
   ]},
   { id: 'itpop', label: 'IT/POP', icon: FileText, subItems: [
     { id: 'itpop-titulo-cadastro', label: 'Cadastro Títulos' },
+    { id: 'itpop-titulo-consulta', label: 'Consulta Títulos' },
     { id: 'itpop-registro', label: 'Registro IT/POP' },
     { id: 'itpop-visualizar', label: 'Visualizar IT/POP' }
   ]},
@@ -69,10 +70,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'toners-
           {!sidebarCollapsed && (
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5 text-white" />
+                <span className="text-white font-bold text-lg">Q</span>
               </div>
               <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                QC System
+                SGQ PRO
               </span>
             </div>
           )}
@@ -150,7 +151,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'toners-
         <header className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 p-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-              Sistema de Controle de Qualidade
+              Sistema de Gestão da Qualidade
             </h1>
             <button
               onClick={toggleTheme}

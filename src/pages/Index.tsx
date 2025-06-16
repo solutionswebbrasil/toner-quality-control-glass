@@ -14,6 +14,7 @@ import { GarantiaCharts } from '@/components/GarantiaCharts';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
 import { AuditoriaGrid } from '@/components/AuditoriaGrid';
 import { TituloItPopForm } from '@/components/TituloItPopForm';
+import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { RegistroItPopForm } from '@/components/RegistroItPopForm';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
 import { TituloBpmnForm } from '@/components/TituloBpmnForm';
@@ -51,6 +52,8 @@ const Index = () => {
         return <AuditoriaGrid />;
       case 'itpop-titulo-cadastro':
         return <TituloItPopForm onSuccess={() => console.log('Título IT/POP cadastrado!')} />;
+      case 'itpop-titulo-consulta':
+        return <ConsultaTitulosItPop onSuccess={() => console.log('Título IT/POP consultado!')} />;
       case 'itpop-registro':
         return <RegistroItPopForm onSuccess={() => console.log('IT/POP registrado!')} />;
       case 'itpop-visualizar':
