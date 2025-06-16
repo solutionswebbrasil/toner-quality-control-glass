@@ -36,6 +36,7 @@ const menuItems = [
     { id: 'itpop-titulo-cadastro', label: 'Cadastro Títulos' },
     { id: 'itpop-titulo-consulta', label: 'Consulta Títulos' },
     { id: 'itpop-registro', label: 'Registro IT/POP' },
+    { id: 'itpop-registros-consulta', label: 'POP/ITs Cadastrados' },
     { id: 'itpop-visualizar', label: 'Visualizar IT/POP' }
   ]},
   { id: 'bpmn', label: 'BPMN', icon: Layers, subItems: [

@@ -16,6 +16,7 @@ import { AuditoriaGrid } from '@/components/AuditoriaGrid';
 import { TituloItPopForm } from '@/components/TituloItPopForm';
 import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { RegistroItPopForm } from '@/components/RegistroItPopForm';
+import { ConsultaRegistrosItPop } from '@/components/ConsultaRegistrosItPop';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
 import { TituloBpmnForm } from '@/components/TituloBpmnForm';
 import { RegistroBpmnForm } from '@/components/RegistroBpmnForm';
@@ -56,6 +57,8 @@ const Index = () => {
         return <ConsultaTitulosItPop onSuccess={() => console.log('Título IT/POP consultado!')} />;
       case 'itpop-registro':
         return <RegistroItPopForm onSuccess={() => console.log('IT/POP registrado!')} />;
+      case 'itpop-registros-consulta':
+        return <ConsultaRegistrosItPop onSuccess={() => console.log('Registros IT/POP consultados!')} />;
       case 'itpop-visualizar':
         return <VisualizadorItPop onSuccess={() => console.log('IT/POP visualizado!')} />;
       case 'bpmn-titulo-cadastro':
