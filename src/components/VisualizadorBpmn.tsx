@@ -189,18 +189,6 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
               <div>
                 <h4 className="font-medium mb-3">Arquivos Disponíveis</h4>
                 <div className="space-y-2">
-                  {registroAtual.arquivo_pdf && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleDownload(registroAtual.arquivo_pdf!, `${registroAtual.titulo}_v${registroAtual.versao}.pdf`)}
-                    >
-                      {getFileIcon('pdf')}
-                      <span className="ml-2">Baixar PDF</span>
-                      <Download className="ml-auto h-4 w-4" />
-                    </Button>
-                  )}
-
                   {registroAtual.arquivo_jpg && (
                     <Button
                       variant="outline"
@@ -225,19 +213,19 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
                     </Button>
                   )}
 
-                  {registroAtual.arquivo_bizagi && (
+                  {registroAtual.arquivo_zip && (
                     <Button
                       variant="outline"
                       className="w-full justify-start"
-                      onClick={() => handleDownload(registroAtual.arquivo_bizagi!, `${registroAtual.titulo}_v${registroAtual.versao}.bizagi`)}
+                      onClick={() => handleDownload(registroAtual.arquivo_zip!, `${registroAtual.titulo}_v${registroAtual.versao}.zip`)}
                     >
-                      {getFileIcon('bizagi')}
-                      <span className="ml-2">Baixar Bizagi</span>
+                      {getFileIcon('zip')}
+                      <span className="ml-2">Baixar ZIP</span>
                       <Download className="ml-auto h-4 w-4" />
                     </Button>
                   )}
 
-                  {!registroAtual.arquivo_pdf && !registroAtual.arquivo_jpg && !registroAtual.arquivo_png && !registroAtual.arquivo_bizagi && (
+                  {!registroAtual.arquivo_jpg && !registroAtual.arquivo_png && !registroAtual.arquivo_zip && (
                     <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
                       Nenhum arquivo disponível para esta versão.
                     </p>
