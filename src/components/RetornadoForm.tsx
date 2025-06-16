@@ -139,12 +139,14 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   const calculateGramaturaUsada = () => {
     if (!selectedToner || !formData.peso) return 0;
     const pesoAtual = parseFloat(formData.peso);
+    // Correção: gramatura usada = peso cheio - peso atual
     return selectedToner.peso_cheio - pesoAtual;
   };
 
   const calculatePercentualUso = () => {
     if (!selectedToner) return '0';
     const gramaturaUsada = calculateGramaturaUsada();
+    // Percentual de uso baseado na gramatura total do toner
     return ((gramaturaUsada / selectedToner.gramatura) * 100).toFixed(1);
   };
 
@@ -231,7 +233,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
             <div className="space-y-2">
               <Label htmlFor="destino_final">Destino Final *</Label>
               <Select value={formData.destino_final} onValueChange={(value) => handleInputChange('destino_final', value)}>
-                <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+                <SelectTrigger className="bg-white/50 dark:bg-slash-800/50 backdrop-blur">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
