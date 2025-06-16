@@ -16,7 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import type { Auditoria } from '@/types';
+import { auditoriaService } from '@/services/auditoriaService';
+import { fileUploadService } from '@/services/fileUploadService';
 
 const auditoriaSchema = z.object({
   data_inicio: z.date({
@@ -81,6 +82,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         });
         return;
       }
+      console.log('📎 Arquivo PDF selecionado:', file.name);
       setPdfFile(file);
       form.setValue('formulario_pdf', file);
     }
@@ -89,29 +91,51 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
   const onSubmit = async (data: AuditoriaFormData) => {
     try {
       setIsSubmitting(true);
+      console.log('🚀 Iniciando registro de auditoria...');
       
-      // Create auditoria object with string dates and file path
-      const auditoria: Auditoria = {
-        data_inicio: data.data_inicio.toISOString().split('T')[0], // Convert Date to string (YYYY-MM-DD format)
-        data_fim: data.data_fim.toISOString().split('T')[0], // Convert Date to string (YYYY-MM-DD format)
+      let formulario_pdf_url = undefined;
+      
+      // Upload do arquivo PDF se existir
+      if (pdfFile) {
+        console.log('📤 Fazendo upload do PDF...');
+        formulario_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'auditoria');
+        console.log('✅ PDF uploaded com sucesso:', formulario_pdf_url);
+      }
+
+      // Criar objeto auditoria para salvar no banco
+      const auditoriaData = {
+        data_inicio: data.data_inicio.toISOString().split('T')[0], // YYYY-MM-DD format
+        data_fim: data.data_fim.toISOString().split('T')[0], // YYYY-MM-DD format
         unidade_auditada: data.unidade_auditada,
-        formulario_pdf: pdfFile ? pdfFile.name : undefined, // Store file name as string
-        data_registro: new Date().toISOString(), // Convert Date to string
+        formulario_pdf: formulario_pdf_url,
+        data_registro: new Date().toISOString(),
       };
 
-      // Aqui você implementaria a lógica para salvar no seu backend
-      console.log('Auditoria registrada:', auditoria);
+      console.log('💾 Salvando auditoria no banco:', auditoriaData);
+
+      // Salvar no banco de dados
+      const savedAuditoria = await auditoriaService.create(auditoriaData);
+      
+      console.log('✅ Auditoria salva com sucesso:', savedAuditoria);
 
       toast({
         title: 'Sucesso',
         description: 'Auditoria registrada com sucesso!',
       });
 
+      // Limpar formulário
       form.reset();
       setPdfFile(null);
+      
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
       onSuccess();
     } catch (error) {
-      console.error('Erro ao registrar auditoria:', error);
+      console.error('❌ Erro ao registrar auditoria:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao registrar auditoria. Tente novamente.',
@@ -263,8 +287,9 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
                     accept=".pdf"
                     onChange={handleFileChange}
                     className="flex-1"
+                    disabled={isSubmitting}
                   />
-                  <Button type="button" variant="outline" size="icon">
+                  <Button type="button" variant="outline" size="icon" disabled={isSubmitting}>
                     <Upload className="h-4 w-4" />
                   </Button>
                 </div>
@@ -282,7 +307,12 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
                   onClick={() => {
                     form.reset();
                     setPdfFile(null);
+                    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                    if (fileInput) {
+                      fileInput.value = '';
+                    }
                   }}
+                  disabled={isSubmitting}
                 >
                   Limpar
                 </Button>
