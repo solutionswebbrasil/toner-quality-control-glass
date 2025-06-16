@@ -48,9 +48,9 @@ export const FornecedorGrid: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const success = await fornecedorService.delete(id);
+      const result = await fornecedorService.delete(id);
       
-      if (success) {
+      if (result.success) {
         // Atualizar a lista local removendo o fornecedor excluído
         setFornecedores(prev => prev.filter(fornecedor => fornecedor.id !== id));
         
@@ -61,7 +61,7 @@ export const FornecedorGrid: React.FC = () => {
       } else {
         toast({
           title: "Erro",
-          description: "Não foi possível excluir o fornecedor.",
+          description: result.message || "Não foi possível excluir o fornecedor.",
           variant: "destructive",
         });
       }

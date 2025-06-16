@@ -63,7 +63,28 @@ export const fornecedorService = {
     return data;
   },
 
-  delete: async (id: number): Promise<boolean> => {
+  delete: async (id: number): Promise<{ success: boolean; message?: string }> => {
+    // Primeiro, verificar se existem garantias vinculadas a este fornecedor
+    const { data: garantias, error: garantiasError } = await supabase
+      .from('garantias')
+      .select('id')
+      .eq('fornecedor_id', id)
+      .limit(1);
+    
+    if (garantiasError) {
+      console.error('Erro ao verificar garantias vinculadas:', garantiasError);
+      return { success: false, message: 'Erro ao verificar vínculos com garantias.' };
+    }
+    
+    // Se existem garantias vinculadas, não permitir exclusão
+    if (garantias && garantias.length > 0) {
+      return { 
+        success: false, 
+        message: 'Não foi possível excluir o fornecedor pois existem garantias vinculadas a ele. Remova as garantias primeiro.' 
+      };
+    }
+    
+    // Se não há garantias vinculadas, prosseguir com a exclusão
     const { error } = await supabase
       .from('fornecedores')
       .delete()
@@ -71,9 +92,9 @@ export const fornecedorService = {
     
     if (error) {
       console.error('Erro ao deletar fornecedor:', error);
-      return false;
+      return { success: false, message: 'Erro ao excluir fornecedor.' };
     }
     
-    return true;
+    return { success: true };
   }
 };
