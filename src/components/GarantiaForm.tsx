@@ -57,14 +57,14 @@ export const GarantiaForm: React.FC<GarantiaFormProps> = ({ onSuccess }) => {
         quantidade,
         defeito: formData.defeito,
         fornecedor_id: parseInt(formData.fornecedor_id),
-        nf_compra_pdf: files.nf_compra_pdf,
-        nf_remessa_pdf: files.nf_remessa_pdf,
-        nf_devolucao_pdf: files.nf_devolucao_pdf,
+        nf_compra_pdf: files.nf_compra_pdf ? files.nf_compra_pdf.name : undefined, // Store file name as string
+        nf_remessa_pdf: files.nf_remessa_pdf ? files.nf_remessa_pdf.name : undefined, // Store file name as string
+        nf_devolucao_pdf: files.nf_devolucao_pdf ? files.nf_devolucao_pdf.name : undefined, // Store file name as string
         status: 'aberta',
         resultado: '',
         valor_unitario,
         valor_total: quantidade * valor_unitario,
-        data_registro: new Date()
+        data_registro: new Date().toISOString() // Convert Date to string
       };
 
       await garantiaService.create(garantia);

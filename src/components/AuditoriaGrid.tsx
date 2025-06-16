@@ -27,31 +27,31 @@ const unidades = [
   'Filial Goiânia'
 ];
 
-// Dados mock para demonstração
+// Dados mock para demonstração - usando strings para datas
 const mockAuditorias: Auditoria[] = [
   {
     id: 1,
-    data_inicio: new Date(2024, 0, 15),
-    data_fim: new Date(2024, 0, 17),
+    data_inicio: '2024-01-15',
+    data_fim: '2024-01-17',
     unidade_auditada: 'Matriz - São Paulo',
     formulario_pdf: 'auditoria_matriz_jan2024.pdf',
-    data_registro: new Date(2024, 0, 18),
+    data_registro: '2024-01-18T00:00:00.000Z',
   },
   {
     id: 2,
-    data_inicio: new Date(2024, 1, 10),
-    data_fim: new Date(2024, 1, 12),
+    data_inicio: '2024-02-10',
+    data_fim: '2024-02-12',
     unidade_auditada: 'Filial Rio de Janeiro',
     formulario_pdf: 'auditoria_rj_fev2024.pdf',
-    data_registro: new Date(2024, 1, 13),
+    data_registro: '2024-02-13T00:00:00.000Z',
   },
   {
     id: 3,
-    data_inicio: new Date(2024, 2, 5),
-    data_fim: new Date(2024, 2, 8),
+    data_inicio: '2024-03-05',
+    data_fim: '2024-03-08',
     unidade_auditada: 'Filial Belo Horizonte',
     formulario_pdf: 'auditoria_bh_mar2024.pdf',
-    data_registro: new Date(2024, 2, 9),
+    data_registro: '2024-03-09T00:00:00.000Z',
   },
 ];
 
@@ -94,14 +94,12 @@ export const AuditoriaGrid: React.FC = () => {
 
     // Filtrar por data de início
     if (dataInicio) {
-      const dataInicioFilter = new Date(dataInicio);
-      filtered = filtered.filter(auditoria => auditoria.data_inicio >= dataInicioFilter);
+      filtered = filtered.filter(auditoria => auditoria.data_inicio >= dataInicio);
     }
 
     // Filtrar por data de fim
     if (dataFim) {
-      const dataFimFilter = new Date(dataFim);
-      filtered = filtered.filter(auditoria => auditoria.data_fim <= dataFimFilter);
+      filtered = filtered.filter(auditoria => auditoria.data_fim <= dataFim);
     }
 
     // Filtrar por unidade
@@ -244,13 +242,13 @@ export const AuditoriaGrid: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-blue-500" />
-                          {format(auditoria.data_inicio, 'dd/MM/yyyy', { locale: ptBR })}
+                          {format(new Date(auditoria.data_inicio), 'dd/MM/yyyy', { locale: ptBR })}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-blue-500" />
-                          {format(auditoria.data_fim, 'dd/MM/yyyy', { locale: ptBR })}
+                          {format(new Date(auditoria.data_fim), 'dd/MM/yyyy', { locale: ptBR })}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -260,7 +258,7 @@ export const AuditoriaGrid: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {format(auditoria.data_registro, 'dd/MM/yyyy', { locale: ptBR })}
+                        {format(new Date(auditoria.data_registro), 'dd/MM/yyyy', { locale: ptBR })}
                       </TableCell>
                       <TableCell>
                         {auditoria.formulario_pdf ? (

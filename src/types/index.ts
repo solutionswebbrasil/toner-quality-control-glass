@@ -19,7 +19,7 @@ export interface Retornado {
   id_modelo: number;
   id_cliente: number;
   peso: number;
-  destino_final: 'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno';
+  destino_final: string; // Changed from union type to string to match Supabase
   filial: string;
   data_registro: string; // Changed from Date to string
   valor_recuperado?: number;

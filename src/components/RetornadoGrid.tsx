@@ -1,58 +1,60 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Download, Upload, FileText, Edit, Trash2, FileDown } from 'lucide-react';
+import { Search, Download, Calendar, FileSpreadsheet } from 'lucide-react';
+import { Retornado, RetornadoCSV } from '@/types';
+import { retornadoService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
-import { retornadoService, tonerService } from '@/services/dataService';
-import { Retornado, Toner, RetornadoCSV } from '@/types';
+
+const filiais = [
+  'Todas',
+  'Matriz',
+  'Filial 1',
+  'Filial 2',
+  'Filial 3',
+  'Filial 4',
+  'Filial 5'
+];
+
+const destinosFinais = [
+  'Todos',
+  'Descarte',
+  'Garantia',
+  'Estoque',
+  'Uso Interno'
+];
 
 export const RetornadoGrid: React.FC = () => {
   const { toast } = useToast();
   const [retornados, setRetornados] = useState<Retornado[]>([]);
-  const [toners, setToners] = useState<Toner[]>([]);
   const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [editingRetornado, setEditingRetornado] = useState<Retornado | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Form states for editing
-  const [editIdCliente, setEditIdCliente] = useState('');
-  const [editModelo, setEditModelo] = useState('');
-  const [editDestinoFinal, setEditDestinoFinal] = useState<'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno'>('Estoque');
-  const [editFilial, setEditFilial] = useState('');
+  
+  // Filtros
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+  const [filialSelecionada, setFilialSelecionada] = useState('Todas');
+  const [destinoSelecionado, setDestinoSelecionado] = useState('Todos');
 
   useEffect(() => {
-    loadData();
+    loadRetornados();
   }, []);
 
   useEffect(() => {
-    const filtered = retornados.filter(retornado =>
-      retornado.modelo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      retornado.destino_final.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      retornado.filial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      retornado.id_cliente.toString().includes(searchTerm)
-    );
-    setFilteredRetornados(filtered);
-  }, [retornados, searchTerm]);
+    filterRetornados();
+  }, [retornados, dataInicio, dataFim, filialSelecionada, destinoSelecionado]);
 
-  const loadData = async () => {
+  const loadRetornados = async () => {
     try {
-      setLoading(true);
-      const [retornadosData, tonersData] = await Promise.all([
-        retornadoService.getAll(),
-        tonerService.getAll()
-      ]);
-      setRetornados(retornadosData);
-      setToners(tonersData);
+      const data = await retornadoService.getAll();
+      setRetornados(data);
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao carregar dados.",
+        description: "Erro ao carregar retornados.",
         variant: "destructive"
       });
     } finally {
@@ -60,271 +62,93 @@ export const RetornadoGrid: React.FC = () => {
     }
   };
 
-  const handleEdit = (retornado: Retornado) => {
-    setEditingRetornado(retornado);
-    setEditIdCliente(retornado.id_cliente.toString());
-    setEditModelo(retornado.modelo || '');
-    setEditDestinoFinal(retornado.destino_final);
-    setEditFilial(retornado.filial);
-    setIsEditModalOpen(true);
-  };
+  const filterRetornados = () => {
+    let filtered = [...retornados];
 
-  const handleSaveEdit = async () => {
-    if (!editingRetornado) return;
-
-    try {
-      const toner = toners.find(t => t.modelo === editModelo);
-      if (!toner) {
-        toast({
-          title: "Erro",
-          description: "Modelo de toner não encontrado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const updatedRetornado = {
-        ...editingRetornado,
-        id_cliente: parseInt(editIdCliente),
-        id_modelo: toner.id!,
-        modelo: editModelo,
-        destino_final: editDestinoFinal,
-        filial: editFilial
-      };
-
-      await retornadoService.update(editingRetornado.id!, updatedRetornado);
-      await loadData();
-      setIsEditModalOpen(false);
-      setEditingRetornado(null);
-      
-      toast({
-        title: "Sucesso",
-        description: "Retornado atualizado com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar retornado.",
-        variant: "destructive"
-      });
+    if (dataInicio) {
+      filtered = filtered.filter(item => item.data_registro >= dataInicio);
     }
-  };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este retornado?')) return;
-
-    try {
-      await retornadoService.delete(id);
-      await loadData();
-      toast({
-        title: "Sucesso",
-        description: "Retornado excluído com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir retornado.",
-        variant: "destructive"
-      });
+    if (dataFim) {
+      filtered = filtered.filter(item => item.data_registro <= dataFim);
     }
+
+    if (filialSelecionada !== 'Todas') {
+      filtered = filtered.filter(item => item.filial === filialSelecionada);
+    }
+
+    if (destinoSelecionado !== 'Todos') {
+      filtered = filtered.filter(item => item.destino_final === destinoSelecionado);
+    }
+
+    setFilteredRetornados(filtered);
   };
 
-  const handleExport = () => {
-    try {
-      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
-      const csvData = filteredRetornados.map(r => [
-        r.id_cliente,
-        r.modelo || '',
-        r.destino_final,
-        new Date(r.data_registro).toLocaleDateString('pt-BR'),
-        r.filial
-      ]);
+  const clearFilters = () => {
+    setDataInicio('');
+    setDataFim('');
+    setFilialSelecionada('Todas');
+    setDestinoSelecionado('Todos');
+  };
 
+  const handleExportCSV = () => {
+    try {
+      const csvData: RetornadoCSV[] = filteredRetornados.map(item => ({
+        id_cliente: item.id_cliente,
+        modelo: item.modelo || '',
+        destino_final: item.destino_final as RetornadoCSV['destino_final'],
+        data_registro: new Date(item.data_registro).toISOString(), // Convert string back to Date for CSV
+        filial: item.filial
+      }));
+
+      const headers = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
       const csvContent = [
-        csvHeaders.join(';'),
-        ...csvData.map(row => row.join(';'))
+        headers.join(','),
+        ...csvData.map(row => [
+          row.id_cliente,
+          `"${row.modelo}"`,
+          `"${row.destino_final}"`,
+          new Date(row.data_registro).toLocaleDateString('pt-BR'),
+          `"${row.filial}"`
+        ].join(','))
       ].join('\n');
 
-      // Adicionar BOM para UTF-8
-      const BOM = '\uFEFF';
-      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `retornados_${new Date().toISOString().split('T')[0]}.csv`;
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `retornados_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
       link.click();
-      
+      document.body.removeChild(link);
+
       toast({
         title: "Sucesso",
-        description: "Dados exportados com sucesso.",
+        description: "Arquivo CSV exportado com sucesso!",
       });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao exportar dados.",
+        description: "Erro ao exportar CSV.",
         variant: "destructive"
       });
     }
-  };
-
-  const handleExportTemplate = () => {
-    try {
-      const csvHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
-      const exampleData = [
-        ['101', 'HP 85A', 'Estoque', '01/02/2024', 'Matriz'],
-        ['102', 'Canon 725', 'Descarte', '03/02/2024', 'Filial 1'],
-        ['103', 'HP 85A', 'Garantia', '05/02/2024', 'Filial 2']
-      ];
-
-      const csvContent = [
-        csvHeaders.join(';'),
-        ...exampleData.map(row => row.join(';'))
-      ].join('\n');
-
-      // Adicionar BOM para UTF-8
-      const BOM = '\uFEFF';
-      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'template_importacao_retornados.csv';
-      link.click();
-      
-      toast({
-        title: "Sucesso",
-        description: "Template de importação baixado com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao baixar template.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target?.result as string;
-        // Remove BOM se presente e limpa linhas vazias
-        const cleanText = text.replace(/^\uFEFF/, '');
-        const lines = cleanText.split('\n').filter(line => line.trim());
-        
-        if (lines.length < 2) {
-          toast({
-            title: "Erro",
-            description: "Arquivo deve conter pelo menos o cabeçalho e uma linha de dados.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const headers = lines[0].split(';').map(h => h.trim());
-        console.log('Headers encontrados:', headers);
-        
-        // Validação mais específica dos cabeçalhos
-        const expectedHeaders = ['ID Cliente', 'Modelo', 'Destino Final', 'Data Registro', 'Filial'];
-        const headersMatch = expectedHeaders.every((expected, index) => {
-          const found = headers[index];
-          return found && found.toLowerCase().replace(/\s+/g, '').includes(expected.toLowerCase().replace(/\s+/g, ''));
-        });
-        
-        if (!headersMatch || headers.length !== 5) {
-          console.log('Headers esperados:', expectedHeaders);
-          console.log('Headers encontrados:', headers);
-          toast({
-            title: "Erro",
-            description: "Formato de arquivo inválido. O arquivo deve ter exatamente 5 colunas: ID Cliente, Modelo, Destino Final, Data Registro, Filial. Use o template de importação.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const retornadosToImport: Omit<Retornado, 'id'>[] = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(';').map(v => v.trim());
-          if (values.length !== 5) {
-            console.warn(`Linha ${i + 1} tem ${values.length} campos, esperado 5:`, values);
-            continue;
-          }
-          
-          const modelo = values[1];
-          const toner = toners.find(t => t.modelo.toLowerCase() === modelo.toLowerCase());
-          if (!toner) {
-            console.warn(`Modelo não encontrado: ${modelo}`);
-            continue;
-          }
-
-          // Validar destino final
-          const destinoFinal = values[2] as 'Descarte' | 'Garantia' | 'Estoque' | 'Uso Interno';
-          const destinosValidos = ['Descarte', 'Garantia', 'Estoque', 'Uso Interno'];
-          if (!destinosValidos.includes(destinoFinal)) {
-            console.warn(`Destino final inválido: ${destinoFinal}`);
-            continue;
-          }
-
-          // Converter data do formato brasileiro para Date
-          const dateParts = values[3].split('/');
-          let dataRegistro = new Date();
-          if (dateParts.length === 3) {
-            dataRegistro = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
-          }
-
-          // Peso padrão baseado no toner
-          const pesoDefault = toner.peso_vazio || 100;
-          
-          retornadosToImport.push({
-            id_cliente: parseInt(values[0]) || 0,
-            id_modelo: toner.id!,
-            modelo: modelo,
-            destino_final: destinoFinal,
-            data_registro: dataRegistro,
-            filial: values[4],
-            peso: pesoDefault
-          });
-        }
-
-        if (retornadosToImport.length === 0) {
-          toast({
-            title: "Aviso",
-            description: "Nenhum registro válido encontrado no arquivo.",
-          });
-          return;
-        }
-
-        await retornadoService.bulkCreate(retornadosToImport);
-        await loadData();
-        
-        toast({
-          title: "Sucesso",
-          description: `${retornadosToImport.length} retornados importados com sucesso.`,
-        });
-      } catch (error) {
-        console.error('Erro na importação:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao importar arquivo. Verifique o formato e tente novamente.",
-          variant: "destructive"
-        });
-      }
-    };
-    
-    reader.readAsText(file, 'UTF-8');
-    event.target.value = '';
   };
 
   const getDestinoColor = (destino: string) => {
-    const colors = {
-      'Estoque': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      'Descarte': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-      'Garantia': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      'Uso Interno': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-    };
-    return colors[destino as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    switch (destino) {
+      case 'Descarte':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'Garantia':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'Estoque':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'Uso Interno':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
   };
 
   if (loading) {
@@ -340,71 +164,114 @@ export const RetornadoGrid: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Consulta de Retornados</h2>
-      
+      <div>
+        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+          Consulta de Retornados
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400">
+          Consulte e exporte dados dos toners retornados
+        </p>
+      </div>
+
+      {/* Filtros */}
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Retornados Registrados
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExport}
-                className="flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Exportar CSV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportTemplate}
-                className="flex items-center gap-2"
-              >
-                <FileDown className="w-4 h-4" />
-                Template
-              </Button>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleImport}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Importar CSV
-                </Button>
-              </div>
-              <Search className="w-4 h-4" />
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Filtros de Pesquisa
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="data_inicio">Data Início</Label>
               <Input
-                placeholder="Buscar retornados..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+                id="data_inicio"
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
               />
             </div>
-          </CardTitle>
+            
+            <div className="space-y-2">
+              <Label htmlFor="data_fim">Data Fim</Label>
+              <Input
+                id="data_fim"
+                type="date"
+                value={dataFim}
+                onChange={(e) => setDataFim(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Filial</Label>
+              <Select value={filialSelecionada} onValueChange={setFilialSelecionada}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {filiais.map((filial) => (
+                    <SelectItem key={filial} value={filial}>
+                      {filial}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Destino Final</Label>
+              <Select value={destinoSelecionado} onValueChange={setDestinoSelecionado}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinosFinais.map((destino) => (
+                    <SelectItem key={destino} value={destino}>
+                      {destino}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end space-y-2">
+              <Button variant="outline" onClick={clearFilters} className="w-full">
+                Limpar Filtros
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-4 pt-4 border-t">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+              {filteredRetornados.length} registro(s) encontrado(s)
+            </div>
+            <Button onClick={handleExportCSV} className="flex items-center gap-2">
+              <FileSpreadsheet className="h-4 w-4" />
+              Exportar CSV
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Resultados */}
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle>Retornados Encontrados</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/20 dark:border-slate-700/50">
-                  <th className="text-left p-3 font-semibold">ID Cliente</th>
+                  <th className="text-left p-3 font-semibold">ID</th>
+                  <th className="text-left p-3 font-semibold">Cliente</th>
                   <th className="text-left p-3 font-semibold">Modelo</th>
-                  <th className="text-left p-3 font-semibold">Destino Final</th>
-                  <th className="text-left p-3 font-semibold">Data</th>
+                  <th className="text-left p-3 font-semibold">Peso</th>
+                  <th className="text-left p-3 font-semibold">Destino</th>
                   <th className="text-left p-3 font-semibold">Filial</th>
-                  <th className="text-center p-3 font-semibold">Ações</th>
+                  <th className="text-left p-3 font-semibold">Valor Recuperado</th>
+                  <th className="text-left p-3 font-semibold">Data Registro</th>
                 </tr>
               </thead>
               <tbody>
@@ -413,39 +280,20 @@ export const RetornadoGrid: React.FC = () => {
                     key={retornado.id} 
                     className="border-b border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20 transition-colors"
                   >
-                    <td className="p-3 font-medium">{retornado.id_cliente}</td>
-                    <td className="p-3">{retornado.modelo}</td>
+                    <td className="p-3 font-medium">#{retornado.id}</td>
+                    <td className="p-3">{retornado.id_cliente}</td>
+                    <td className="p-3 font-medium">{retornado.modelo}</td>
+                    <td className="p-3">{retornado.peso}g</td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDestinoColor(retornado.destino_final)}`}>
                         {retornado.destino_final}
                       </span>
                     </td>
-                    <td className="p-3">
-                      {new Date(retornado.data_registro).toLocaleDateString('pt-BR')}
-                    </td>
                     <td className="p-3">{retornado.filial}</td>
                     <td className="p-3">
-                      <div className="flex justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(retornado)}
-                          className="p-2"
-                          title="Editar"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(retornado.id!)}
-                          className="p-2 text-red-600 hover:text-red-700"
-                          title="Excluir"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      {retornado.valor_recuperado ? `R$ ${retornado.valor_recuperado.toFixed(2)}` : '-'}
                     </td>
+                    <td className="p-3">{new Date(retornado.data_registro).toLocaleDateString('pt-BR')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -459,73 +307,6 @@ export const RetornadoGrid: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Retornado</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">ID Cliente</label>
-              <Input
-                value={editIdCliente}
-                onChange={(e) => setEditIdCliente(e.target.value)}
-                type="number"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Modelo</label>
-              <Select value={editModelo} onValueChange={setEditModelo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {toners.map((toner) => (
-                    <SelectItem key={toner.id} value={toner.modelo}>
-                      {toner.modelo}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Destino Final</label>
-              <Select value={editDestinoFinal} onValueChange={(value: any) => setEditDestinoFinal(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Estoque">Estoque</SelectItem>
-                  <SelectItem value="Descarte">Descarte</SelectItem>
-                  <SelectItem value="Garantia">Garantia</SelectItem>
-                  <SelectItem value="Uso Interno">Uso Interno</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Filial</label>
-              <Input
-                value={editFilial}
-                onChange={(e) => setEditFilial(e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveEdit}>
-                Salvar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

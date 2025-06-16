@@ -88,9 +88,9 @@ export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess 
       const registro: RegistroItPop = {
         titulo_id: parseInt(data.titulo_id),
         versao: 1, // Seria calculado automaticamente
-        arquivo_pdf: pdfFile || undefined,
-        arquivo_ppt: pptFile || undefined,
-        data_registro: new Date(),
+        arquivo_pdf: pdfFile ? pdfFile.name : undefined, // Store file name as string
+        arquivo_ppt: pptFile ? pptFile.name : undefined, // Store file name as string
+        data_registro: new Date().toISOString(), // Convert Date to string
       };
 
       console.log('Registro IT/POP criado:', registro);

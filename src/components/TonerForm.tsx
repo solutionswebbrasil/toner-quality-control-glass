@@ -53,7 +53,7 @@ export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
         impressoras_compat: formData.impressoras_compat,
         cor: formData.cor,
         registrado_por: 1, // Mock user ID
-        data_registro: new Date()
+        data_registro: new Date().toISOString() // Convert Date to string
       };
 
       await tonerService.create(toner);

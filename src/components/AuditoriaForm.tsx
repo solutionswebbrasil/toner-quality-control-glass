@@ -90,13 +90,13 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
     try {
       setIsSubmitting(true);
       
-      // Create auditoria object with properly typed required fields
+      // Create auditoria object with string dates and file path
       const auditoria: Auditoria = {
-        data_inicio: data.data_inicio,
-        data_fim: data.data_fim,
+        data_inicio: data.data_inicio.toISOString().split('T')[0], // Convert Date to string (YYYY-MM-DD format)
+        data_fim: data.data_fim.toISOString().split('T')[0], // Convert Date to string (YYYY-MM-DD format)
         unidade_auditada: data.unidade_auditada,
-        formulario_pdf: pdfFile || undefined,
-        data_registro: new Date(),
+        formulario_pdf: pdfFile ? pdfFile.name : undefined, // Store file name as string
+        data_registro: new Date().toISOString(), // Convert Date to string
       };
 
       // Aqui você implementaria a lógica para salvar no seu backend
@@ -255,7 +255,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
               />
 
               <div className="space-y-2">
-                <Label htmlFor="formulario_pdf">Formulário de Auditoria (PDF)</Label>
+                <Label htmlFor="formulario_pdf">Formulário PDF (Opcional)</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     id="formulario_pdf"
@@ -270,7 +270,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
                 </div>
                 {pdfFile && (
                   <p className="text-sm text-green-600 dark:text-green-400">
-                    Arquivo selecionado: {pdfFile.name}
+                    PDF selecionado: {pdfFile.name}
                   </p>
                 )}
               </div>

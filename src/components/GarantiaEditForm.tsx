@@ -31,8 +31,8 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
   const [quantidade, setQuantidade] = useState(1);
   const [defeito, setDefeito] = useState('');
   const [fornecedorId, setFornecedorId] = useState('');
-  const [status, setStatus] = useState<'aberta' | 'em_analise' | 'concluida' | 'recusada' | 'aguardando_fornecedor'>('aberta');
-  const [resultado, setResultado] = useState<'devolucao_credito' | 'trocado' | 'consertado' | 'nao_definido'>('nao_definido');
+  const [status, setStatus] = useState<string>('aberta'); // Changed to string
+  const [resultado, setResultado] = useState<string>('nao_definido'); // Changed to string
   const [valorUnitario, setValorUnitario] = useState(0);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         setDefeito(garantia.defeito);
         setFornecedorId(garantia.fornecedor_id.toString());
         setStatus(garantia.status);
-        setResultado(garantia.resultado === '' ? 'nao_definido' : garantia.resultado as any || 'nao_definido');
+        setResultado(garantia.resultado || 'nao_definido');
         setValorUnitario(garantia.valor_unitario);
       }
     }
@@ -179,7 +179,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
-              <Select value={status} onValueChange={(value: any) => setStatus(value)}>
+              <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -195,7 +195,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium mb-2">Resultado</label>
-              <Select value={resultado} onValueChange={(value: any) => setResultado(value)}>
+              <Select value={resultado} onValueChange={setResultado}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o resultado" />
                 </SelectTrigger>

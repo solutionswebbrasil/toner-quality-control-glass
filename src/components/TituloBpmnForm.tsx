@@ -40,7 +40,7 @@ export const TituloBpmnForm: React.FC<TituloBpmnFormProps> = ({ onSuccess }) => 
       const titulo: TituloBpmn = {
         titulo: data.titulo,
         descricao: data.descricao,
-        data_cadastro: new Date(),
+        data_cadastro: new Date().toISOString(), // Convert Date to string
       };
 
       console.log('Título BPMN cadastrado:', titulo);

@@ -3,158 +3,151 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Retornado } from '@/types';
 
 export const retornadoService = {
-  getAll: async (): Promise<Retornado[]> => {
+  async getAll(): Promise<Retornado[]> {
     const { data, error } = await supabase
       .from('retornados')
       .select(`
         *,
-        toners:id_modelo (
-          modelo
-        )
+        toners!inner(modelo)
       `)
       .order('data_registro', { ascending: false });
-    
+
     if (error) {
-      console.error('Erro ao buscar retornados:', error);
+      console.error('Error fetching retornados:', error);
       throw error;
     }
-    
-    return (data || []).map(item => ({
+
+    // Transform data to match Retornado interface with proper types
+    return data.map(item => ({
       ...item,
-      modelo: item.toners?.modelo || 'N/A'
+      modelo: item.toners.modelo,
+      destino_final: item.destino_final as Retornado['destino_final'], // Type assertion for destino_final
     }));
   },
 
-  create: async (retornado: Omit<Retornado, 'id'>): Promise<Retornado> => {
+  async getById(id: number): Promise<Retornado> {
+    const { data, error } = await supabase
+      .from('retornados')
+      .select(`
+        *,
+        toners!inner(modelo)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching retornado:', error);
+      throw error;
+    }
+
+    // Transform data to match Retornado interface with proper types
+    return {
+      ...data,
+      modelo: data.toners.modelo,
+      destino_final: data.destino_final as Retornado['destino_final'], // Type assertion for destino_final
+    };
+  },
+
+  async create(retornado: Omit<Retornado, 'id' | 'modelo'>): Promise<Retornado> {
     const { data, error } = await supabase
       .from('retornados')
       .insert([retornado])
       .select(`
         *,
-        toners:id_modelo (
-          modelo
-        )
+        toners!inner(modelo)
       `)
       .single();
-    
+
     if (error) {
-      console.error('Erro ao criar retornado:', error);
+      console.error('Error creating retornado:', error);
       throw error;
     }
-    
+
+    // Transform data to match Retornado interface with proper types
     return {
       ...data,
-      modelo: data.toners?.modelo || 'N/A'
+      modelo: data.toners.modelo,
+      destino_final: data.destino_final as Retornado['destino_final'], // Type assertion for destino_final
     };
   },
 
-  update: async (id: number, retornado: Partial<Retornado>): Promise<Retornado | null> => {
+  async update(id: number, updates: Partial<Retornado>): Promise<Retornado> {
     const { data, error } = await supabase
       .from('retornados')
-      .update(retornado)
+      .update(updates)
       .eq('id', id)
       .select(`
         *,
-        toners:id_modelo (
-          modelo
-        )
+        toners!inner(modelo)
       `)
       .single();
-    
+
     if (error) {
-      console.error('Erro ao atualizar retornado:', error);
-      return null;
+      console.error('Error updating retornado:', error);
+      throw error;
     }
-    
+
+    // Transform data to match Retornado interface with proper types
     return {
       ...data,
-      modelo: data.toners?.modelo || 'N/A'
+      modelo: data.toners.modelo,
+      destino_final: data.destino_final as Retornado['destino_final'], // Type assertion for destino_final
     };
   },
 
-  bulkCreate: async (retornadosList: Omit<Retornado, 'id'>[]): Promise<Retornado[]> => {
-    const { data, error } = await supabase
-      .from('retornados')
-      .insert(retornadosList)
-      .select(`
-        *,
-        toners:id_modelo (
-          modelo
-        )
-      `);
-    
-    if (error) {
-      console.error('Erro ao criar retornados em lote:', error);
-      throw error;
-    }
-    
-    return (data || []).map(item => ({
-      ...item,
-      modelo: item.toners?.modelo || 'N/A'
-    }));
-  },
-
-  delete: async (id: number): Promise<boolean> => {
+  async delete(id: number): Promise<void> {
     const { error } = await supabase
       .from('retornados')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
-      console.error('Erro ao deletar retornado:', error);
-      return false;
+      console.error('Error deleting retornado:', error);
+      throw error;
     }
-    
-    return true;
   },
 
-  getStats: async () => {
-    const { data: retornados, error } = await supabase
+  async getByFilters(filters: {
+    dataInicio?: string;
+    dataFim?: string;
+    destino?: string;
+    filial?: string;
+  }): Promise<Retornado[]> {
+    let query = supabase
       .from('retornados')
       .select(`
         *,
-        toners:id_modelo (
-          modelo
-        )
+        toners!inner(modelo)
       `);
-    
+
+    if (filters.dataInicio) {
+      query = query.gte('data_registro', filters.dataInicio);
+    }
+
+    if (filters.dataFim) {
+      query = query.lte('data_registro', filters.dataFim);
+    }
+
+    if (filters.destino && filters.destino !== 'Todos') {
+      query = query.eq('destino_final', filters.destino);
+    }
+
+    if (filters.filial && filters.filial !== 'Todas') {
+      query = query.eq('filial', filters.filial);
+    }
+
+    const { data, error } = await query.order('data_registro', { ascending: false });
+
     if (error) {
-      console.error('Erro ao buscar estatísticas:', error);
+      console.error('Error fetching filtered retornados:', error);
       throw error;
     }
-    
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    
-    const currentMonthData = retornados?.filter(r => {
-      const date = new Date(r.data_registro);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    }) || [];
 
-    const previousMonthData = retornados?.filter(r => {
-      const date = new Date(r.data_registro);
-      const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-      const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-      return date.getMonth() === prevMonth && date.getFullYear() === prevYear;
-    }) || [];
-
-    const byDestination = (retornados || []).reduce((acc, r) => {
-      acc[r.destino_final] = (acc[r.destino_final] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const byModel = (retornados || []).reduce((acc, r) => {
-      const model = r.toners?.modelo || 'N/A';
-      acc[model] = (acc[model] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Promise.resolve({
-      currentMonth: currentMonthData,
-      previousMonth: previousMonthData,
-      byDestination,
-      byModel
-    });
+    // Transform data to match Retornado interface with proper types
+    return data.map(item => ({
+      ...item,
+      modelo: item.toners.modelo,
+      destino_final: item.destino_final as Retornado['destino_final'], // Type assertion for destino_final
+    }));
   }
 };

@@ -63,7 +63,7 @@ export const FornecedorForm: React.FC<FornecedorFormProps> = ({
           nome: formData.nome,
           telefone: formData.telefone,
           link_rma: formData.link_rma,
-          data_cadastro: new Date()
+          data_cadastro: new Date().toISOString() // Convert Date to string
         };
 
         await fornecedorService.create(fornecedor);

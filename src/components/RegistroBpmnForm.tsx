@@ -102,11 +102,11 @@ export const RegistroBpmnForm: React.FC<RegistroBpmnFormProps> = ({ onSuccess })
       const registro: RegistroBpmn = {
         titulo_id: parseInt(data.titulo_id),
         versao: 1, // Seria calculado automaticamente
-        arquivo_pdf: pdfFile || undefined,
-        arquivo_jpg: jpgFile || undefined,
-        arquivo_png: pngFile || undefined,
-        arquivo_bizagi: bizagiFile || undefined,
-        data_registro: new Date(),
+        arquivo_pdf: pdfFile ? pdfFile.name : undefined, // Store file name as string
+        arquivo_jpg: jpgFile ? jpgFile.name : undefined, // Store file name as string
+        arquivo_png: pngFile ? pngFile.name : undefined, // Store file name as string
+        arquivo_bizagi: bizagiFile ? bizagiFile.name : undefined, // Store file name as string
+        data_registro: new Date().toISOString(), // Convert Date to string
       };
 
       console.log('Registro BPMN criado:', registro);

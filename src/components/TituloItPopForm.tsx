@@ -40,7 +40,7 @@ export const TituloItPopForm: React.FC<TituloItPopFormProps> = ({ onSuccess }) =
       const titulo: TituloItPop = {
         titulo: data.titulo,
         descricao: data.descricao,
-        data_cadastro: new Date(),
+        data_cadastro: new Date().toISOString(), // Convert Date to string
       };
 
       console.log('Título IT/POP cadastrado:', titulo);
