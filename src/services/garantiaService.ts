@@ -1,101 +1,135 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import type { Garantia } from '@/types';
-import { fornecedorService } from './fornecedorService';
-
-// Mock data storage
-let garantias: Garantia[] = [
-  {
-    id: 1,
-    item: "Impressora HP LaserJet P1102",
-    quantidade: 2,
-    defeito: "Não está imprimindo, display com erro",
-    fornecedor_id: 1,
-    fornecedor: "HP Brasil",
-    status: 'em_analise',
-    resultado: '',
-    valor_unitario: 450.00,
-    valor_total: 900.00,
-    data_registro: new Date('2024-02-01')
-  },
-  {
-    id: 2,
-    item: "Scanner Canon LiDE 300",
-    quantidade: 1,
-    defeito: "Não reconhece documentos, luz não acende",
-    fornecedor_id: 2,
-    fornecedor: "Canon Brasil",
-    status: 'concluida',
-    resultado: 'trocado',
-    valor_unitario: 180.00,
-    valor_total: 180.00,
-    data_registro: new Date('2024-01-28')
-  }
-];
-
-let nextGarantiaId = 3;
 
 export const garantiaService = {
-  getAll: (): Promise<Garantia[]> => {
-    return Promise.resolve([...garantias]);
+  getAll: async (): Promise<Garantia[]> => {
+    const { data, error } = await supabase
+      .from('garantias')
+      .select(`
+        *,
+        fornecedores:fornecedor_id (
+          nome
+        )
+      `)
+      .order('data_registro', { ascending: false });
+    
+    if (error) {
+      console.error('Erro ao buscar garantias:', error);
+      throw error;
+    }
+    
+    return (data || []).map(item => ({
+      ...item,
+      fornecedor: item.fornecedores?.nome || 'N/A'
+    }));
   },
 
-  getById: (id: number): Promise<Garantia | undefined> => {
-    return Promise.resolve(garantias.find(g => g.id === id));
+  getById: async (id: number): Promise<Garantia | undefined> => {
+    const { data, error } = await supabase
+      .from('garantias')
+      .select(`
+        *,
+        fornecedores:fornecedor_id (
+          nome
+        )
+      `)
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao buscar garantia:', error);
+      return undefined;
+    }
+    
+    return {
+      ...data,
+      fornecedor: data.fornecedores?.nome || 'N/A'
+    };
   },
 
   create: async (garantia: Omit<Garantia, 'id'>): Promise<Garantia> => {
-    const fornecedores = await fornecedorService.getAll();
-    const fornecedor = fornecedores.find(f => f.id === garantia.fornecedor_id);
-    const valor_total = garantia.quantidade * garantia.valor_unitario;
+    const { data, error } = await supabase
+      .from('garantias')
+      .insert([garantia])
+      .select(`
+        *,
+        fornecedores:fornecedor_id (
+          nome
+        )
+      `)
+      .single();
     
-    const newGarantia: Garantia = {
-      ...garantia,
-      id: nextGarantiaId++,
-      valor_total,
-      data_registro: new Date(),
-      fornecedor: fornecedor?.nome || 'N/A'
+    if (error) {
+      console.error('Erro ao criar garantia:', error);
+      throw error;
+    }
+    
+    return {
+      ...data,
+      fornecedor: data.fornecedores?.nome || 'N/A'
     };
-    garantias.push(newGarantia);
-    return Promise.resolve(newGarantia);
   },
 
   update: async (id: number, garantia: Partial<Garantia>): Promise<Garantia | null> => {
-    const index = garantias.findIndex(g => g.id === id);
-    if (index === -1) return Promise.resolve(null);
+    const { data, error } = await supabase
+      .from('garantias')
+      .update(garantia)
+      .eq('id', id)
+      .select(`
+        *,
+        fornecedores:fornecedor_id (
+          nome
+        )
+      `)
+      .single();
     
-    const updatedGarantia = { ...garantias[index], ...garantia };
-    
-    // Recalcular valor total se quantidade ou valor unitário mudaram
-    if (garantia.quantidade !== undefined || garantia.valor_unitario !== undefined) {
-      updatedGarantia.valor_total = updatedGarantia.quantidade * updatedGarantia.valor_unitario;
+    if (error) {
+      console.error('Erro ao atualizar garantia:', error);
+      return null;
     }
     
-    // Atualizar nome do fornecedor se fornecedor_id mudou
-    if (garantia.fornecedor_id !== undefined) {
-      const fornecedores = await fornecedorService.getAll();
-      const fornecedor = fornecedores.find(f => f.id === garantia.fornecedor_id);
-      updatedGarantia.fornecedor = fornecedor?.nome || 'N/A';
+    return {
+      ...data,
+      fornecedor: data.fornecedores?.nome || 'N/A'
+    };
+  },
+
+  delete: async (id: number): Promise<boolean> => {
+    const { error } = await supabase
+      .from('garantias')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao deletar garantia:', error);
+      return false;
     }
     
-    garantias[index] = updatedGarantia;
-    return Promise.resolve(garantias[index]);
+    return true;
   },
 
-  delete: (id: number): Promise<boolean> => {
-    const index = garantias.findIndex(g => g.id === id);
-    if (index === -1) return Promise.resolve(false);
+  getStats: async () => {
+    const { data: garantias, error } = await supabase
+      .from('garantias')
+      .select(`
+        *,
+        fornecedores:fornecedor_id (
+          nome
+        )
+      `);
     
-    garantias.splice(index, 1);
-    return Promise.resolve(true);
-  },
-
-  getStats: () => {
+    if (error) {
+      console.error('Erro ao buscar estatísticas de garantias:', error);
+      throw error;
+    }
+    
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
     // Dados por mês para gráficos
-    const monthlyData = garantias.reduce((acc, g) => {
+    const monthlyData = (garantias || []).reduce((acc, g) => {
       const date = new Date(g.data_registro);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
@@ -110,13 +144,13 @@ export const garantiaService = {
     }, {} as Record<string, { quantidade: number; valor: number }>);
 
     // Dados por fornecedor no mês atual
-    const currentMonthByFornecedor = garantias
+    const currentMonthByFornecedor = (garantias || [])
       .filter(g => {
         const date = new Date(g.data_registro);
         return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
       })
       .reduce((acc, g) => {
-        const fornecedor = g.fornecedor || 'N/A';
+        const fornecedor = g.fornecedores?.nome || 'N/A';
         acc[fornecedor] = (acc[fornecedor] || 0) + g.quantidade;
         return acc;
       }, {} as Record<string, number>);

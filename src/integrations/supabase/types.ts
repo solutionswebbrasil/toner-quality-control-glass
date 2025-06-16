@@ -9,7 +9,130 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      registros_bpmn: {
+        Row: {
+          arquivo_bizagi: string | null
+          arquivo_jpg: string | null
+          arquivo_pdf: string | null
+          arquivo_png: string | null
+          data_registro: string
+          id: number
+          registrado_por: string | null
+          titulo_id: number
+          versao: number
+        }
+        Insert: {
+          arquivo_bizagi?: string | null
+          arquivo_jpg?: string | null
+          arquivo_pdf?: string | null
+          arquivo_png?: string | null
+          data_registro?: string
+          id?: number
+          registrado_por?: string | null
+          titulo_id: number
+          versao: number
+        }
+        Update: {
+          arquivo_bizagi?: string | null
+          arquivo_jpg?: string | null
+          arquivo_pdf?: string | null
+          arquivo_png?: string | null
+          data_registro?: string
+          id?: number
+          registrado_por?: string | null
+          titulo_id?: number
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_bpmn_titulo_id_fkey"
+            columns: ["titulo_id"]
+            isOneToOne: false
+            referencedRelation: "titulos_bpmn"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registros_itpop: {
+        Row: {
+          arquivo_pdf: string | null
+          arquivo_ppt: string | null
+          data_registro: string
+          id: number
+          registrado_por: string | null
+          titulo_id: number
+          versao: number
+        }
+        Insert: {
+          arquivo_pdf?: string | null
+          arquivo_ppt?: string | null
+          data_registro?: string
+          id?: number
+          registrado_por?: string | null
+          titulo_id: number
+          versao: number
+        }
+        Update: {
+          arquivo_pdf?: string | null
+          arquivo_ppt?: string | null
+          data_registro?: string
+          id?: number
+          registrado_por?: string | null
+          titulo_id?: number
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_itpop_titulo_id_fkey"
+            columns: ["titulo_id"]
+            isOneToOne: false
+            referencedRelation: "titulos_itpop"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      titulos_bpmn: {
+        Row: {
+          data_cadastro: string
+          descricao: string | null
+          id: number
+          titulo: string
+        }
+        Insert: {
+          data_cadastro?: string
+          descricao?: string | null
+          id?: number
+          titulo: string
+        }
+        Update: {
+          data_cadastro?: string
+          descricao?: string | null
+          id?: number
+          titulo?: string
+        }
+        Relationships: []
+      }
+      titulos_itpop: {
+        Row: {
+          data_cadastro: string
+          descricao: string | null
+          id: number
+          titulo: string
+        }
+        Insert: {
+          data_cadastro?: string
+          descricao?: string | null
+          id?: number
+          titulo: string
+        }
+        Update: {
+          data_cadastro?: string
+          descricao?: string | null
+          id?: number
+          titulo?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

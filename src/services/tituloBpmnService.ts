@@ -1,62 +1,62 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Auditoria } from '@/types';
+import type { TituloBpmn } from '@/types';
 
-export const auditoriaService = {
-  getAll: async (): Promise<Auditoria[]> => {
+export const tituloBpmnService = {
+  getAll: async (): Promise<TituloBpmn[]> => {
     const { data, error } = await supabase
-      .from('auditorias')
+      .from('titulos_bpmn')
       .select('*')
-      .order('data_registro', { ascending: false });
+      .order('data_cadastro', { ascending: false });
     
     if (error) {
-      console.error('Erro ao buscar auditorias:', error);
+      console.error('Erro ao buscar títulos BPMN:', error);
       throw error;
     }
     
     return data || [];
   },
 
-  getById: async (id: number): Promise<Auditoria | undefined> => {
+  getById: async (id: number): Promise<TituloBpmn | undefined> => {
     const { data, error } = await supabase
-      .from('auditorias')
+      .from('titulos_bpmn')
       .select('*')
       .eq('id', id)
       .single();
     
     if (error) {
-      console.error('Erro ao buscar auditoria:', error);
+      console.error('Erro ao buscar título BPMN:', error);
       return undefined;
     }
     
     return data;
   },
 
-  create: async (auditoria: Omit<Auditoria, 'id'>): Promise<Auditoria> => {
+  create: async (titulo: Omit<TituloBpmn, 'id'>): Promise<TituloBpmn> => {
     const { data, error } = await supabase
-      .from('auditorias')
-      .insert([auditoria])
+      .from('titulos_bpmn')
+      .insert([titulo])
       .select()
       .single();
     
     if (error) {
-      console.error('Erro ao criar auditoria:', error);
+      console.error('Erro ao criar título BPMN:', error);
       throw error;
     }
     
     return data;
   },
 
-  update: async (id: number, auditoria: Partial<Auditoria>): Promise<Auditoria | null> => {
+  update: async (id: number, titulo: Partial<TituloBpmn>): Promise<TituloBpmn | null> => {
     const { data, error } = await supabase
-      .from('auditorias')
-      .update(auditoria)
+      .from('titulos_bpmn')
+      .update(titulo)
       .eq('id', id)
       .select()
       .single();
     
     if (error) {
-      console.error('Erro ao atualizar auditoria:', error);
+      console.error('Erro ao atualizar título BPMN:', error);
       return null;
     }
     
@@ -65,12 +65,12 @@ export const auditoriaService = {
 
   delete: async (id: number): Promise<boolean> => {
     const { error } = await supabase
-      .from('auditorias')
+      .from('titulos_bpmn')
       .delete()
       .eq('id', id);
     
     if (error) {
-      console.error('Erro ao deletar auditoria:', error);
+      console.error('Erro ao deletar título BPMN:', error);
       return false;
     }
     

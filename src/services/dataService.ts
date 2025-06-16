@@ -6,3 +6,7 @@ export { retornadoService } from './retornadoService';
 export { fornecedorService } from './fornecedorService';  
 export { garantiaService } from './garantiaService';
 export { auditoriaService } from './auditoriaService';
+export { tituloItPopService } from './tituloItPopService';
+export { registroItPopService } from './registroItPopService';
+export { tituloBpmnService } from './tituloBpmnService';
+export { registroBpmnService } from './registroBpmnService';

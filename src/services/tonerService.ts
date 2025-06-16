@@ -1,72 +1,79 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import type { Toner } from '@/types';
 
-// Mock data storage
-let toners: Toner[] = [
-  {
-    id: 1,
-    modelo: "HP 85A",
-    peso_cheio: 850.5,
-    peso_vazio: 120.0,
-    gramatura: 730.5,
-    preco_produto: 89.90,
-    capacidade_folhas: 1600,
-    valor_por_folha: 0.056,
-    impressoras_compat: "HP LaserJet P1102, P1102w, M1130, M1132, M1134, M1136, M1137, M1138, M1210, M1212nf, M1213nf, M1214nfh, M1216nfh, M1217nfw",
-    cor: "Preto",
-    registrado_por: 1,
-    data_registro: new Date('2024-01-15')
-  },
-  {
-    id: 2,
-    modelo: "Canon 725",
-    peso_cheio: 780.0,
-    peso_vazio: 110.0,
-    gramatura: 670.0,
-    preco_produto: 95.50,
-    capacidade_folhas: 1600,
-    valor_por_folha: 0.060,
-    impressoras_compat: "Canon LBP6000, LBP6020, LBP6030, MF3010",
-    cor: "Preto",
-    registrado_por: 1,
-    data_registro: new Date('2024-01-10')
-  }
-];
-
-let nextTonerId = 3;
-
 export const tonerService = {
-  getAll: (): Promise<Toner[]> => {
-    return Promise.resolve([...toners]);
-  },
-
-  getById: (id: number): Promise<Toner | undefined> => {
-    return Promise.resolve(toners.find(t => t.id === id));
-  },
-
-  create: (toner: Omit<Toner, 'id'>): Promise<Toner> => {
-    const newToner: Toner = {
-      ...toner,
-      id: nextTonerId++,
-      data_registro: new Date()
-    };
-    toners.push(newToner);
-    return Promise.resolve(newToner);
-  },
-
-  update: (id: number, toner: Partial<Toner>): Promise<Toner | null> => {
-    const index = toners.findIndex(t => t.id === id);
-    if (index === -1) return Promise.resolve(null);
+  getAll: async (): Promise<Toner[]> => {
+    const { data, error } = await supabase
+      .from('toners')
+      .select('*')
+      .order('data_registro', { ascending: false });
     
-    toners[index] = { ...toners[index], ...toner };
-    return Promise.resolve(toners[index]);
+    if (error) {
+      console.error('Erro ao buscar toners:', error);
+      throw error;
+    }
+    
+    return data || [];
   },
 
-  delete: (id: number): Promise<boolean> => {
-    const index = toners.findIndex(t => t.id === id);
-    if (index === -1) return Promise.resolve(false);
+  getById: async (id: number): Promise<Toner | undefined> => {
+    const { data, error } = await supabase
+      .from('toners')
+      .select('*')
+      .eq('id', id)
+      .single();
     
-    toners.splice(index, 1);
-    return Promise.resolve(true);
+    if (error) {
+      console.error('Erro ao buscar toner:', error);
+      return undefined;
+    }
+    
+    return data;
+  },
+
+  create: async (toner: Omit<Toner, 'id'>): Promise<Toner> => {
+    const { data, error } = await supabase
+      .from('toners')
+      .insert([toner])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erro ao criar toner:', error);
+      throw error;
+    }
+    
+    return data;
+  },
+
+  update: async (id: number, toner: Partial<Toner>): Promise<Toner | null> => {
+    const { data, error } = await supabase
+      .from('toners')
+      .update(toner)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erro ao atualizar toner:', error);
+      return null;
+    }
+    
+    return data;
+  },
+
+  delete: async (id: number): Promise<boolean> => {
+    const { error } = await supabase
+      .from('toners')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao deletar toner:', error);
+      return false;
+    }
+    
+    return true;
   }
 };
