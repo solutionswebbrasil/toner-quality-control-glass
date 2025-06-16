@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { TonerForm } from '@/components/TonerForm';
@@ -31,6 +32,7 @@ import { VisualizadorBpmn } from '@/components/VisualizadorBpmn';
 import { FilialForm } from '@/components/FilialForm';
 import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
+import { UserManagement } from '@/components/UserManagement';
 import { useNaoConformidades } from '@/hooks/useNaoConformidades';
 import { CertificadoForm } from '@/components/CertificadoForm';
 import { CertificadoGrid } from '@/components/CertificadoGrid';
@@ -103,6 +105,8 @@ const Index = () => {
         return <FilialGrid />;
       case 'configuracoes-retornado':
         return <ConfiguracoesRetornado />;
+      case 'configuracoes-usuarios':
+        return <UserManagement />;
       case 'certificados-registro':
         return <CertificadoForm onSuccess={() => {}} />;
       case 'certificados-consulta':
