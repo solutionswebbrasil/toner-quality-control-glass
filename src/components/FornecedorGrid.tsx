@@ -3,7 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { fornecedorService } from '@/services/dataService';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { fornecedorService } from '@/services/fornecedorService';
 import { useToast } from '@/hooks/use-toast';
 import { Fornecedor } from '@/types';
 import { Edit, Trash2, ExternalLink } from 'lucide-react';
@@ -36,16 +47,26 @@ export const FornecedorGrid: React.FC = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este fornecedor?')) return;
-
     try {
-      await fornecedorService.delete(id);
-      toast({
-        title: "Sucesso!",
-        description: "Fornecedor excluído com sucesso.",
-      });
-      loadFornecedores();
+      const success = await fornecedorService.delete(id);
+      
+      if (success) {
+        // Atualizar a lista local removendo o fornecedor excluído
+        setFornecedores(prev => prev.filter(fornecedor => fornecedor.id !== id));
+        
+        toast({
+          title: "Sucesso!",
+          description: "Fornecedor excluído com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível excluir o fornecedor.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error('Erro ao excluir fornecedor:', error);
       toast({
         title: "Erro",
         description: "Erro ao excluir fornecedor.",
@@ -134,14 +155,35 @@ export const FornecedorGrid: React.FC = () => {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDelete(fornecedor.id!)}
-                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir o fornecedor "{fornecedor.nome}"? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(fornecedor.id!)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
