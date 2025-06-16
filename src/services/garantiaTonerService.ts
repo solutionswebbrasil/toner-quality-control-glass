@@ -23,7 +23,7 @@ export const garantiaTonerService = {
     const ticketNumero = `GT${Date.now().toString().slice(-8)}`;
     
     const { data, error } = await supabase
-      .from('garantias_toners' as any)
+      .from('garantias_toners')
       .insert([{
         ...garantiaToner,
         ticket_numero: ticketNumero,
@@ -37,12 +37,12 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data as unknown as GarantiaToner;
+    return data as GarantiaToner;
   },
 
   async getAll(): Promise<GarantiaToner[]> {
     const { data, error } = await supabase
-      .from('garantias_toners' as any)
+      .from('garantias_toners')
       .select('*')
       .order('data_registro', { ascending: false });
 
@@ -51,12 +51,12 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return (data || []) as unknown as GarantiaToner[];
+    return (data || []) as GarantiaToner[];
   },
 
   async updateStatus(id: number, status: GarantiaToner['status'], observacoes?: string): Promise<GarantiaToner> {
     const { data, error } = await supabase
-      .from('garantias_toners' as any)
+      .from('garantias_toners')
       .update({ status, observacoes })
       .eq('id', id)
       .select()
@@ -67,12 +67,12 @@ export const garantiaTonerService = {
       throw error;
     }
 
-    return data as unknown as GarantiaToner;
+    return data as GarantiaToner;
   },
 
   async getStats(): Promise<any> {
     const { data: garantiasToners, error } = await supabase
-      .from('garantias_toners' as any)
+      .from('garantias_toners')
       .select('*');
     
     if (error) {
@@ -85,7 +85,7 @@ export const garantiaTonerService = {
     const currentYear = now.getFullYear();
 
     // Dados por mês para gráficos
-    const monthlyData = (garantiasToners || []).reduce((acc, g) => {
+    const monthlyData = (garantiasToners || []).reduce((acc: any, g: any) => {
       const date = new Date(g.data_registro);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
@@ -100,18 +100,18 @@ export const garantiaTonerService = {
 
     // Dados por fornecedor no mês atual
     const currentMonthByFornecedor = (garantiasToners || [])
-      .filter(g => {
+      .filter((g: any) => {
         const date = new Date(g.data_registro);
         return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
       })
-      .reduce((acc, g) => {
+      .reduce((acc: any, g: any) => {
         const fornecedor = g.fornecedor || 'N/A';
         acc[fornecedor] = (acc[fornecedor] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
     // Dados por status
-    const statusData = (garantiasToners || []).reduce((acc, g) => {
+    const statusData = (garantiasToners || []).reduce((acc: any, g: any) => {
       const status = g.status || 'Pendente';
       acc[status] = (acc[status] || 0) + 1;
       return acc;

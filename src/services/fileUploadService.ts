@@ -35,6 +35,39 @@ export const fileUploadService = {
     }
   },
 
+  uploadGarantiaFile: async (file: File, fileType: string): Promise<string> => {
+    try {
+      console.log('📤 Iniciando upload do arquivo de garantia:', file.name, 'tipo:', fileType);
+      
+      const fileName = `garantias/${fileType}/${Date.now()}_${file.name}`;
+      
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('❌ Erro no upload da garantia:', error);
+        throw error;
+      }
+
+      console.log('✅ Upload da garantia realizado com sucesso:', data);
+
+      // Obter URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+
+      console.log('🔗 URL pública da garantia gerada:', urlData.publicUrl);
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('❌ Erro no upload do arquivo de garantia:', error);
+      throw error;
+    }
+  },
+
   uploadImage: async (file: File, folder: string): Promise<string | null> => {
     try {
       console.log('📤 Iniciando upload da imagem:', file.name, 'para pasta:', folder);

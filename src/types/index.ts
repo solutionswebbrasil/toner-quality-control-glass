@@ -1,3 +1,4 @@
+
 export interface Toner {
   id?: number;
   modelo: string;
@@ -61,6 +62,7 @@ export interface Garantia {
   valor_unitario: number;
   valor_total: number;
   data_registro: string; // Changed from Date to string
+  ns?: string; // Adicionado campo NS
 }
 
 export interface Auditoria {
