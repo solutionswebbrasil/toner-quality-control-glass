@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ export const GarantiaTonerGrid: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [newStatus, setNewStatus] = useState<GarantiaToner['status']>('Pendente');
+  const [destinoFinal, setDestinoFinal] = useState('');
   const [observacoes, setObservacoes] = useState('');
 
   useEffect(() => {
@@ -40,10 +42,16 @@ export const GarantiaTonerGrid: React.FC = () => {
 
   const handleUpdateStatus = async (id: number) => {
     try {
-      await garantiaTonerService.updateStatus(id, newStatus, observacoes);
+      let finalObservacoes = observacoes;
+      if (destinoFinal) {
+        finalObservacoes = `${destinoFinal}${observacoes ? ` - ${observacoes}` : ''}`;
+      }
+      
+      await garantiaTonerService.updateStatus(id, newStatus, finalObservacoes);
       await loadGarantias();
       setEditingId(null);
       setObservacoes('');
+      setDestinoFinal('');
       
       toast({
         title: "Sucesso!",
@@ -159,7 +167,7 @@ export const GarantiaTonerGrid: React.FC = () => {
 
                 {editingId === garantia.id ? (
                   <div className="space-y-3 border-t pt-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Label>Novo Status</Label>
                         <Select value={newStatus} onValueChange={(value) => setNewStatus(value as GarantiaToner['status'])}>
@@ -175,12 +183,31 @@ export const GarantiaTonerGrid: React.FC = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                      
+                      <div>
+                        <Label>Destino Final</Label>
+                        <Select value={destinoFinal} onValueChange={setDestinoFinal}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o destino" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Não definido</SelectItem>
+                            <SelectItem value="Virou crédito">Virou crédito</SelectItem>
+                            <SelectItem value="Garantia expirada">Garantia expirada</SelectItem>
+                            <SelectItem value="Não era uma garantia válida">Não era uma garantia válida</SelectItem>
+                            <SelectItem value="Virou troca">Virou troca</SelectItem>
+                            <SelectItem value="Virou bonificação">Virou bonificação</SelectItem>
+                            <SelectItem value="Fornecedor consertou">Fornecedor consertou</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
                       <div>
                         <Label>Observações</Label>
                         <Textarea
                           value={observacoes}
                           onChange={(e) => setObservacoes(e.target.value)}
-                          placeholder="Adicione observações sobre a atualização..."
+                          placeholder="Observações adicionais..."
                           rows={2}
                         />
                       </div>
@@ -197,6 +224,7 @@ export const GarantiaTonerGrid: React.FC = () => {
                         onClick={() => {
                           setEditingId(null);
                           setObservacoes('');
+                          setDestinoFinal('');
                           setNewStatus('Pendente');
                         }}
                         size="sm"
@@ -213,6 +241,7 @@ export const GarantiaTonerGrid: React.FC = () => {
                         setEditingId(garantia.id!);
                         setNewStatus(garantia.status);
                         setObservacoes(garantia.observacoes || '');
+                        setDestinoFinal('');
                       }}
                       size="sm"
                       variant="outline"
