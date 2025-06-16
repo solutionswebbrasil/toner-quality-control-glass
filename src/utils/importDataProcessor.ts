@@ -17,9 +17,10 @@ export const processImportData = async (
     try {
       console.log(`Processando item ${index + 1}:`, item);
       
-      // Validação mais rigorosa dos dados
-      if (!item.id_cliente || item.id_cliente <= 0) {
-        throw new Error(`ID do cliente inválido: ${item.id_cliente}`);
+      // Validação ajustada - aceita id_cliente = 0 para retornados sem identificação
+      const idCliente = parseInt(String(item.id_cliente)) || 0;
+      if (idCliente < 0) {
+        throw new Error(`ID do cliente inválido: ${item.id_cliente}. Use 0 para retornados sem identificação.`);
       }
 
       // Buscar o ID do modelo na tabela de toners
@@ -52,7 +53,7 @@ export const processImportData = async (
 
       // Normalizar e validar dados
       const retornadoData = {
-        id_cliente: parseInt(String(item.id_cliente)) || 1,
+        id_cliente: idCliente, // Agora aceita 0 para retornados sem identificação
         id_modelo: id_modelo,
         peso: 100, // Peso padrão fixo, já que não é obrigatório na planilha
         destino_final: String(item.destino_final || 'Estoque').trim(),

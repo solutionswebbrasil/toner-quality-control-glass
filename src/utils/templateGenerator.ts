@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 
 export const generateExcelTemplate = (onSuccess: () => void, onError: () => void) => {
   try {
-    // Modelo sem a coluna peso, já que não é necessária
+    // Modelo com exemplos incluindo ID 0 para retornados sem identificação
     const template = [
       { 
         id_cliente: 12345, 
@@ -12,6 +12,14 @@ export const generateExcelTemplate = (onSuccess: () => void, onError: () => void
         destino_final: 'Estoque',
         valor_recuperado: 25.50, 
         data_registro: '16/06/2024' // Formato brasileiro
+      },
+      { 
+        id_cliente: 0, 
+        modelo: 'HP CF217A', 
+        filial: 'São Paulo', 
+        destino_final: 'Descarte',
+        valor_recuperado: 0, 
+        data_registro: '16/06/2024' // Exemplo com ID 0 para retornado sem identificação
       }
     ];
 
