@@ -100,6 +100,8 @@
 
 /* Dark Plus specific styles with exact colors requested */
 .dark-plus {
+  background: #1C1C1C !important;
+  
   /* Sidebar styles - using grey11 (#1C1C1C) as base */
   .sidebar-bg {
     background: #1C1C1C !important;
@@ -110,6 +112,26 @@
   .header-bg {
     background: #1C1C1C !important;
     border-color: #363636 !important;
+  }
+  
+  /* Main content background */
+  .dark-plus-bg {
+    background: #1C1C1C !important;
+  }
+  
+  /* All divs and containers */
+  div {
+    background-color: #1C1C1C !important;
+  }
+  
+  /* Form backgrounds */
+  form {
+    background: #1C1C1C !important;
+  }
+  
+  /* Content sections */
+  section, main, article {
+    background: #1C1C1C !important;
   }
   
   /* Hover states - white background with black text */
@@ -201,5 +223,27 @@
   /* Labels and text */
   .dark-plus-label {
     color: #FFFFFF !important;
+  }
+  
+  /* Override all form containers */
+  .space-y-4,
+  .space-y-6,
+  .grid,
+  .flex {
+    background: transparent !important;
+  }
+  
+  /* Specific form element backgrounds */
+  .dark-plus [role="dialog"] {
+    background: #1C1C1C !important;
+  }
+  
+  .dark-plus .max-w-4xl {
+    background: #1C1C1C !important;
+  }
+  
+  /* Content areas */
+  .dark-plus .overflow-y-auto {
+    background: #1C1C1C !important;
   }
 }
