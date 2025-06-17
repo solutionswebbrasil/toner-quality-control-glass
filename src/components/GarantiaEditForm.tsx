@@ -48,7 +48,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
   const [defeito, setDefeito] = useState('');
   const [fornecedorId, setFornecedorId] = useState('');
   const [status, setStatus] = useState<string>('aberta');
-  const [resultado, setResultado] = useState<string>('');
+  const [resultado, setResultado] = useState<string>('nao_definido');
   const [valorUnitario, setValorUnitario] = useState(0);
   const [nfCompra, setNfCompra] = useState<string>('');
   const [nfRemessa, setNfRemessa] = useState<string>('');
@@ -63,7 +63,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         setDefeito(garantia.defeito);
         setFornecedorId(garantia.fornecedor_id.toString());
         setStatus(garantia.status);
-        setResultado(garantia.resultado || '');
+        setResultado(garantia.resultado || 'nao_definido');
         setValorUnitario(garantia.valor_unitario);
         setNfCompra(garantia.nf_compra_pdf || '');
         setNfRemessa(garantia.nf_remessa_pdf || '');
@@ -246,19 +246,25 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
     setIsLoading(true);
 
     try {
-      await garantiaService.update(garantia.id!, {
+      const updateData: any = {
         item,
         quantidade,
         defeito,
         fornecedor_id: parseInt(fornecedorId),
         status,
-        resultado,
         valor_unitario: valorUnitario,
         valor_total: quantidade * valorUnitario,
         nf_compra_pdf: nfCompra || null,
         nf_remessa_pdf: nfRemessa || null,
         nf_devolucao_pdf: nfDevolucao || null
-      });
+      };
+
+      // Only include resultado if it's not the default "nao_definido"
+      if (resultado !== 'nao_definido') {
+        updateData.resultado = resultado;
+      }
+
+      await garantiaService.update(garantia.id!, updateData);
 
       toast({
         title: "Sucesso!",
@@ -371,7 +377,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                   <SelectValue placeholder="Selecione o resultado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Não definido</SelectItem>
+                  <SelectItem value="nao_definido">Não definido</SelectItem>
                   {resultadoConfigs.map((config) => (
                     <SelectItem key={config.id} value={config.resultado_nome.toLowerCase().replace(/\s+/g, '_')}>
                       {config.resultado_nome}
