@@ -8,10 +8,31 @@ class AuthService {
 
   async login(credentials: LoginCredentials) {
     try {
-      // Use the new password verification function
-      const { data, error } = await supabase.rpc('verify_login', {
-        input_usuario: credentials.usuario,
-        input_senha: credentials.senha
+      // Get user first to verify existence
+      const { data: users, error: userError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('usuario', credentials.usuario);
+
+      if (userError) {
+        console.error('Login error:', userError);
+        return { success: false, error: 'Erro interno no servidor' };
+      }
+
+      if (!users || users.length === 0) {
+        return { success: false, error: 'Credenciais inválidas' };
+      }
+
+      const user = users[0];
+
+      // Use auth-helpers edge function to verify password
+      const { data, error } = await supabase.functions.invoke('auth-helpers', {
+        body: {
+          action: 'verify_login',
+          input_usuario: credentials.usuario,
+          input_senha: credentials.senha,
+          stored_hash: user.senha
+        }
       });
 
       if (error) {
@@ -117,11 +138,14 @@ class AuthService {
   }
 
   async createUser(userData: { nome_completo: string; usuario: string; senha: string }): Promise<Usuario> {
-    // Hash password before storing
-    const { data, error } = await supabase.rpc('create_user_with_hashed_password', {
-      input_nome: userData.nome_completo,
-      input_usuario: userData.usuario,
-      input_senha: userData.senha
+    // Use auth-helpers edge function to create user with hashed password
+    const { data, error } = await supabase.functions.invoke('auth-helpers', {
+      body: {
+        action: 'create_user_with_hashed_password',
+        input_nome: userData.nome_completo,
+        input_usuario: userData.usuario,
+        input_senha: userData.senha
+      }
     });
 
     if (error) throw error;
@@ -134,28 +158,27 @@ class AuthService {
       usuario: userData.usuario
     };
 
-    // If password is being updated, hash it
+    // If password is being updated, hash it using the edge function
     if (userData.senha) {
-      const { data, error } = await supabase.rpc('update_user_with_hashed_password', {
-        input_user_id: userId,
-        input_nome: userData.nome_completo,
-        input_usuario: userData.usuario,
-        input_senha: userData.senha
+      // First hash the password
+      const { data: hashedPassword, error: hashError } = await supabase.rpc('hash_password', {
+        password: userData.senha
       });
 
-      if (error) throw error;
-      return data;
-    } else {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .update(updateData)
-        .eq('id', userId)
-        .select()
-        .single();
+      if (hashError) throw hashError;
 
-      if (error) throw error;
-      return data;
+      updateData.senha = hashedPassword;
     }
+
+    const { data, error } = await supabase
+      .from('usuarios')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   async deleteUser(userId: string): Promise<void> {
