@@ -85,8 +85,8 @@ export const Login: React.FC = () => {
             <Info className="h-4 w-4" />
             <AlertDescription className="text-sm">
               <strong>Credenciais de Administrador:</strong><br />
-              Usuário: admin.admin<br />
-              Senha: SecureAdmin2024!
+              Email: admin@admin.com<br />
+              Senha: Pandora@1989
             </AlertDescription>
           </Alert>
 
@@ -100,12 +100,12 @@ export const Login: React.FC = () => {
             <div className="space-y-2">
               <label className="text-slate-700 text-sm font-medium flex items-center gap-2">
                 <User className="w-4 h-4 text-slate-500" />
-                Usuário
+                Email
               </label>
               <div className="relative group">
                 <Input
-                  type="text"
-                  placeholder="Digite seu usuário"
+                  type="email"
+                  placeholder="Digite seu email"
                   value={credentials.usuario}
                   onChange={(e) => setCredentials(prev => ({ ...prev, usuario: e.target.value }))}
                   className="h-12 bg-white/70 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 backdrop-blur-sm rounded-xl"

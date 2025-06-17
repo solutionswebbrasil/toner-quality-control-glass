@@ -7,7 +7,9 @@ export const ensureAdminUser = async () => {
     const { data: existingUsers, error: checkError } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('usuario', 'admin.admin');
+      .eq('usuario', 'admin@admin.com');
+
+    console.log('Verificando usuário admin:', { existingUsers, checkError });
 
     if (checkError) {
       console.error('Erro ao verificar usuário admin:', checkError);
@@ -26,8 +28,8 @@ export const ensureAdminUser = async () => {
       body: {
         action: 'create_user_with_hashed_password',
         input_nome: 'Administrador do Sistema',
-        input_usuario: 'admin.admin',
-        input_senha: 'SecureAdmin2024!'
+        input_usuario: 'admin@admin.com',
+        input_senha: 'Pandora@1989'
       }
     });
 
