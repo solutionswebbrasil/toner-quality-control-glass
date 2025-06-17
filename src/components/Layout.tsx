@@ -24,10 +24,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   const filteredMenuItems = menuItems.filter(item => {
     if (item.id === 'configuracoes') {
       return usuario?.usuario === 'admin.admin';
@@ -49,13 +45,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
 
       <Header
         sidebarOpen={sidebarOpen}
-        toggleSidebar={toggleSidebar}
+        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
       
       {/* Main Content */}
       <div className={cn(
-        "transition-all duration-300 ease-in-out",
-        sidebarOpen ? "ml-64" : "ml-0"
+        "transition-all duration-300 ease-in-out pt-16",
+        sidebarOpen ? "lg:ml-64" : "lg:ml-0"
       )}>
         <div className="p-6">
           {children}
