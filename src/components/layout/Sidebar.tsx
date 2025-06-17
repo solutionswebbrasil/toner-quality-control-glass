@@ -27,14 +27,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 transition-transform duration-300 ease-in-out flex flex-col",
+        "fixed lg:static inset-y-0 left-0 z-20 w-64 bg-blue-600 dark:bg-gray-800 border-r border-blue-700 dark:border-gray-700 transition-transform duration-300 ease-in-out flex flex-col",
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
-      <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-        <span className="text-lg font-semibold text-gray-900 dark:text-white">Menu Principal</span>
+      <div className="flex items-center justify-center h-16 border-b border-blue-700 dark:border-gray-700 bg-blue-600 dark:bg-gray-800 flex-shrink-0 px-3">
+        <span className="text-lg font-semibold text-white dark:text-white text-center leading-tight">Menu Principal</span>
       </div>
-      <nav className="flex-1 overflow-y-auto py-4 bg-white dark:bg-gray-800">
+      <nav className="flex-1 overflow-y-auto py-4 bg-blue-600 dark:bg-gray-800">
         <ul className="space-y-1 px-3">
           {filteredMenuItems.map((item) => (
             item.submenu ? (
@@ -42,16 +42,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={() => toggleMenu(item.id)}
                   className={cn(
-                    "flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white",
-                    expandedMenus.includes(item.id) ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white" : ""
+                    "flex items-center w-full px-3 py-2 text-sm font-medium text-white dark:text-white rounded-lg transition-colors duration-200 hover:bg-blue-700 dark:hover:bg-gray-700",
+                    expandedMenus.includes(item.id) ? "bg-blue-700 dark:bg-gray-700" : ""
                   )}
                   aria-expanded={expandedMenus.includes(item.id)}
                 >
-                  <item.icon className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" />
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <item.icon className="w-5 h-5 mr-3 text-white dark:text-white flex-shrink-0" />
+                  <span className="flex-1 text-left text-white dark:text-white leading-tight break-words">{item.label}</span>
                   <svg
                     className={cn(
-                      "w-3 h-3 transition-transform duration-200",
+                      "w-3 h-3 transition-transform duration-200 flex-shrink-0 ml-2",
                       expandedMenus.includes(item.id) ? "rotate-180" : ""
                     )}
                     fill="none"
@@ -82,11 +82,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           }
                         }}
                         className={cn(
-                          "flex items-center w-full px-3 py-2 ml-6 text-sm text-gray-600 rounded-lg transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white",
-                          isActive(subItem.page) ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500" : ""
+                          "flex items-center w-full px-3 py-2 ml-6 text-sm text-white dark:text-white rounded-lg transition-colors duration-200 hover:bg-blue-700 dark:hover:bg-gray-700",
+                          isActive(subItem.page) ? "bg-white text-blue-600 dark:bg-white dark:text-gray-800 font-medium" : ""
                         )}
                       >
-                        <span className="truncate">{subItem.label}</span>
+                        <span className="truncate leading-tight break-words">{subItem.label}</span>
                       </button>
                     </li>
                   ))}
@@ -102,14 +102,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }
                   }}
                   className={cn(
-                    "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700",
+                    "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 hover:bg-blue-700 dark:hover:bg-gray-700",
                     isActive(item.page!) 
-                      ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500" 
-                      : "text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      ? "bg-white text-blue-600 dark:bg-white dark:text-gray-800 font-medium" 
+                      : "text-white dark:text-white"
                   )}
                 >
-                  <item.icon className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" />
-                  <span className="truncate">{item.label}</span>
+                  <item.icon className="w-5 h-5 mr-3 text-current flex-shrink-0" />
+                  <span className="truncate leading-tight break-words">{item.label}</span>
                 </button>
               </li>
             )
