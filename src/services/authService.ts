@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Usuario, Permissao, LoginCredentials } from '@/types/auth';
 
@@ -8,6 +7,7 @@ class AuthService {
 
   async login(credentials: LoginCredentials) {
     try {
+      console.log('=== INICIANDO LOGIN ===');
       console.log('Tentando login com usuário:', credentials.usuario);
       
       // Get user first to verify existence
@@ -19,17 +19,25 @@ class AuthService {
       console.log('Resultado da busca do usuário:', { users, userError });
 
       if (userError) {
-        console.error('Login error:', userError);
+        console.error('Erro na busca do usuário:', userError);
         return { success: false, error: 'Erro interno no servidor' };
       }
 
       if (!users || users.length === 0) {
         console.log('Usuário não encontrado:', credentials.usuario);
+        
+        // Vamos tentar buscar todos os usuários para debug
+        const { data: allUsers, error: allUsersError } = await supabase
+          .from('usuarios')
+          .select('usuario, id');
+        
+        console.log('Todos os usuários na base:', { allUsers, allUsersError });
+        
         return { success: false, error: 'Credenciais inválidas' };
       }
 
       const user = users[0];
-      console.log('Usuário encontrado:', { id: user.id, usuario: user.usuario });
+      console.log('Usuário encontrado:', { id: user.id, usuario: user.usuario, hashedPassword: user.senha });
 
       // Use auth-helpers edge function to verify password
       const { data, error } = await supabase.functions.invoke('auth-helpers', {
@@ -44,19 +52,31 @@ class AuthService {
       console.log('Resultado da verificação de senha:', { data, error });
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('Erro na verificação de senha:', error);
         return { success: false, error: 'Erro interno no servidor' };
       }
 
       if (!data || data.length === 0) {
         console.log('Senha incorreta para usuário:', credentials.usuario);
+        
+        // Debug: vamos testar o hash manualmente
+        const { data: hashTest, error: hashError } = await supabase.rpc('hash_password', {
+          password: credentials.senha
+        });
+        
+        console.log('Hash da senha fornecida:', { hashTest, hashError });
+        console.log('Hash armazenado:', user.senha);
+        console.log('Hashes coincidem?', hashTest === user.senha);
+        
         return { success: false, error: 'Credenciais inválidas' };
       }
 
       const usuario = data[0];
+      console.log('Login bem-sucedido para usuário:', usuario.id);
 
       // Buscar permissões do usuário
       const permissoes = await this.getPermissoesByUsuario(usuario.id);
+      console.log('Permissões carregadas:', permissoes.length);
 
       return { 
         success: true, 
@@ -64,7 +84,7 @@ class AuthService {
         permissoes 
       };
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Erro geral no login:', error);
       return { success: false, error: 'Erro interno no servidor' };
     }
   }
