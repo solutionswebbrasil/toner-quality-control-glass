@@ -54,33 +54,38 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
     setImportProgress(0);
     
     try {
+      console.log(`Iniciando importação de ${data.length} registros`);
+      
       const { importedCount, errorCount, errors } = await processImportData(
         data,
         (imported: number, errors: number) => {
           const total = imported + errors;
-          const progress = (total / data.length) * 100;
-          setImportProgress(Math.min(progress, 100));
+          const progress = Math.min((total / data.length) * 100, 100);
+          setImportProgress(progress);
+          console.log(`Progresso: ${imported} importados, ${errors} erros (${progress.toFixed(1)}%)`);
         }
       );
       
-      console.log(`Importação concluída: ${importedCount} sucessos, ${errorCount} erros`);
+      console.log(`Importação concluída: ${importedCount} sucessos, ${errorCount} erros de ${data.length} registros`);
       
-      // Recarregar dados após importação
-      await loadRetornados();
-      setIsImportModalOpen(false);
-      setImportProgress(0);
+      // Recarregar dados após importação - aguardar um pouco para garantir consistência
+      setTimeout(async () => {
+        await loadRetornados();
+        setIsImportModalOpen(false);
+        setImportProgress(0);
+      }, 1000);
 
       if (errorCount > 0) {
-        console.log('Erros encontrados:', errors);
+        console.log('Erros encontrados:', errors.slice(0, 10)); // Mostrar apenas os primeiros 10 erros
         toast({
           title: "Importação Parcial",
-          description: `${importedCount} registros importados. ${errorCount} erros encontrados. Verifique o console para detalhes.`,
+          description: `${importedCount} de ${data.length} registros importados. ${errorCount} erros encontrados.`,
           variant: errorCount > importedCount ? "destructive" : "default"
         });
       } else {
         toast({
           title: "Importação Concluída",
-          description: `${importedCount} registros importados com sucesso!`,
+          description: `Todos os ${importedCount} registros foram importados com sucesso!`,
         });
       }
 
@@ -91,9 +96,10 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
         description: error instanceof Error ? error.message : "Erro ao processar arquivo.",
         variant: "destructive"
       });
+      setIsImportModalOpen(false);
+      setImportProgress(0);
     } finally {
       setImporting(false);
-      setImportProgress(0);
     }
   };
 

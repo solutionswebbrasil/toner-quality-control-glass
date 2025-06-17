@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Maximize2 } from 'lucide-react';
+import { Maximize2, RefreshCw } from 'lucide-react';
 import { ChartModal } from './ChartModal';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ export const RetornadoCharts: React.FC = () => {
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [totalRegistros, setTotalRegistros] = useState(0);
 
   // Cores mais vibrantes para os gráficos
   const pieColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -28,15 +30,19 @@ export const RetornadoCharts: React.FC = () => {
   const loadChartData = async () => {
     try {
       setIsLoading(true);
+      console.log('Carregando dados para gráficos...');
       
       const retornados = await retornadoService.getAll();
-      console.log('Dados carregados para gráficos:', retornados.length, 'registros');
+      console.log('Total de dados carregados:', retornados.length);
+      setTotalRegistros(retornados.length);
       
-      // Log das datas únicas para debug
-      const datasUnicas = [...new Set(retornados.map(item => 
-        format(new Date(item.data_registro), 'yyyy-MM-dd')
-      ))].sort();
-      console.log('Datas únicas nos dados:', datasUnicas);
+      // Verificar se há dados com valor_recuperado
+      const comValor = retornados.filter(item => item.valor_recuperado && item.valor_recuperado > 0);
+      console.log('Registros com valor_recuperado:', comValor.length);
+      
+      // Verificar destinos
+      const destinosUnicos = [...new Set(retornados.map(item => item.destino_final))];
+      console.log('Destinos únicos:', destinosUnicos);
       
       // Filtrar dados baseado nas datas selecionadas
       let filteredData = retornados;
@@ -51,7 +57,6 @@ export const RetornadoCharts: React.FC = () => {
 
       // Preparar dados baseado no período selecionado
       let dataMap = new Map();
-      let periodArray: any[] = [];
 
       if (startDate && endDate) {
         const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
@@ -72,7 +77,7 @@ export const RetornadoCharts: React.FC = () => {
             if (dataMap.has(key)) {
               const existing = dataMap.get(key);
               existing.quantidade += 1;
-              existing.valor += item.valor_recuperado || 0;
+              existing.valor += Number(item.valor_recuperado) || 0;
             }
           });
         } else {
@@ -91,41 +96,43 @@ export const RetornadoCharts: React.FC = () => {
             if (dataMap.has(key)) {
               const existing = dataMap.get(key);
               existing.quantidade += 1;
-              existing.valor += item.valor_recuperado || 0;
+              existing.valor += Number(item.valor_recuperado) || 0;
             }
           });
         }
       } else {
         // Mostrar todos os dados agrupados por mês quando não há filtro
-        const allDates = retornados.map(item => new Date(item.data_registro));
-        const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-        const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-        
-        console.log('Período total dos dados:', format(minDate, 'dd/MM/yyyy'), 'até', format(maxDate, 'dd/MM/yyyy'));
-        
-        const monthsInterval = eachMonthOfInterval({ 
-          start: startOfMonth(minDate), 
-          end: endOfMonth(maxDate) 
-        });
-        
-        monthsInterval.forEach(month => {
-          const key = format(month, 'MMM/yy', { locale: ptBR });
-          dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
-        });
-        
-        retornados.forEach(item => {
-          const date = new Date(item.data_registro);
-          const key = format(date, 'MMM/yy', { locale: ptBR });
+        if (retornados.length > 0) {
+          const allDates = retornados.map(item => new Date(item.data_registro));
+          const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+          const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
           
-          if (dataMap.has(key)) {
-            const existing = dataMap.get(key);
-            existing.quantidade += 1;
-            existing.valor += item.valor_recuperado || 0;
-          }
-        });
+          console.log('Período total dos dados:', format(minDate, 'dd/MM/yyyy'), 'até', format(maxDate, 'dd/MM/yyyy'));
+          
+          const monthsInterval = eachMonthOfInterval({ 
+            start: startOfMonth(minDate), 
+            end: endOfMonth(maxDate) 
+          });
+          
+          monthsInterval.forEach(month => {
+            const key = format(month, 'MMM/yy', { locale: ptBR });
+            dataMap.set(key, { period: key, quantidade: 0, valor: 0 });
+          });
+          
+          retornados.forEach(item => {
+            const date = new Date(item.data_registro);
+            const key = format(date, 'MMM/yy', { locale: ptBR });
+            
+            if (dataMap.has(key)) {
+              const existing = dataMap.get(key);
+              existing.quantidade += 1;
+              existing.valor += Number(item.valor_recuperado) || 0;
+            }
+          });
+        }
       }
 
-      periodArray = Array.from(dataMap.values());
+      const periodArray = Array.from(dataMap.values());
       console.log('Dados processados para gráfico:', periodArray);
       
       setMonthlyData(periodArray);
@@ -171,6 +178,10 @@ export const RetornadoCharts: React.FC = () => {
     setEndDate(undefined);
   };
 
+  const refreshData = () => {
+    loadChartData();
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -192,7 +203,18 @@ export const RetornadoCharts: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Gráficos de Retornados</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Gráficos de Retornados</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-600 dark:text-slate-400">
+            Total no banco: {totalRegistros} registros
+          </span>
+          <Button onClick={refreshData} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
+      </div>
       
       {/* Filtros de Data */}
       <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/50 shadow-lg">
@@ -252,7 +274,7 @@ export const RetornadoCharts: React.FC = () => {
               </Popover>
             </div>
 
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
               <Button variant="outline" onClick={clearFilters} className="bg-white dark:bg-slate-800">
                 Limpar Filtros
               </Button>
@@ -261,7 +283,7 @@ export const RetornadoCharts: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* Gráfico de Quantidade - Uma linha */}
+      {/* Gráfico de Quantidade */}
       <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
@@ -314,7 +336,7 @@ export const RetornadoCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Gráfico Pizza - Destino Final - Uma linha */}
+      {/* Gráfico Pizza - Destino Final */}
       <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">
@@ -370,7 +392,7 @@ export const RetornadoCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Gráfico de Valor Recuperado - Uma linha */}
+      {/* Gráfico de Valor Recuperado */}
       <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/30 dark:border-slate-700/50 shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-200">

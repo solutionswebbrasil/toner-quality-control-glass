@@ -31,12 +31,19 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellNF: false, cellText: false });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Usar sheet_to_json com opções mais específicas para capturar todos os dados
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          raw: false,
+          defval: '',
+          blankrows: false
+        });
 
-        console.log('Dados brutos da planilha:', jsonData);
+        console.log('Dados brutos da planilha:', jsonData.length, 'registros');
+        console.log('Primeiros 5 registros:', jsonData.slice(0, 5));
 
         if (jsonData.length === 0) {
           toast({
@@ -84,23 +91,39 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
             } else if (lowerKey.includes('fornecedor') || lowerKey.includes('supplier')) {
               normalizedRow.fornecedor = String(value || '').trim();
             } else if (lowerKey.includes('id_cliente') || lowerKey.includes('cliente') || lowerKey.includes('customer')) {
-              normalizedRow.id_cliente = Number(value) || 0;
-            } else if (lowerKey.includes('filial') || lowerKey.includes('branch')) {
+              // Aceitar valores numéricos incluindo 0
+              const clienteId = Number(value);
+              normalizedRow.id_cliente = isNaN(clienteId) ? 0 : clienteId;
+            } else if (lowerKey.includes('filial') || lowerKey.includes('branch') || lowerKey.includes('unidade')) {
               normalizedRow.filial = String(value || '').trim();
             } else if (lowerKey.includes('destino') || lowerKey.includes('destination')) {
               normalizedRow.destino_final = String(value || '').trim();
             } else if (lowerKey.includes('valor') && (lowerKey.includes('recuperado') || lowerKey.includes('recovery'))) {
-              normalizedRow.valor_recuperado = Number(value) || 0;
+              // Processar valores monetários
+              if (value !== undefined && value !== null && value !== '') {
+                let valorStr = String(value);
+                valorStr = valorStr.replace(/R\$\s*/g, '');
+                valorStr = valorStr.replace(/[^\d,.-]/g, '');
+                if (valorStr.includes(',') && !valorStr.includes('.')) {
+                  valorStr = valorStr.replace(',', '.');
+                }
+                const valorNumerico = parseFloat(valorStr);
+                normalizedRow.valor_recuperado = isNaN(valorNumerico) ? null : valorNumerico;
+              } else {
+                normalizedRow.valor_recuperado = null;
+              }
+            } else if (lowerKey.includes('peso') || lowerKey.includes('weight')) {
+              const peso = Number(value);
+              normalizedRow.peso = isNaN(peso) ? 100 : peso;
             } else if (lowerKey.includes('data') || lowerKey.includes('date')) {
               // Manter o valor original da data para processamento posterior
               normalizedRow.data_registro = value;
             }
-            // Remover mapeamento de peso - não é mais obrigatório
           });
 
           // Valores padrão para campos obrigatórios
-          if (!normalizedRow.id_cliente || normalizedRow.id_cliente <= 0) {
-            normalizedRow.id_cliente = 1; // ID padrão
+          if (normalizedRow.id_cliente === undefined || normalizedRow.id_cliente === null) {
+            normalizedRow.id_cliente = 0; // ID padrão para retornados sem identificação
           }
           if (!normalizedRow.filial) {
             normalizedRow.filial = 'Matriz'; // Filial padrão
@@ -111,12 +134,15 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
           if (!normalizedRow.data_registro) {
             normalizedRow.data_registro = new Date().toLocaleDateString('pt-BR');
           }
+          if (!normalizedRow.peso) {
+            normalizedRow.peso = 100; // Peso padrão
+          }
 
           console.log(`Linha ${index + 1} normalizada:`, normalizedRow);
           return normalizedRow;
         });
 
-        console.log('Dados normalizados finais:', normalizedData);
+        console.log('Total de dados normalizados:', normalizedData.length);
 
         // Validação customizada se fornecida
         if (validateData && !validateData(normalizedData)) {
@@ -125,8 +151,8 @@ export const useFileUpload = ({ onUpload, requiredColumns = [], validateData }: 
 
         onUpload(normalizedData);
         toast({
-          title: "Sucesso",
-          description: `${normalizedData.length} registros processados com sucesso!`
+          title: "Arquivo Processado",
+          description: `${normalizedData.length} registros prontos para importação!`
         });
         
       } catch (error) {

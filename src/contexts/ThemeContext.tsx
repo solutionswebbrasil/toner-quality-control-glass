@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'dark-plus';
+type Theme = 'light' | 'dark';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -34,14 +34,12 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove('light', 'dark', 'dark-plus');
+    root.classList.remove('light', 'dark');
 
     if (theme === 'light') {
       root.classList.add('light');
     } else if (theme === 'dark') {
       root.classList.add('dark');
-    } else if (theme === 'dark-plus') {
-      root.classList.add('dark-plus');
     }
   }, [theme]);
 

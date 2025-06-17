@@ -1,18 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Wrench, Search, Filter, Calendar, User, Building2, AlertCircle } from 'lucide-react';
+import { Wrench, Search, Filter, Calendar, User, Building2 } from 'lucide-react';
 import { garantiaTonerService, GarantiaToner } from '@/services/garantiaTonerService';
 import { toast } from '@/hooks/use-toast';
-import { useTheme } from '@/contexts/ThemeContext';
-import { cn } from '@/lib/utils';
 
 export const GarantiaTonerConsulta: React.FC = () => {
-  const { theme } = useTheme();
   const [garantias, setGarantias] = useState<GarantiaToner[]>([]);
   const [filteredGarantias, setFilteredGarantias] = useState<GarantiaToner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,48 +107,20 @@ export const GarantiaTonerConsulta: React.FC = () => {
     setFornecedorFilter('');
   };
 
-  const getCardClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-card";
-    }
-    return "bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50";
-  };
-
-  const getTextClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-text";
-    }
-    return "";
-  };
-
-  const getInputClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-input";
-    }
-    return "bg-white/50 dark:bg-slate-800/50 backdrop-blur";
-  };
-
-  const getButtonClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-button";
-    }
-    return "";
-  };
-
   if (loading) {
     return (
-      <Card className={cn(getCardClasses())}>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardContent className="p-6">
-          <div className={cn("text-center", getTextClasses())}>Carregando garantias de toners...</div>
+          <div className="text-center">Carregando garantias de toners...</div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className={cn(getCardClasses())}>
+    <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
       <CardHeader>
-        <CardTitle className={cn("flex items-center gap-2", theme === 'dark-plus' && "dark-plus-title")}>
+        <CardTitle className="flex items-center gap-2">
           <Wrench className="w-5 h-5" />
           Garantias de Toners Concluídas
         </CardTitle>
@@ -162,12 +130,12 @@ export const GarantiaTonerConsulta: React.FC = () => {
         <div className="mb-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className={cn("absolute left-3 top-3 h-4 w-4", theme === 'dark-plus' ? "text-gray-400" : "text-gray-400")} />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Busca geral..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={cn("pl-10", getInputClasses())}
+                className="pl-10 bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
             
@@ -175,14 +143,14 @@ export const GarantiaTonerConsulta: React.FC = () => {
               placeholder="Filtrar por ticket"
               value={ticketFilter}
               onChange={(e) => setTicketFilter(e.target.value)}
-              className={cn(getInputClasses())}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
 
             <Input
               placeholder="Filtrar por número de série"
               value={nsFilter}
               onChange={(e) => setNsFilter(e.target.value)}
-              className={cn(getInputClasses())}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
           </div>
 
@@ -191,32 +159,32 @@ export const GarantiaTonerConsulta: React.FC = () => {
               placeholder="Filtrar por lote"
               value={loteFilter}
               onChange={(e) => setLoteFilter(e.target.value)}
-              className={cn(getInputClasses())}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
 
             <Input
               placeholder="Filtrar por filial"
               value={filialFilter}
               onChange={(e) => setFilialFilter(e.target.value)}
-              className={cn(getInputClasses())}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
 
             <Input
               placeholder="Filtrar por modelo"
               value={modeloFilter}
               onChange={(e) => setModeloFilter(e.target.value)}
-              className={cn(getInputClasses())}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
 
             <Input
               placeholder="Filtrar por fornecedor"
               value={fornecedorFilter}
               onChange={(e) => setFornecedorFilter(e.target.value)}
-              className={cn(getInputClasses())}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
             />
           </div>
 
-          <Button onClick={clearFilters} variant="outline" className={cn("flex items-center gap-2", getButtonClasses())}>
+          <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
             Limpar Filtros
           </Button>
@@ -224,9 +192,9 @@ export const GarantiaTonerConsulta: React.FC = () => {
 
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
-          <div className={cn("p-4 rounded-lg", theme === 'dark-plus' ? "dark-plus-card" : "bg-gray-50 dark:bg-gray-900/20")}>
-            <div className={cn("text-sm font-medium", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-800 dark:text-gray-200")}>Total Concluídas</div>
-            <div className={cn("text-2xl font-bold", getTextClasses())}>
+          <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/20">
+            <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Total Concluídas</div>
+            <div className="text-2xl font-bold">
               {garantias.length}
             </div>
           </div>
@@ -234,56 +202,56 @@ export const GarantiaTonerConsulta: React.FC = () => {
 
         {/* Tabela */}
         {filteredGarantias.length === 0 ? (
-          <div className={cn("text-center py-8", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-500")}>
+          <div className="text-center py-8 text-gray-500">
             {garantias.length === 0 
               ? "Nenhuma garantia de toner concluída." 
               : "Nenhuma garantia encontrada com os filtros aplicados."
             }
           </div>
         ) : (
-          <div className={cn("border rounded-lg overflow-hidden", theme === 'dark-plus' && "dark-plus-border")}>
-            <Table className={cn(theme === 'dark-plus' && "dark-plus-table")}>
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
               <TableHeader>
-                <TableRow className={cn(theme === 'dark-plus' && "dark-plus-table-row")}>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Ticket</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Modelo Toner</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>NS</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Lote</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Filial</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Fornecedor</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Data Envio</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Responsável</TableHead>
-                  <TableHead className={cn(theme === 'dark-plus' && "dark-plus-text")}>Defeito</TableHead>
+                <TableRow>
+                  <TableHead>Ticket</TableHead>
+                  <TableHead>Modelo Toner</TableHead>
+                  <TableHead>NS</TableHead>
+                  <TableHead>Lote</TableHead>
+                  <TableHead>Filial</TableHead>
+                  <TableHead>Fornecedor</TableHead>
+                  <TableHead>Data Envio</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Defeito</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredGarantias.map((garantia) => (
-                  <TableRow key={garantia.id} className={cn(theme === 'dark-plus' && "dark-plus-table-row hover:dark-plus-table-row:hover")}>
-                    <TableCell className={cn("font-medium", getTextClasses())}>{garantia.ticket_numero}</TableCell>
-                    <TableCell className={cn(getTextClasses())}>{garantia.modelo_toner}</TableCell>
-                    <TableCell className={cn(getTextClasses())}>{garantia.ns || 'N/A'}</TableCell>
-                    <TableCell className={cn(getTextClasses())}>{garantia.lote || 'N/A'}</TableCell>
+                  <TableRow key={garantia.id}>
+                    <TableCell className="font-medium">{garantia.ticket_numero}</TableCell>
+                    <TableCell>{garantia.modelo_toner}</TableCell>
+                    <TableCell>{garantia.ns || 'N/A'}</TableCell>
+                    <TableCell>{garantia.lote || 'N/A'}</TableCell>
                     <TableCell>
-                      <div className={cn("flex items-center gap-1", getTextClasses())}>
+                      <div className="flex items-center gap-1">
                         <Building2 className="w-3 h-3" />
                         {garantia.filial_origem}
                       </div>
                     </TableCell>
-                    <TableCell className={cn(getTextClasses())}>{garantia.fornecedor}</TableCell>
+                    <TableCell>{garantia.fornecedor}</TableCell>
                     <TableCell>
-                      <div className={cn("flex items-center gap-1", getTextClasses())}>
+                      <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(garantia.data_envio).toLocaleDateString('pt-BR')}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className={cn("flex items-center gap-1", getTextClasses())}>
+                      <div className="flex items-center gap-1">
                         <User className="w-3 h-3" />
                         {garantia.responsavel_envio}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className={cn("max-w-xs truncate", getTextClasses())} title={garantia.defeito}>
+                      <div className="max-w-xs truncate" title={garantia.defeito}>
                         {garantia.defeito}
                       </div>
                     </TableCell>
@@ -294,7 +262,7 @@ export const GarantiaTonerConsulta: React.FC = () => {
           </div>
         )}
 
-        <div className={cn("mt-4 text-sm", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-500")}>
+        <div className="mt-4 text-sm text-gray-500">
           Mostrando {filteredGarantias.length} de {garantias.length} garantias concluídas
         </div>
       </CardContent>
