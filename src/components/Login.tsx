@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, LogIn, User, Lock, Shield, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Loader2, LogIn, User, Lock, Shield, Eye, EyeOff, Sparkles, Info } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
@@ -80,6 +80,16 @@ export const Login: React.FC = () => {
         </CardHeader>
         
         <CardContent className="space-y-6 px-8 pb-8 relative z-10">
+          {/* Security notice */}
+          <Alert className="bg-blue-50 border-blue-200 text-blue-700">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Credenciais de Administrador:</strong><br />
+              Usuário: admin.admin<br />
+              Senha: SecureAdmin2024!
+            </AlertDescription>
+          </Alert>
+
           {error && (
             <Alert className="bg-red-50 border-red-200 text-red-700 backdrop-blur-sm">
               <AlertDescription className="text-sm">{error}</AlertDescription>

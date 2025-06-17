@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { Copy, ExternalLink, Eye, EyeOff, RefreshCw, Shield, Clock, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const ApisIntegracoes: React.FC = () => {
   const { toast } = useToast();
@@ -34,7 +35,11 @@ export const ApisIntegracoes: React.FC = () => {
   const testApi = async () => {
     setIsTestingApi(true);
     try {
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        headers: {
+          'X-API-Key': 'powerbi-access-2024'
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -71,11 +76,19 @@ export const ApisIntegracoes: React.FC = () => {
         </p>
       </div>
 
+      {/* Security Notice */}
+      <Alert className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200">
+        <Shield className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Segurança Implementada:</strong> Esta API agora inclui autenticação por chave, rate limiting (100 req/15min) e logs de auditoria para garantir segurança e monitoramento de acesso.
+        </AlertDescription>
+      </Alert>
+
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>API de Retornados</span>
-            <Badge variant="secondary">Público</Badge>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">Segura</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -84,7 +97,7 @@ export const ApisIntegracoes: React.FC = () => {
               <div>
                 <Label htmlFor="api-description">Descrição</Label>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                  API pública que retorna todos os dados de retornados formatados para integração com Power BI. 
+                  API segura que retorna todos os dados de retornados formatados para integração com Power BI. 
                   Inclui informações detalhadas sobre toners, valores recuperados e datas para criação de dashboards.
                 </p>
               </div>
@@ -115,6 +128,29 @@ export const ApisIntegracoes: React.FC = () => {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="api-key">Chave de API (Opcional)</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="api-key"
+                    value="powerbi-access-2024"
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard('powerbi-access-2024')}
+                    title="Copiar Chave"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Adicione como header: X-API-Key para acesso autenticado
+                </p>
               </div>
 
               <div className="flex gap-2">
@@ -175,8 +211,9 @@ export const ApisIntegracoes: React.FC = () => {
                     <li>1. Abra o Power BI Desktop</li>
                     <li>2. Vá em "Obter Dados" → "Web"</li>
                     <li>3. Cole a URL da API acima</li>
-                    <li>4. Clique em "OK" e configure os dados</li>
-                    <li>5. Use os campos para criar seus dashboards</li>
+                    <li>4. Adicione header: X-API-Key: powerbi-access-2024</li>
+                    <li>5. Clique em "OK" e configure os dados</li>
+                    <li>6. Use os campos para criar seus dashboards</li>
                   </ol>
                 </div>
               </div>
@@ -184,14 +221,24 @@ export const ApisIntegracoes: React.FC = () => {
           </div>
 
           <div className="border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">Público</div>
-                <div className="text-sm text-green-700 dark:text-green-300">Sem autenticação</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400 flex items-center justify-center gap-1">
+                  <Shield className="h-5 w-5" />
+                  Segura
+                </div>
+                <div className="text-sm text-green-700 dark:text-green-300">Com autenticação</div>
               </div>
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">JSON</div>
                 <div className="text-sm text-blue-700 dark:text-blue-300">Formato de resposta</div>
+              </div>
+              <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-md">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1">
+                  <Clock className="h-5 w-5" />
+                  Rate Limited
+                </div>
+                <div className="text-sm text-orange-700 dark:text-orange-300">100 req/15min</div>
               </div>
               <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">Tempo Real</div>

@@ -31,31 +31,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   useEffect(() => {
-    // Verificar se há uma sessão salva no localStorage
-    const savedAuth = localStorage.getItem('sgq_auth');
-    if (savedAuth) {
-      try {
-        const parsedAuth = JSON.parse(savedAuth);
-        setAuthState(parsedAuth);
-      } catch (error) {
-        console.error('Erro ao recuperar sessão:', error);
-        localStorage.removeItem('sgq_auth');
+    // Check for existing valid session
+    if (authService.isSessionValid()) {
+      const savedAuth = authService.getStoredSession();
+      if (savedAuth) {
+        setAuthState({
+          isAuthenticated: true,
+          usuario: savedAuth.usuario,
+          permissoes: savedAuth.permissoes
+        });
       }
     }
-  }, []);
+
+    // Set up session validation interval
+    const intervalId = setInterval(() => {
+      if (!authService.isSessionValid() && authState.isAuthenticated) {
+        logout();
+      }
+    }, 60000); // Check every minute
+
+    // Clear session on page unload for security
+    const handleBeforeUnload = () => {
+      if (authState.isAuthenticated) {
+        authService.clearSession();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [authState.isAuthenticated]);
 
   const login = async (credentials: LoginCredentials): Promise<{ success: boolean; error?: string }> => {
     const result = await authService.login(credentials);
     
     if (result.success && result.usuario && result.permissoes) {
-      const newAuthState = {
+      setAuthState({
         isAuthenticated: true,
         usuario: result.usuario,
         permissoes: result.permissoes
-      };
-      
-      setAuthState(newAuthState);
-      localStorage.setItem('sgq_auth', JSON.stringify(newAuthState));
+      });
       
       return { success: true };
     }
@@ -69,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       usuario: null,
       permissoes: []
     });
-    localStorage.removeItem('sgq_auth');
+    authService.clearSession();
   };
 
   const hasPermission = (modulo: string, submenu: string, acao: 'visualizar' | 'editar' | 'excluir'): boolean => {

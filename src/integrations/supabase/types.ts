@@ -17,6 +17,7 @@ export type Database = {
           formulario_pdf: string | null
           id: number
           unidade_auditada: string
+          user_id: string | null
         }
         Insert: {
           data_fim: string
@@ -25,6 +26,7 @@ export type Database = {
           formulario_pdf?: string | null
           id?: number
           unidade_auditada: string
+          user_id?: string | null
         }
         Update: {
           data_fim?: string
@@ -33,6 +35,7 @@ export type Database = {
           formulario_pdf?: string | null
           id?: number
           unidade_auditada?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -43,6 +46,7 @@ export type Database = {
           data_registro: string
           id: number
           nome_certificado: string
+          user_id: string | null
         }
         Insert: {
           arquivo_pdf?: string | null
@@ -50,6 +54,7 @@ export type Database = {
           data_registro?: string
           id?: number
           nome_certificado: string
+          user_id?: string | null
         }
         Update: {
           arquivo_pdf?: string | null
@@ -57,6 +62,7 @@ export type Database = {
           data_registro?: string
           id?: number
           nome_certificado?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -70,6 +76,7 @@ export type Database = {
           id: number
           nome: string
           telefone: string | null
+          user_id: string | null
         }
         Insert: {
           ativo?: boolean
@@ -80,6 +87,7 @@ export type Database = {
           id?: number
           nome: string
           telefone?: string | null
+          user_id?: string | null
         }
         Update: {
           ativo?: boolean
@@ -90,6 +98,7 @@ export type Database = {
           id?: number
           nome?: string
           telefone?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -100,6 +109,7 @@ export type Database = {
           link_rma: string
           nome: string
           telefone: string
+          user_id: string | null
         }
         Insert: {
           data_cadastro?: string
@@ -107,6 +117,7 @@ export type Database = {
           link_rma: string
           nome: string
           telefone: string
+          user_id?: string | null
         }
         Update: {
           data_cadastro?: string
@@ -114,6 +125,7 @@ export type Database = {
           link_rma?: string
           nome?: string
           telefone?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -131,6 +143,7 @@ export type Database = {
           quantidade: number
           resultado: string | null
           status: string
+          user_id: string | null
           valor_total: number
           valor_unitario: number
         }
@@ -147,6 +160,7 @@ export type Database = {
           quantidade: number
           resultado?: string | null
           status?: string
+          user_id?: string | null
           valor_total: number
           valor_unitario: number
         }
@@ -163,6 +177,7 @@ export type Database = {
           quantidade?: number
           resultado?: string | null
           status?: string
+          user_id?: string | null
           valor_total?: number
           valor_unitario?: number
         }
@@ -191,6 +206,7 @@ export type Database = {
           responsavel_envio: string
           status: string
           ticket_numero: string
+          user_id: string | null
         }
         Insert: {
           data_envio: string
@@ -206,6 +222,7 @@ export type Database = {
           responsavel_envio: string
           status?: string
           ticket_numero: string
+          user_id?: string | null
         }
         Update: {
           data_envio?: string
@@ -221,6 +238,7 @@ export type Database = {
           responsavel_envio?: string
           status?: string
           ticket_numero?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -244,6 +262,7 @@ export type Database = {
           status: string
           tipo_nc: string
           unidade_filial: string
+          user_id: string | null
         }
         Insert: {
           acao_corretiva_proposta?: string | null
@@ -264,6 +283,7 @@ export type Database = {
           status?: string
           tipo_nc: string
           unidade_filial: string
+          user_id?: string | null
         }
         Update: {
           acao_corretiva_proposta?: string | null
@@ -284,6 +304,7 @@ export type Database = {
           status?: string
           tipo_nc?: string
           unidade_filial?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -434,6 +455,7 @@ export type Database = {
           id_cliente: number
           id_modelo: number
           peso: number
+          user_id: string | null
           valor_recuperado: number | null
         }
         Insert: {
@@ -444,6 +466,7 @@ export type Database = {
           id_cliente: number
           id_modelo: number
           peso: number
+          user_id?: string | null
           valor_recuperado?: number | null
         }
         Update: {
@@ -454,6 +477,7 @@ export type Database = {
           id_cliente?: number
           id_modelo?: number
           peso?: number
+          user_id?: string | null
           valor_recuperado?: number | null
         }
         Relationships: [
@@ -551,6 +575,7 @@ export type Database = {
           peso_vazio: number
           preco_produto: number
           registrado_por: number
+          user_id: string | null
           valor_por_folha: number
         }
         Insert: {
@@ -565,6 +590,7 @@ export type Database = {
           peso_vazio: number
           preco_produto: number
           registrado_por: number
+          user_id?: string | null
           valor_por_folha: number
         }
         Update: {
@@ -579,6 +605,7 @@ export type Database = {
           peso_vazio?: number
           preco_produto?: number
           registrado_por?: number
+          user_id?: string | null
           valor_por_folha?: number
         }
         Relationships: []
@@ -615,6 +642,14 @@ export type Database = {
       get_next_bpmn_version: {
         Args: { titulo_id_param: number }
         Returns: number
+      }
+      hash_password: {
+        Args: { password: string }
+        Returns: string
+      }
+      verify_password: {
+        Args: { input_password: string; stored_hash: string }
+        Returns: boolean
       }
     }
     Enums: {

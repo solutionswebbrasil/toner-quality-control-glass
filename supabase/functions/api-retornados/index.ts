@@ -3,8 +3,36 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
 };
+
+// Rate limiting storage (in production, use Redis or similar)
+const rateLimitMap = new Map();
+
+function checkRateLimit(clientId: string): boolean {
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const maxRequests = 100; // Max 100 requests per 15 minutes
+
+  if (!rateLimitMap.has(clientId)) {
+    rateLimitMap.set(clientId, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+
+  const clientData = rateLimitMap.get(clientId);
+  
+  if (now > clientData.resetTime) {
+    rateLimitMap.set(clientId, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+
+  if (clientData.count >= maxRequests) {
+    return false;
+  }
+
+  clientData.count++;
+  return true;
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -13,6 +41,46 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+    
+    // Check rate limit
+    if (!checkRateLimit(clientIp)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Rate limit exceeded',
+          message: 'Too many requests. Please try again later.'
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': '900' // 15 minutes
+          },
+        }
+      );
+    }
+
+    // Basic API key authentication (optional for Power BI access)
+    const apiKey = req.headers.get('x-api-key');
+    if (apiKey && apiKey !== 'powerbi-access-2024') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid API key'
+        }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
@@ -49,6 +117,9 @@ Deno.serve(async (req) => {
     }
 
     console.log(`API Retornados: ${retornados?.length || 0} registros encontrados`);
+
+    // Audit log for API access
+    console.log(`API Access: ${clientIp} at ${new Date().toISOString()}`);
 
     // Transformar os dados para um formato mais adequado para Power BI
     const dadosFormatados = retornados?.map(item => {

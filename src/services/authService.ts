@@ -3,21 +3,41 @@ import { supabase } from '@/integrations/supabase/client';
 import { Usuario, Permissao, LoginCredentials } from '@/types/auth';
 
 class AuthService {
+  private sessionTimeout = 4 * 60 * 60 * 1000; // 4 hours
+  private sessionKey = 'sgq_auth_session';
+
   async login(credentials: LoginCredentials) {
     try {
-      const { data: usuario, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('usuario', credentials.usuario)
-        .eq('senha', credentials.senha)
-        .single();
+      // Use the new password verification function
+      const { data, error } = await supabase.rpc('verify_login', {
+        input_usuario: credentials.usuario,
+        input_senha: credentials.senha
+      });
 
-      if (error || !usuario) {
+      if (error) {
+        console.error('Login error:', error);
+        return { success: false, error: 'Erro interno no servidor' };
+      }
+
+      if (!data || data.length === 0) {
         return { success: false, error: 'Credenciais inválidas' };
       }
 
+      const usuario = data[0];
+
       // Buscar permissões do usuário
       const permissoes = await this.getPermissoesByUsuario(usuario.id);
+
+      // Create secure session with expiry
+      const session = {
+        usuario,
+        permissoes,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + this.sessionTimeout
+      };
+
+      // Store session with encryption-like obfuscation
+      localStorage.setItem(this.sessionKey, btoa(JSON.stringify(session)));
 
       return { 
         success: true, 
@@ -25,8 +45,46 @@ class AuthService {
         permissoes 
       };
     } catch (error) {
+      console.error('Login error:', error);
       return { success: false, error: 'Erro interno no servidor' };
     }
+  }
+
+  isSessionValid(): boolean {
+    try {
+      const sessionData = localStorage.getItem(this.sessionKey);
+      if (!sessionData) return false;
+
+      const session = JSON.parse(atob(sessionData));
+      return Date.now() < session.expiresAt;
+    } catch {
+      return false;
+    }
+  }
+
+  getStoredSession() {
+    try {
+      const sessionData = localStorage.getItem(this.sessionKey);
+      if (!sessionData) return null;
+
+      const session = JSON.parse(atob(sessionData));
+      if (Date.now() >= session.expiresAt) {
+        this.clearSession();
+        return null;
+      }
+
+      return {
+        usuario: session.usuario,
+        permissoes: session.permissoes
+      };
+    } catch {
+      this.clearSession();
+      return null;
+    }
+  }
+
+  clearSession() {
+    localStorage.removeItem(this.sessionKey);
   }
 
   async getPermissoesByUsuario(usuarioId: string): Promise<Permissao[]> {
@@ -59,26 +117,45 @@ class AuthService {
   }
 
   async createUser(userData: { nome_completo: string; usuario: string; senha: string }): Promise<Usuario> {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .insert(userData)
-      .select()
-      .single();
+    // Hash password before storing
+    const { data, error } = await supabase.rpc('create_user_with_hashed_password', {
+      input_nome: userData.nome_completo,
+      input_usuario: userData.usuario,
+      input_senha: userData.senha
+    });
 
     if (error) throw error;
     return data;
   }
 
   async updateUser(userId: string, userData: Partial<Usuario>): Promise<Usuario> {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .update(userData)
-      .eq('id', userId)
-      .select()
-      .single();
+    const updateData: any = {
+      nome_completo: userData.nome_completo,
+      usuario: userData.usuario
+    };
 
-    if (error) throw error;
-    return data;
+    // If password is being updated, hash it
+    if (userData.senha) {
+      const { data, error } = await supabase.rpc('update_user_with_hashed_password', {
+        input_user_id: userId,
+        input_nome: userData.nome_completo,
+        input_usuario: userData.usuario,
+        input_senha: userData.senha
+      });
+
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .update(updateData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   }
 
   async deleteUser(userId: string): Promise<void> {
