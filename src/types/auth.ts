@@ -12,11 +12,9 @@ export interface Permissao {
   usuario_id: string;
   modulo: string;
   submenu: string;
-  pode_ver: boolean;
+  pode_visualizar: boolean;
   pode_editar: boolean;
   pode_excluir: boolean;
-  pode_cadastrar: boolean;
-  pode_baixar: boolean;
 }
 
 export interface AuthState {

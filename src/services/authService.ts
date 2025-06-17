@@ -2,51 +2,21 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Usuario, Permissao, LoginCredentials } from '@/types/auth';
 
-export const authService = {
-  async login(credentials: LoginCredentials): Promise<{ success: boolean; usuario?: Usuario; permissoes?: Permissao[]; error?: string }> {
-    try {
-      // Buscar usuário pelas credenciais
-      const { data: usuario, error: userError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('usuario', credentials.usuario)
-        .eq('senha', credentials.senha)
-        .single();
-
-      if (userError || !usuario) {
-        return { success: false, error: 'Credenciais inválidas' };
-      }
-
-      // Buscar permissões do usuário
-      const { data: permissoes, error: permError } = await supabase
-        .from('permissoes')
-        .select('*')
-        .eq('usuario_id', usuario.id);
-
-      if (permError) {
-        return { success: false, error: 'Erro ao carregar permissões' };
-      }
-
-      return { success: true, usuario, permissoes: permissoes || [] };
-    } catch (error) {
-      console.error('Erro no login:', error);
-      return { success: false, error: 'Erro interno do servidor' };
-    }
-  },
-
-  async getAllUsuarios(): Promise<Usuario[]> {
+class AuthService {
+  async login(credentials: LoginCredentials) {
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .order('nome_completo');
+      .eq('usuario', credentials.usuario)
+      .eq('senha', credentials.senha)
+      .single();
 
-    if (error) {
-      console.error('Erro ao buscar usuários:', error);
-      return [];
+    if (error || !data) {
+      throw new Error('Credenciais inválidas');
     }
 
-    return data || [];
-  },
+    return data;
+  }
 
   async getPermissoesByUsuario(usuarioId: string): Promise<Permissao[]> {
     const { data, error } = await supabase
@@ -54,78 +24,91 @@ export const authService = {
       .select('*')
       .eq('usuario_id', usuarioId);
 
-    if (error) {
-      console.error('Erro ao buscar permissões:', error);
-      return [];
-    }
+    if (error) throw error;
 
-    return data || [];
-  },
+    return data.map(item => ({
+      id: item.id,
+      usuario_id: item.usuario_id,
+      modulo: item.modulo,
+      submenu: item.submenu,
+      pode_visualizar: item.pode_visualizar || false,
+      pode_editar: item.pode_editar || false,
+      pode_excluir: item.pode_excluir || false
+    }));
+  }
+
+  async getAllUsuarios(): Promise<Usuario[]> {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .order('criado_em', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  }
 
   async createUser(userData: { nome_completo: string; usuario: string; senha: string }): Promise<Usuario> {
     const { data, error } = await supabase
       .from('usuarios')
-      .insert([userData])
+      .insert(userData)
       .select()
       .single();
 
-    if (error) {
-      console.error('Erro ao criar usuário:', error);
-      throw new Error('Erro ao criar usuário');
-    }
-
+    if (error) throw error;
     return data;
-  },
+  }
 
-  async deleteUser(usuarioId: string): Promise<void> {
-    // Primeiro, excluir todas as permissões do usuário
-    await supabase
-      .from('permissoes')
-      .delete()
-      .eq('usuario_id', usuarioId);
+  async updateUser(userId: string, userData: Partial<Usuario>): Promise<Usuario> {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .update(userData)
+      .eq('id', userId)
+      .select()
+      .single();
 
-    // Depois, excluir o usuário
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
     const { error } = await supabase
       .from('usuarios')
       .delete()
-      .eq('id', usuarioId);
+      .eq('id', userId);
 
-    if (error) {
-      console.error('Erro ao excluir usuário:', error);
-      throw new Error('Erro ao excluir usuário');
-    }
-  },
+    if (error) throw error;
+  }
 
   async updateUserPermissions(usuarioId: string, permissoes: Permissao[]): Promise<void> {
-    // Primeiro, excluir todas as permissões existentes do usuário
+    // Primeiro, deletar todas as permissões existentes do usuário
     await supabase
       .from('permissoes')
       .delete()
       .eq('usuario_id', usuarioId);
 
-    // Depois, inserir as novas permissões (apenas as que têm pelo menos uma permissão verdadeira)
-    const permissoesParaInserir = permissoes
-      .filter(p => p.pode_ver || p.pode_editar || p.pode_excluir || p.pode_cadastrar || p.pode_baixar)
-      .map(p => ({
-        usuario_id: usuarioId,
-        modulo: p.modulo,
-        submenu: p.submenu,
-        pode_ver: p.pode_ver,
-        pode_editar: p.pode_editar,
-        pode_excluir: p.pode_excluir,
-        pode_cadastrar: p.pode_cadastrar,
-        pode_baixar: p.pode_baixar
-      }));
+    // Filtrar apenas permissões que têm pelo menos uma ação marcada
+    const permissoesAtivas = permissoes.filter(p => 
+      p.pode_visualizar || p.pode_editar || p.pode_excluir
+    );
 
-    if (permissoesParaInserir.length > 0) {
+    if (permissoesAtivas.length > 0) {
+      // Inserir as novas permissões
       const { error } = await supabase
         .from('permissoes')
-        .insert(permissoesParaInserir);
+        .insert(
+          permissoesAtivas.map(p => ({
+            usuario_id: usuarioId,
+            modulo: p.modulo,
+            submenu: p.submenu,
+            pode_visualizar: p.pode_visualizar || false,
+            pode_editar: p.pode_editar || false,
+            pode_excluir: p.pode_excluir || false
+          }))
+        );
 
-      if (error) {
-        console.error('Erro ao atualizar permissões:', error);
-        throw new Error('Erro ao atualizar permissões');
-      }
+      if (error) throw error;
     }
   }
-};
+}
+
+export const authService = new AuthService();

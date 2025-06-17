@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { authService } from '@/services/authService';
-import { Usuario, Permissao } from '@/types/auth';
+import { Usuario } from '@/types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,14 +10,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { UserPlus, Trash2, Edit, Shield, Users } from 'lucide-react';
 import { UserPermissionsModal } from './UserPermissionsModal';
+import { UserEditModal } from './UserEditModal';
 
 export const UserManagement: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const [formData, setFormData] = useState({
     nome_completo: '',
@@ -65,6 +66,11 @@ export const UserManagement: React.FC = () => {
   const openPermissionsModal = (user: Usuario) => {
     setSelectedUser(user);
     setIsPermissionsModalOpen(true);
+  };
+
+  const openEditModal = (user: Usuario) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
   };
 
   if (loading) {
@@ -150,6 +156,16 @@ export const UserManagement: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => openEditModal(usuario)}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Editar
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => openPermissionsModal(usuario)}
                     className="flex items-center gap-1"
                   >
@@ -176,14 +192,26 @@ export const UserManagement: React.FC = () => {
       </div>
 
       {selectedUser && (
-        <UserPermissionsModal
-          user={selectedUser}
-          isOpen={isPermissionsModalOpen}
-          onClose={() => {
-            setIsPermissionsModalOpen(false);
-            setSelectedUser(null);
-          }}
-        />
+        <>
+          <UserPermissionsModal
+            user={selectedUser}
+            isOpen={isPermissionsModalOpen}
+            onClose={() => {
+              setIsPermissionsModalOpen(false);
+              setSelectedUser(null);
+            }}
+          />
+          
+          <UserEditModal
+            user={selectedUser}
+            isOpen={isEditModalOpen}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setSelectedUser(null);
+            }}
+            onSuccess={loadUsuarios}
+          />
+        </>
       )}
     </div>
   );

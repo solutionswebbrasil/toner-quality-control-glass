@@ -71,7 +71,7 @@ export default function Index() {
       case 'toners-consulta-principal':
         return <TonerGrid />;
       case 'auditorias-registro':
-        return <AuditoriaForm />;
+        return <AuditoriaForm onSuccess={() => {}} />;
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
       case 'nc-registro':
@@ -79,33 +79,33 @@ export default function Index() {
       case 'nc-consulta':
         return <NaoConformidadeGrid />;
       case 'nc-graficos':
-        return <NaoConformidadeCharts />;
+        return <NaoConformidadeCharts naoConformidades={[]} />;
       case 'titulo-itpop-cadastro':
-        return <TituloItPopForm />;
+        return <TituloItPopForm onSuccess={() => {}} />;
       case 'titulo-itpop-consulta':
-        return <ConsultaTitulosItPop />;
+        return <ConsultaTitulosItPop onSuccess={() => {}} />;
       case 'registro-itpop':
-        return <RegistroItPopForm />;
+        return <RegistroItPopForm onSuccess={() => {}} />;
       case 'registros-itpop-consulta':
-        return <ConsultaRegistrosItPop />;
+        return <ConsultaRegistrosItPop onSuccess={() => {}} />;
       case 'visualizar-itpop':
-        return <VisualizadorItPop />;
+        return <VisualizadorItPop onSuccess={() => {}} />;
       case 'titulo-bpmn-cadastro':
-        return <TituloBpmnForm />;
+        return <TituloBpmnForm onSuccess={() => {}} />;
       case 'titulo-bpmn-consulta':
-        return <ConsultaTitulosBpmn />;
+        return <ConsultaTitulosBpmn onSuccess={() => {}} />;
       case 'registro-bpmn':
-        return <RegistroBpmnForm />;
+        return <RegistroBpmnForm onSuccess={() => {}} />;
       case 'registros-bpmn-consulta':
-        return <ConsultaRegistrosBpmn />;
+        return <ConsultaRegistrosBpmn onSuccess={() => {}} />;
       case 'visualizar-bpmn':
-        return <VisualizadorBpmn />;
+        return <VisualizadorBpmn onSuccess={() => {}} />;
       case 'certificados-registro':
         return <CertificadoForm />;
       case 'certificados-consulta':
         return <CertificadoGrid />;
       case 'filiais-cadastro':
-        return <FilialForm />;
+        return <FilialForm onSuccess={() => {}} />;
       case 'filiais-consulta':
         return <FilialGrid />;
       case 'config-retornado':

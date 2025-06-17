@@ -17,6 +17,7 @@ export const GarantiaTonerGrid: React.FC = () => {
   const [newStatus, setNewStatus] = useState<GarantiaToner['status']>('Pendente');
   const [destinoFinal, setDestinoFinal] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     loadGarantias();
@@ -24,6 +25,7 @@ export const GarantiaTonerGrid: React.FC = () => {
 
   const loadGarantias = async () => {
     try {
+      setLoading(true);
       const data = await garantiaTonerService.getAll();
       // Filtrar apenas garantias que não estão concluídas
       const garantiasPendentes = data.filter(g => g.status !== 'Concluída');
@@ -42,6 +44,7 @@ export const GarantiaTonerGrid: React.FC = () => {
 
   const handleUpdateStatus = async (id: number) => {
     try {
+      setUpdating(true);
       let finalObservacoes = observacoes;
       if (destinoFinal) {
         finalObservacoes = `${destinoFinal}${observacoes ? ` - ${observacoes}` : ''}`;
@@ -63,6 +66,8 @@ export const GarantiaTonerGrid: React.FC = () => {
         description: "Erro ao atualizar status da garantia.",
         variant: "destructive"
       });
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -79,7 +84,7 @@ export const GarantiaTonerGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardContent className="p-6">
           <div className="text-center">Carregando garantias de toners...</div>
         </CardContent>
@@ -217,8 +222,9 @@ export const GarantiaTonerGrid: React.FC = () => {
                         onClick={() => handleUpdateStatus(garantia.id!)}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
+                        disabled={updating}
                       >
-                        Salvar
+                        {updating ? 'Salvando...' : 'Salvar'}
                       </Button>
                       <Button
                         onClick={() => {
@@ -229,6 +235,7 @@ export const GarantiaTonerGrid: React.FC = () => {
                         }}
                         size="sm"
                         variant="outline"
+                        disabled={updating}
                       >
                         Cancelar
                       </Button>
