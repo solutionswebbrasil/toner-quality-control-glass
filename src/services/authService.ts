@@ -1,16 +1,16 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Usuario, Permissao, LoginCredentials } from '@/types/auth';
 
 class AuthService {
-  private sessionTimeout = 4 * 60 * 60 * 1000; // 4 hours
   private sessionKey = 'sgq_auth_session';
 
   async login(credentials: LoginCredentials) {
     try {
-      console.log('=== INICIANDO LOGIN ===');
+      console.log('=== INICIANDO LOGIN NO AUTHSERVICE ===');
       console.log('Tentando login com usuário:', credentials.usuario);
       
-      // Get user first to verify existence
+      // Buscar usuário na tabela usuarios
       const { data: users, error: userError } = await supabase
         .from('usuarios')
         .select('*')
@@ -25,21 +25,13 @@ class AuthService {
 
       if (!users || users.length === 0) {
         console.log('Usuário não encontrado:', credentials.usuario);
-        
-        // Vamos tentar buscar todos os usuários para debug
-        const { data: allUsers, error: allUsersError } = await supabase
-          .from('usuarios')
-          .select('usuario, id');
-        
-        console.log('Todos os usuários na base:', { allUsers, allUsersError });
-        
         return { success: false, error: 'Credenciais inválidas' };
       }
 
       const user = users[0];
-      console.log('Usuário encontrado:', { id: user.id, usuario: user.usuario, hashedPassword: user.senha });
+      console.log('Usuário encontrado:', { id: user.id, usuario: user.usuario });
 
-      // Use auth-helpers edge function to verify password
+      // Verificar senha usando a edge function
       const { data, error } = await supabase.functions.invoke('auth-helpers', {
         body: {
           action: 'verify_login',
@@ -58,16 +50,6 @@ class AuthService {
 
       if (!data || data.length === 0) {
         console.log('Senha incorreta para usuário:', credentials.usuario);
-        
-        // Debug: vamos testar o hash manualmente
-        const { data: hashTest, error: hashError } = await supabase.rpc('hash_password', {
-          password: credentials.senha
-        });
-        
-        console.log('Hash da senha fornecida:', { hashTest, hashError });
-        console.log('Hash armazenado:', user.senha);
-        console.log('Hashes coincidem?', hashTest === user.senha);
-        
         return { success: false, error: 'Credenciais inválidas' };
       }
 
@@ -99,7 +81,10 @@ class AuthService {
       .select('*')
       .eq('usuario_id', usuarioId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erro ao buscar permissões:', error);
+      return [];
+    }
 
     return data.map(item => ({
       id: item.id,

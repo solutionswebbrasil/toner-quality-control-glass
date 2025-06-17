@@ -22,6 +22,9 @@ export const Login: React.FC = () => {
     setLoading(true);
     setError('');
 
+    console.log('=== TENTATIVA DE LOGIN ===');
+    console.log('Credenciais:', credentials);
+
     const result = await login(credentials);
     
     if (!result.success) {
@@ -84,9 +87,9 @@ export const Login: React.FC = () => {
           <Alert className="bg-blue-50 border-blue-200 text-blue-700">
             <Info className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              <strong>Credenciais de Administrador:</strong><br />
-              Email: admin@admin.com<br />
-              Senha: Pandora@1989
+              <strong>Credenciais disponíveis:</strong><br />
+              admin@admin.com / Pandora@1989<br />
+              administrador.admin / Pandora@1989
             </AlertDescription>
           </Alert>
 
@@ -100,12 +103,12 @@ export const Login: React.FC = () => {
             <div className="space-y-2">
               <label className="text-slate-700 text-sm font-medium flex items-center gap-2">
                 <User className="w-4 h-4 text-slate-500" />
-                Email
+                Usuário
               </label>
               <div className="relative group">
                 <Input
-                  type="email"
-                  placeholder="Digite seu email"
+                  type="text"
+                  placeholder="Digite seu usuário"
                   value={credentials.usuario}
                   onChange={(e) => setCredentials(prev => ({ ...prev, usuario: e.target.value }))}
                   className="h-12 bg-white/70 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200 backdrop-blur-sm rounded-xl"
