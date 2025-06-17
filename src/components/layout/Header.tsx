@@ -38,11 +38,15 @@ export const Header: React.FC<HeaderProps> = ({ sidebarOpen, toggleSidebar }) =>
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
         
-        {/* Desktop spacing - show button on desktop too for better UX */}
+        {/* Desktop menu button - hidden in dark-plus for cleaner look */}
         <Button 
           variant="ghost" 
           size="sm"
-          className={cn("hidden lg:flex p-2", getButtonClasses())}
+          className={cn(
+            "hidden lg:flex p-2", 
+            getButtonClasses(),
+            theme === 'dark-plus' && "desktop-menu-toggle"
+          )}
           onClick={toggleSidebar}
         >
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

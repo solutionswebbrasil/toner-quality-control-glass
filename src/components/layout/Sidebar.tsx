@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const getActiveClasses = () => {
     if (theme === 'dark-plus') {
-      return "bg-white text-black";
+      return "sidebar-menu-active";
     }
     return "bg-white text-blue-600 dark:bg-white dark:text-gray-800 font-medium";
   };

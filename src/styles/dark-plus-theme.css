@@ -61,7 +61,7 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
-  /* Card backgrounds - using improved secondary color with subtle shadows */
+  /* Card backgrounds - more consistent gray with subtle shadows */
   .dark-plus-card {
     background: #2A2A2A !important;
     border-color: #444444 !important;
@@ -311,5 +311,35 @@
     outline: 2px solid #58B1F5;
     outline-offset: 2px;
     border-radius: 4px;
+  }
+
+  /* Sidebar specific improvements for Dark Plus */
+  .dark-plus .sidebar-menu-active {
+    background: #58B1F5 !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+  }
+
+  /* Remove menu button on desktop for cleaner look */
+  @media (min-width: 1024px) {
+    .dark-plus .desktop-menu-toggle {
+      display: none !important;
+    }
+  }
+
+  /* Improved table row styling - remove yellowish background for pending items */
+  .dark-plus .toner-needs-update {
+    background: #2A2A2A !important;
+    border-left: 3px solid #FFA500 !important;
+  }
+
+  .dark-plus .toner-needs-update:hover {
+    background: #363636 !important;
+  }
+
+  /* Better card consistency */
+  .dark-plus .info-card {
+    background: #2A2A2A !important;
+    border: 1px solid #444444 !important;
   }
 }
