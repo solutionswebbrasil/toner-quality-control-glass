@@ -135,34 +135,6 @@ export const TonerGrid: React.FC = () => {
   // Contar toners que precisam de atualização
   const tonersNeedingUpdate = filteredToners.filter(needsUpdate).length;
 
-  const getCardClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-card";
-    }
-    return "bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50";
-  };
-
-  const getTextClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-text";
-    }
-    return "";
-  };
-
-  const getInputClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-input";
-    }
-    return "bg-white/50 dark:bg-slate-800/50 backdrop-blur";
-  };
-
-  const getButtonClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-button";
-    }
-    return "";
-  };
-
   if (editingToner) {
     return (
       <TonerEditForm
@@ -175,10 +147,10 @@ export const TonerGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className={cn(getCardClasses())}>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardContent className="p-8 text-center">
           <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className={cn("mt-4", getTextClasses())}>Carregando toners...</p>
+          <p className="mt-4">Carregando toners...</p>
         </CardContent>
       </Card>
     );
@@ -187,24 +159,24 @@ export const TonerGrid: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={cn("text-3xl font-bold mb-2", theme === 'dark-plus' ? "dark-plus-title" : "text-slate-800 dark:text-slate-200")}>
+        <h2 className="text-3xl font-bold mb-2 text-slate-800 dark:text-slate-200">
           Consulta de Toners
         </h2>
-        <p className={cn(theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-slate-600 dark:text-slate-400")}>
+        <p className="text-slate-600 dark:text-slate-400">
           Gerencie os modelos de toners cadastrados no sistema
         </p>
       </div>
 
       {tonersNeedingUpdate > 0 && (
-        <Card className={cn(theme === 'dark-plus' ? "info-card" : "bg-yellow-50/50 dark:bg-yellow-900/10 backdrop-blur-xl border-yellow-200/50 dark:border-yellow-800/50")}>
+        <Card className="bg-yellow-50/50 dark:bg-yellow-900/10 backdrop-blur-xl border-yellow-200/50 dark:border-yellow-800/50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
               <div>
-                <h4 className={cn("font-medium mb-1", theme === 'dark-plus' ? "dark-plus-text" : "text-yellow-800 dark:text-yellow-200")}>
+                <h4 className="font-medium mb-1 text-yellow-800 dark:text-yellow-200">
                   Toners pendentes de atualização
                 </h4>
-                <p className={cn("text-sm", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-yellow-700 dark:text-yellow-300")}>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
                   {tonersNeedingUpdate} toner(s) foram criados automaticamente durante a importação e precisam ter seus dados atualizados. 
                   Eles estão indicados com o ícone de alerta na tabela abaixo.
                 </p>
@@ -214,18 +186,14 @@ export const TonerGrid: React.FC = () => {
         </Card>
       )}
 
-      <Card className={cn(getCardClasses())}>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
         <CardHeader>
-          <CardTitle className={cn("flex items-center justify-between", theme === 'dark-plus' && "dark-plus-title")}>
+          <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Eye className="w-5 h-5" />
               Lista de Toners ({filteredToners.length})
               {tonersNeedingUpdate > 0 && (
-                <span className={cn("px-2 py-1 rounded-full text-xs font-medium", 
-                  theme === 'dark-plus' 
-                    ? "bg-yellow-900/30 text-yellow-400 border border-yellow-700" 
-                    : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200"
-                )}>
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200">
                   {tonersNeedingUpdate} pendentes
                 </span>
               )}
@@ -236,7 +204,7 @@ export const TonerGrid: React.FC = () => {
                 placeholder="Buscar por modelo, cor ou impressora..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={cn("w-80", getInputClasses())}
+                className="w-80 bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
           </CardTitle>
@@ -245,7 +213,7 @@ export const TonerGrid: React.FC = () => {
           {filteredToners.length === 0 ? (
             <div className="text-center py-12">
               <Package className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <p className={cn("text-lg", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-slate-500")}>
+              <p className="text-lg text-slate-500">
                 {searchTerm ? 'Nenhum toner encontrado com os critérios de busca.' : 'Nenhum toner cadastrado ainda.'}
               </p>
             </div>
@@ -253,17 +221,17 @@ export const TonerGrid: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className={cn("border-b", theme === 'dark-plus' ? "dark-plus-border" : "border-white/20 dark:border-slate-700/50")}>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Modelo</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Cor</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Peso Cheio</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Peso Vazio</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Gramatura</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Preço</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Capacidade</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Valor/Folha</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Data Registro</th>
-                    <th className={cn("text-left p-3 font-semibold", getTextClasses())}>Ações</th>
+                  <tr className="border-b border-white/20 dark:border-slate-700/50">
+                    <th className="text-left p-3 font-semibold">Modelo</th>
+                    <th className="text-left p-3 font-semibold">Cor</th>
+                    <th className="text-left p-3 font-semibold">Peso Cheio</th>
+                    <th className="text-left p-3 font-semibold">Peso Vazio</th>
+                    <th className="text-left p-3 font-semibold">Gramatura</th>
+                    <th className="text-left p-3 font-semibold">Preço</th>
+                    <th className="text-left p-3 font-semibold">Capacidade</th>
+                    <th className="text-left p-3 font-semibold">Valor/Folha</th>
+                    <th className="text-left p-3 font-semibold">Data Registro</th>
+                    <th className="text-left p-3 font-semibold">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -273,18 +241,15 @@ export const TonerGrid: React.FC = () => {
                       <tr 
                         key={toner.id} 
                         className={cn(
-                          "border-b transition-colors",
-                          theme === 'dark-plus' 
-                            ? cn("dark-plus-border hover:bg-gray-700/20", needsUpdateFlag && "toner-needs-update")
-                            : cn("border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20", 
-                                 needsUpdateFlag && "bg-yellow-50/50 dark:bg-yellow-900/10")
+                          "border-b transition-colors border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20",
+                          needsUpdateFlag && "border-orange-300 dark:border-orange-600"
                         )}
                       >
-                        <td className={cn("p-3 font-medium", getTextClasses())}>
+                        <td className="p-3 font-medium">
                           <div className="flex items-center gap-2">
                             {toner.modelo}
                             {needsUpdateFlag && (
-                              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                              <AlertTriangle className="w-4 h-4 text-orange-600" />
                             )}
                           </div>
                         </td>
@@ -302,20 +267,20 @@ export const TonerGrid: React.FC = () => {
                             <span className="text-slate-400 italic">Não informado</span>
                           )}
                         </td>
-                        <td className={cn("p-3", getTextClasses())}>{toner.peso_cheio || 0}g</td>
-                        <td className={cn("p-3", getTextClasses())}>{toner.peso_vazio || 0}g</td>
-                        <td className={cn("p-3 font-medium text-blue-600 dark:text-blue-400", theme === 'dark-plus' && "text-blue-400")}>{toner.gramatura || 0}g</td>
-                        <td className={cn("p-3", getTextClasses())}>R$ {(toner.preco_produto || 0).toFixed(2)}</td>
-                        <td className={cn("p-3", getTextClasses())}>{(toner.capacidade_folhas || 0).toLocaleString()}</td>
-                        <td className={cn("p-3 font-medium text-green-600 dark:text-green-400", theme === 'dark-plus' && "text-green-400")}>R$ {(toner.valor_por_folha || 0).toFixed(4)}</td>
-                        <td className={cn("p-3", getTextClasses())}>{new Date(toner.data_registro).toLocaleDateString('pt-BR')}</td>
+                        <td className="p-3">{toner.peso_cheio || 0}g</td>
+                        <td className="p-3">{toner.peso_vazio || 0}g</td>
+                        <td className="p-3 font-medium text-blue-600 dark:text-blue-400">{toner.gramatura || 0}g</td>
+                        <td className="p-3">R$ {(toner.preco_produto || 0).toFixed(2)}</td>
+                        <td className="p-3">{(toner.capacidade_folhas || 0).toLocaleString()}</td>
+                        <td className="p-3 font-medium text-green-600 dark:text-green-400">R$ {(toner.valor_por_folha || 0).toFixed(4)}</td>
+                        <td className="p-3">{new Date(toner.data_registro).toLocaleDateString('pt-BR')}</td>
                         <td className="p-3">
                           <div className="flex gap-2">
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(toner)}
-                              className={cn("bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800 text-blue-700 hover:text-blue-800", getButtonClasses())}
+                              className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800 text-blue-700 hover:text-blue-800"
                               title="Editar toner"
                             >
                               <Edit className="w-4 h-4" />
@@ -342,15 +307,15 @@ export const TonerGrid: React.FC = () => {
       </Card>
 
       {filteredToners.length > 0 && (
-        <Card className={cn(theme === 'dark-plus' ? "info-card" : "bg-orange-50/50 dark:bg-orange-900/10 backdrop-blur-xl border-orange-200/50 dark:border-orange-800/50")}>
+        <Card className="bg-orange-50/50 dark:bg-orange-900/10 backdrop-blur-xl border-orange-200/50 dark:border-orange-800/50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-orange-500 mt-0.5" />
               <div>
-                <h4 className={cn("font-medium mb-1", theme === 'dark-plus' ? "dark-plus-text" : "text-orange-800 dark:text-orange-200")}>
+                <h4 className="font-medium mb-1 text-orange-800 dark:text-orange-200">
                   Importante sobre exclusão de toners
                 </h4>
-                <p className={cn("text-sm", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-orange-700 dark:text-orange-300")}>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
                   Um toner só pode ser excluído se não houver registros de retornados vinculados a ele. 
                   Se você tentar excluir um toner que está sendo usado, o sistema mostrará uma mensagem explicativa.
                   Para excluir um toner, primeiro exclua todos os retornados que o referenciam.

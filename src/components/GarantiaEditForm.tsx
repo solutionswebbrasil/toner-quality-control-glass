@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -186,34 +187,6 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
     }
   };
 
-  const getFormClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-dialog";
-    }
-    return "";
-  };
-
-  const getInputClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-input";
-    }
-    return "";
-  };
-
-  const getButtonClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-button";
-    }
-    return "";
-  };
-
-  const getLabelClasses = () => {
-    if (theme === 'dark-plus') {
-      return "dark-plus-label";
-    }
-    return "";
-  };
-
   const FileUploadSection = ({ 
     type, 
     label, 
@@ -224,19 +197,19 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
     currentFile: string; 
   }) => (
     <div className="space-y-2">
-      <Label className={cn(getLabelClasses())}>{label}</Label>
+      <Label>{label}</Label>
       <div className="flex items-center gap-2">
         {currentFile ? (
-          <div className={cn("flex items-center gap-2 p-2 border rounded", theme === 'dark-plus' && "dark-plus-card")}>
+          <div className="flex items-center gap-2 p-2 border rounded">
             <FileText className="w-4 h-4 text-blue-600" />
-            <span className={cn("text-sm truncate max-w-[200px]", theme === 'dark-plus' && "text-white")}>
+            <span className="text-sm truncate max-w-[200px]">
               {currentFile.split('/').pop()}
             </span>
             <Button
               size="sm"
               variant="outline"
               onClick={() => handleRemoveFile(type)}
-              className={cn("p-1 h-6 w-6", getButtonClasses())}
+              className="p-1 h-6 w-6"
             >
               <X className="w-3 h-3" />
             </Button>
@@ -255,10 +228,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
             />
             <Label 
               htmlFor={`file-${type}`}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 border rounded cursor-pointer hover:bg-gray-50",
-                theme === 'dark-plus' && "dark-plus-hover dark-plus-text border-gray-600"
-              )}
+              className="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <Upload className="w-4 h-4" />
               {uploading[type] ? 'Enviando...' : 'Selecionar PDF'}
@@ -324,72 +294,68 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={cn("max-w-4xl max-h-[90vh] overflow-y-auto", getFormClasses())}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className={cn(getLabelClasses())}>Editar Garantia</DialogTitle>
+          <DialogTitle>Editar Garantia</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label className={cn(getLabelClasses())}>Item *</Label>
+            <Label>Item *</Label>
             <Input
               value={item}
               onChange={(e) => setItem(e.target.value)}
               placeholder="Nome do item"
-              className={cn(getInputClasses())}
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className={cn(getLabelClasses())}>Quantidade *</Label>
+              <Label>Quantidade *</Label>
               <Input
                 type="number"
                 value={quantidade}
                 onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
                 min="1"
-                className={cn(getInputClasses())}
                 required
               />
             </div>
 
             <div>
-              <Label className={cn(getLabelClasses())}>Valor Unitário (R$)</Label>
+              <Label>Valor Unitário (R$)</Label>
               <Input
                 type="number"
                 step="0.01"
                 value={valorUnitario}
                 onChange={(e) => setValorUnitario(parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
-                className={cn(getInputClasses())}
               />
             </div>
           </div>
 
           <div>
-            <Label className={cn(getLabelClasses())}>Defeito *</Label>
+            <Label>Defeito *</Label>
             <Textarea
               value={defeito}
               onChange={(e) => setDefeito(e.target.value)}
               placeholder="Descreva o defeito..."
-              className={cn("min-h-[80px]", getInputClasses())}
+              className="min-h-[80px]"
               required
             />
           </div>
 
           <div>
-            <Label className={cn(getLabelClasses())}>Fornecedor *</Label>
+            <Label>Fornecedor *</Label>
             <Select value={fornecedorId} onValueChange={setFornecedorId} required>
-              <SelectTrigger className={cn(getInputClasses())}>
+              <SelectTrigger>
                 <SelectValue placeholder="Selecione o fornecedor" />
               </SelectTrigger>
-              <SelectContent className={cn(theme === 'dark-plus' && "dark-plus-dialog")}>
+              <SelectContent>
                 {fornecedores.map((fornecedor) => (
                   <SelectItem 
                     key={fornecedor.id} 
                     value={fornecedor.id!.toString()}
-                    className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}
                   >
                     {fornecedor.nome}
                   </SelectItem>
@@ -400,12 +366,12 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className={cn(getLabelClasses())}>Status</Label>
+              <Label>Status</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className={cn(getInputClasses())}>
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className={cn(theme === 'dark-plus' && "dark-plus-dialog")}>
+                <SelectContent>
                   {statusConfigs.map((config) => {
                     const statusValue = config.status_nome?.trim() 
                       ? config.status_nome.toLowerCase().replace(/\s+/g, '_')
@@ -417,7 +383,6 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                       <SelectItem 
                         key={config.id} 
                         value={statusValue}
-                        className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}
                       >
                         {config.status_nome || 'Status sem nome'}
                       </SelectItem>
@@ -428,16 +393,13 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
             </div>
 
             <div>
-              <Label className={cn(getLabelClasses())}>Resultado</Label>
+              <Label>Resultado</Label>
               <Select value={resultado} onValueChange={setResultado}>
-                <SelectTrigger className={cn(getInputClasses())}>
+                <SelectTrigger>
                   <SelectValue placeholder="Selecione o resultado" />
                 </SelectTrigger>
-                <SelectContent className={cn(theme === 'dark-plus' && "dark-plus-dialog")}>
-                  <SelectItem 
-                    value="nao_definido"
-                    className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}
-                  >
+                <SelectContent>
+                  <SelectItem value="nao_definido">
                     Não definido
                   </SelectItem>
                   {resultadoConfigs.map((config) => {
@@ -451,7 +413,6 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                       <SelectItem 
                         key={config.id} 
                         value={resultadoValue}
-                        className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}
                       >
                         {config.resultado_nome || 'Resultado sem nome'}
                       </SelectItem>
@@ -463,8 +424,8 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
           </div>
 
           {/* File Upload Sections */}
-          <div className={cn("space-y-4 border-t pt-4", theme === 'dark-plus' && "border-gray-600")}>
-            <h3 className={cn("font-medium", getLabelClasses())}>Anexar Notas Fiscais</h3>
+          <div className="space-y-4 border-t pt-4">
+            <h3 className="font-medium">Anexar Notas Fiscais</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FileUploadSection 
@@ -485,19 +446,17 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
             </div>
           </div>
 
-          <div className={cn("flex justify-end gap-2 pt-4 border-t", theme === 'dark-plus' && "border-gray-600")}>
+          <div className="flex justify-end gap-2 pt-4 border-t">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className={cn(getButtonClasses())}
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={isLoading}
-              className={cn(getButtonClasses())}
             >
               {isLoading ? "Salvando..." : "Salvar"}
             </Button>
