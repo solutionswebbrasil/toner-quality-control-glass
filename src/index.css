@@ -98,34 +98,108 @@
   }
 }
 
-/* Dark Plus specific styles */
+/* Dark Plus specific styles with exact colors requested */
 .dark-plus {
-  /* Sidebar styles */
+  /* Sidebar styles - using grey11 (#1C1C1C) as base */
   .sidebar-bg {
-    background: #374151 !important;
-    border-color: #4B5563 !important;
+    background: #1C1C1C !important;
+    border-color: #363636 !important;
   }
   
-  /* Header styles */
+  /* Header styles - using grey11 (#1C1C1C) as base */
   .header-bg {
-    background: #374151 !important;
-    border-color: #4B5563 !important;
+    background: #1C1C1C !important;
+    border-color: #363636 !important;
   }
   
-  /* Hover states with medium blue */
+  /* Hover states - white background with black text */
   .dark-plus-hover:hover {
-    background-color: #3B82F6 !important;
-    color: white !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
   }
   
-  /* Text colors */
+  /* Text colors - white by default */
   .dark-plus-text {
-    color: white !important;
+    color: #FFFFFF !important;
   }
   
-  /* Card backgrounds */
+  /* Card backgrounds - using grey21 (#363636) as highlight */
   .dark-plus-card {
-    background: #4B5563 !important;
-    border-color: #6B7280 !important;
+    background: #363636 !important;
+    border-color: #1C1C1C !important;
+  }
+  
+  /* Form elements styling */
+  .dark-plus-form {
+    background: #363636 !important;
+    border-color: #1C1C1C !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-form:hover {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  
+  /* Input fields */
+  .dark-plus-input {
+    background: #363636 !important;
+    border-color: #1C1C1C !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-input:focus {
+    background: #363636 !important;
+    border-color: #FFFFFF !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-input::placeholder {
+    color: #CCCCCC !important;
+  }
+  
+  /* Button styles */
+  .dark-plus-button {
+    background: #363636 !important;
+    border-color: #1C1C1C !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-button:hover {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  
+  /* Dialog and modal backgrounds */
+  .dark-plus-dialog {
+    background: #1C1C1C !important;
+    border-color: #363636 !important;
+  }
+  
+  /* Select components */
+  .dark-plus-select {
+    background: #363636 !important;
+    border-color: #1C1C1C !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-select:hover {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  
+  /* Table styles */
+  .dark-plus-table {
+    background: #1C1C1C !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-table-row:hover {
+    background: #363636 !important;
+  }
+  
+  /* Labels and text */
+  .dark-plus-label {
+    color: #FFFFFF !important;
   }
 }

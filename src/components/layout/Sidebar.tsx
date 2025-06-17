@@ -55,6 +55,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return "hover:bg-blue-700 dark:hover:bg-gray-700";
   };
 
+  const getActiveClasses = () => {
+    if (theme === 'dark-plus') {
+      return "bg-white text-black";
+    }
+    return "bg-white text-blue-600 dark:bg-white dark:text-gray-800 font-medium";
+  };
+
   return (
     <aside
       className={cn(
@@ -126,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           "flex items-center w-full px-3 py-2 ml-6 text-xs rounded-lg transition-colors duration-200",
                           getHoverClasses(),
                           isActive(subItem.page) 
-                            ? "bg-white text-blue-600 dark:bg-white dark:text-gray-800 font-medium" 
+                            ? getActiveClasses()
                             : getTextClasses()
                         )}
                       >
@@ -149,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200",
                     getHoverClasses(),
                     isActive(item.page!) 
-                      ? "bg-white text-blue-600 dark:bg-white dark:text-gray-800 font-medium" 
+                      ? getActiveClasses()
                       : getTextClasses()
                   )}
                 >

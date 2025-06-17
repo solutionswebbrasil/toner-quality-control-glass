@@ -149,26 +149,6 @@ export const Login: React.FC = () => {
               )}
             </Button>
           </form>
-          
-          {/* macOS-style credentials display */}
-          <div className="bg-slate-50/80 backdrop-blur-sm p-5 rounded-2xl border border-slate-200/50">
-            <div className="text-center">
-              <p className="font-medium mb-3 text-slate-700 flex items-center justify-center gap-2">
-                <Shield className="w-4 h-4 text-blue-500" />
-                Credenciais de Teste
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between bg-white/60 p-3 rounded-xl border border-slate-200/50">
-                  <span className="text-slate-500 text-sm">Usuário:</span> 
-                  <span className="text-slate-800 font-mono font-medium">admin.admin</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/60 p-3 rounded-xl border border-slate-200/50">
-                  <span className="text-slate-500 text-sm">Senha:</span> 
-                  <span className="text-slate-800 font-mono font-medium">admin123</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
