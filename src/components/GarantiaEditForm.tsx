@@ -407,14 +407,19 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                 </SelectTrigger>
                 <SelectContent className={cn(theme === 'dark-plus' && "dark-plus-dialog")}>
                   {statusConfigs.map((config) => {
-                    const statusValue = config.status_nome.toLowerCase().replace(/\s+/g, '_');
+                    const statusValue = config.status_nome?.trim() 
+                      ? config.status_nome.toLowerCase().replace(/\s+/g, '_')
+                      : `status_${config.id}`;
+                    
+                    console.log('Status config:', config, 'Generated value:', statusValue);
+                    
                     return (
                       <SelectItem 
                         key={config.id} 
-                        value={statusValue || 'default_status'}
+                        value={statusValue}
                         className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}
                       >
-                        {config.status_nome}
+                        {config.status_nome || 'Status sem nome'}
                       </SelectItem>
                     );
                   })}
@@ -436,14 +441,19 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                     Não definido
                   </SelectItem>
                   {resultadoConfigs.map((config) => {
-                    const resultadoValue = config.resultado_nome.toLowerCase().replace(/\s+/g, '_');
+                    const resultadoValue = config.resultado_nome?.trim()
+                      ? config.resultado_nome.toLowerCase().replace(/\s+/g, '_')
+                      : `resultado_${config.id}`;
+                    
+                    console.log('Resultado config:', config, 'Generated value:', resultadoValue);
+                    
                     return (
                       <SelectItem 
                         key={config.id} 
-                        value={resultadoValue || 'default_resultado'}
+                        value={resultadoValue}
                         className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}
                       >
-                        {config.resultado_nome}
+                        {config.resultado_nome || 'Resultado sem nome'}
                       </SelectItem>
                     );
                   })}
