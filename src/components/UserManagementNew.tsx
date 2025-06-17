@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Users, Crown, User, Trash2, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Crown, User, Trash2, AlertTriangle, Plus, Edit, Key, Shield } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -16,11 +22,40 @@ interface Profile {
   created_at: string;
 }
 
+interface Permission {
+  id: string;
+  role: string;
+  modulo: string;
+  submenu: string;
+  pode_visualizar: boolean;
+  pode_editar: boolean;
+  pode_excluir: boolean;
+}
+
 export const UserManagementNew: React.FC = () => {
   const { profile, hasPermission } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Create user states
+  const [createUserOpen, setCreateUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ email: '', password: '', nome_completo: '', role: 'user' });
+  
+  // Edit user states
+  const [editUserOpen, setEditUserOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<Profile | null>(null);
+  
+  // Permissions states
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('user');
+  
+  // Change password states
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Verificar se o usuário tem permissão para gerenciar usuários
   if (!hasPermission('Configurações', 'Usuários', 'visualizar')) {
@@ -38,6 +73,7 @@ export const UserManagementNew: React.FC = () => {
 
   useEffect(() => {
     loadProfiles();
+    loadPermissions();
   }, []);
 
   const loadProfiles = async () => {
@@ -62,26 +98,165 @@ export const UserManagementNew: React.FC = () => {
     }
   };
 
+  const loadPermissions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('permissions')
+        .select('*')
+        .order('modulo', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao carregar permissões:', error);
+      } else {
+        setPermissions(data || []);
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  };
+
+  const createUser = async () => {
+    if (!newUser.email || !newUser.password || !newUser.nome_completo) {
+      setError('Preencha todos os campos');
+      return;
+    }
+
+    try {
+      // Criar usuário no Supabase Auth
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: newUser.email,
+        password: newUser.password,
+        user_metadata: {
+          nome_completo: newUser.nome_completo
+        }
+      });
+
+      if (error) {
+        setError('Erro ao criar usuário: ' + error.message);
+        return;
+      }
+
+      // Atualizar role se necessário
+      if (newUser.role !== 'user') {
+        await supabase
+          .from('profiles')
+          .update({ role: newUser.role })
+          .eq('id', data.user.id);
+      }
+
+      setSuccess('Usuário criado com sucesso!');
+      setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
+      setCreateUserOpen(false);
+      loadProfiles();
+    } catch (error) {
+      setError('Erro interno ao criar usuário');
+      console.error('Erro:', error);
+    }
+  };
+
+  const updateUser = async () => {
+    if (!editingUser) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          nome_completo: editingUser.nome_completo,
+          email: editingUser.email,
+          role: editingUser.role
+        })
+        .eq('id', editingUser.id);
+
+      if (error) {
+        setError('Erro ao atualizar usuário');
+        console.error('Erro:', error);
+        return;
+      }
+
+      setSuccess('Usuário atualizado com sucesso!');
+      setEditUserOpen(false);
+      setEditingUser(null);
+      loadProfiles();
+    } catch (error) {
+      setError('Erro interno');
+      console.error('Erro:', error);
+    }
+  };
+
   const deleteUser = async (userId: string, userEmail: string) => {
     if (!confirm(`Tem certeza que deseja excluir o usuário ${userEmail}?`)) {
       return;
     }
 
     try {
-      // Primeiro deletar o perfil
-      const { error: profileError } = await supabase
+      // Deletar perfil (o usuário auth será deletado automaticamente)
+      const { error } = await supabase
         .from('profiles')
         .delete()
         .eq('id', userId);
 
-      if (profileError) {
-        setError('Erro ao excluir perfil do usuário');
-        console.error('Erro:', profileError);
+      if (error) {
+        setError('Erro ao excluir usuário');
+        console.error('Erro:', error);
         return;
       }
 
-      // Recarregar lista
+      setSuccess('Usuário excluído com sucesso!');
       loadProfiles();
+    } catch (error) {
+      setError('Erro interno');
+      console.error('Erro:', error);
+    }
+  };
+
+  const changePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setError('Senhas não conferem');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        setError('Erro ao alterar senha: ' + error.message);
+        return;
+      }
+
+      setSuccess('Senha alterada com sucesso!');
+      setPasswordOpen(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      setError('Erro interno');
+      console.error('Erro:', error);
+    }
+  };
+
+  const updatePermission = async (permissionId: string, field: keyof Permission, value: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('permissions')
+        .update({ [field]: value })
+        .eq('id', permissionId);
+
+      if (error) {
+        setError('Erro ao atualizar permissão');
+        console.error('Erro:', error);
+        return;
+      }
+
+      // Atualizar estado local
+      setPermissions(prev => prev.map(p => 
+        p.id === permissionId ? { ...p, [field]: value } : p
+      ));
     } catch (error) {
       setError('Erro interno');
       console.error('Erro:', error);
@@ -107,6 +282,8 @@ export const UserManagementNew: React.FC = () => {
     }
   };
 
+  const rolePermissions = permissions.filter(p => p.role === selectedRole);
+
   if (loading) {
     return <div className="p-6">Carregando usuários...</div>;
   }
@@ -118,6 +295,186 @@ export const UserManagementNew: React.FC = () => {
           <Users className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Gerenciamento de Usuários</h1>
         </div>
+        
+        <div className="flex gap-2">
+          <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Alterar Minha Senha
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Alterar Senha</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="new-password">Nova Senha</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirm-password">Confirmar Senha</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={changePassword}>Alterar Senha</Button>
+                  <Button variant="outline" onClick={() => setPasswordOpen(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {hasPermission('Configurações', 'Usuários', 'editar') && (
+            <>
+              <Dialog open={permissionsOpen} onOpenChange={setPermissionsOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Gerenciar Permissões
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle>Gerenciar Permissões</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="role-select">Selecionar Role</Label>
+                      <Select value={selectedRole} onValueChange={setSelectedRole}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Usuário</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="max-h-96 overflow-auto">
+                      <table className="w-full border-collapse border border-gray-300">
+                        <thead>
+                          <tr>
+                            <th className="border border-gray-300 p-2 text-left">Módulo</th>
+                            <th className="border border-gray-300 p-2 text-left">Submenu</th>
+                            <th className="border border-gray-300 p-2 text-center">Ver</th>
+                            <th className="border border-gray-300 p-2 text-center">Editar</th>
+                            <th className="border border-gray-300 p-2 text-center">Excluir</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rolePermissions.map((permission) => (
+                            <tr key={permission.id}>
+                              <td className="border border-gray-300 p-2">{permission.modulo}</td>
+                              <td className="border border-gray-300 p-2">{permission.submenu}</td>
+                              <td className="border border-gray-300 p-2 text-center">
+                                <Switch
+                                  checked={permission.pode_visualizar}
+                                  onCheckedChange={(checked) => 
+                                    updatePermission(permission.id, 'pode_visualizar', checked)
+                                  }
+                                />
+                              </td>
+                              <td className="border border-gray-300 p-2 text-center">
+                                <Switch
+                                  checked={permission.pode_editar}
+                                  onCheckedChange={(checked) => 
+                                    updatePermission(permission.id, 'pode_editar', checked)
+                                  }
+                                />
+                              </td>
+                              <td className="border border-gray-300 p-2 text-center">
+                                <Switch
+                                  checked={permission.pode_excluir}
+                                  onCheckedChange={(checked) => 
+                                    updatePermission(permission.id, 'pode_excluir', checked)
+                                  }
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={createUserOpen} onOpenChange={setCreateUserOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Criar Usuário
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Criar Novo Usuário</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Nome Completo</Label>
+                      <Input
+                        id="name"
+                        value={newUser.nome_completo}
+                        onChange={(e) => setNewUser(prev => ({ ...prev, nome_completo: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={newUser.email}
+                        onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="password">Senha</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={newUser.password}
+                        onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="role">Role</Label>
+                      <Select value={newUser.role} onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Usuário</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={createUser}>Criar Usuário</Button>
+                      <Button variant="outline" onClick={() => setCreateUserOpen(false)}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -127,15 +484,11 @@ export const UserManagementNew: React.FC = () => {
         </Alert>
       )}
 
-      <Alert className="bg-blue-50 border-blue-200 text-blue-700">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Como criar usuários:</strong><br />
-          1. Novos usuários devem se cadastrar usando a tela de login<br />
-          2. Use o email "admin@sgqpro.com" para criar contas de administrador automaticamente<br />
-          3. Outros emails criarão contas de usuário comum
-        </AlertDescription>
-      </Alert>
+      {success && (
+        <Alert className="border-green-200 bg-green-50">
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4">
         {profiles.map((userProfile) => (
@@ -153,19 +506,34 @@ export const UserManagementNew: React.FC = () => {
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  {userProfile.role !== 'admin' && profile?.role === 'admin' && (
+                {hasPermission('Configurações', 'Usuários', 'editar') && (
+                  <div className="flex items-center gap-2">
                     <Button
-                      variant="destructive"
+                      variant="outline"
                       size="sm"
-                      onClick={() => deleteUser(userProfile.id, userProfile.email)}
+                      onClick={() => {
+                        setEditingUser(userProfile);
+                        setEditUserOpen(true);
+                      }}
                       className="flex items-center gap-1"
                     >
-                      <Trash2 className="h-4 w-4" />
-                      Excluir
+                      <Edit className="h-4 w-4" />
+                      Editar
                     </Button>
-                  )}
-                </div>
+                    
+                    {userProfile.role !== 'admin' && hasPermission('Configurações', 'Usuários', 'excluir') && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteUser(userProfile.id, userProfile.email)}
+                        className="flex items-center gap-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -180,6 +548,57 @@ export const UserManagementNew: React.FC = () => {
           </Card>
         )}
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editUserOpen} onOpenChange={setEditUserOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Nome Completo</Label>
+                <Input
+                  id="edit-name"
+                  value={editingUser.nome_completo}
+                  onChange={(e) => setEditingUser(prev => prev ? { ...prev, nome_completo: e.target.value } : null)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editingUser.email}
+                  onChange={(e) => setEditingUser(prev => prev ? { ...prev, email: e.target.value } : null)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-role">Role</Label>
+                <Select 
+                  value={editingUser.role} 
+                  onValueChange={(value) => setEditingUser(prev => prev ? { ...prev, role: value } : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Usuário</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={updateUser}>Salvar</Button>
+                <Button variant="outline" onClick={() => setEditUserOpen(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
