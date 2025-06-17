@@ -50,8 +50,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
       
       {/* Main Content */}
       <div className={cn(
-        "transition-all duration-300 ease-in-out pt-16",
-        sidebarOpen ? "lg:ml-64" : "lg:ml-0"
+        "transition-all duration-300 ease-in-out pt-16 min-h-screen",
+        sidebarOpen ? "ml-64" : "ml-0"
       )}>
         <div className="p-6">
           {children}
