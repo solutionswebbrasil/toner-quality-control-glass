@@ -308,15 +308,15 @@ export type Database = {
         }
         Relationships: []
       }
-      permissoes: {
+      permissions: {
         Row: {
           id: string
           modulo: string
           pode_editar: boolean | null
           pode_excluir: boolean | null
           pode_visualizar: boolean | null
+          role: string
           submenu: string
-          usuario_id: string
         }
         Insert: {
           id?: string
@@ -324,8 +324,8 @@ export type Database = {
           pode_editar?: boolean | null
           pode_excluir?: boolean | null
           pode_visualizar?: boolean | null
+          role: string
           submenu: string
-          usuario_id: string
         }
         Update: {
           id?: string
@@ -333,18 +333,34 @@ export type Database = {
           pode_editar?: boolean | null
           pode_excluir?: boolean | null
           pode_visualizar?: boolean | null
+          role?: string
           submenu?: string
-          usuario_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "permissoes_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          nome_completo: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          nome_completo: string
+          role?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome_completo?: string
+          role?: string
+        }
+        Relationships: []
       }
       registros_bpmn: {
         Row: {
@@ -610,30 +626,6 @@ export type Database = {
         }
         Relationships: []
       }
-      usuarios: {
-        Row: {
-          criado_em: string
-          id: string
-          nome_completo: string
-          senha: string
-          usuario: string
-        }
-        Insert: {
-          criado_em?: string
-          id?: string
-          nome_completo: string
-          senha: string
-          usuario: string
-        }
-        Update: {
-          criado_em?: string
-          id?: string
-          nome_completo?: string
-          senha?: string
-          usuario?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -651,18 +643,6 @@ export type Database = {
       get_next_bpmn_version: {
         Args: { titulo_id_param: number }
         Returns: number
-      }
-      hash_password: {
-        Args: { password: string }
-        Returns: string
-      }
-      is_user_admin: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
-      verify_password: {
-        Args: { input_password: string; stored_hash: string }
-        Returns: boolean
       }
     }
     Enums: {
