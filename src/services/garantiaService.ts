@@ -1,163 +1,125 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Garantia } from '@/types';
+import { Garantia } from '@/types';
 
-export const garantiaService = {
-  getAll: async (): Promise<Garantia[]> => {
+export class GarantiaService {
+  async getAll(): Promise<Garantia[]> {
     const { data, error } = await supabase
       .from('garantias')
       .select(`
         *,
-        fornecedores:fornecedor_id (
-          nome
-        )
+        fornecedores!inner(nome)
       `)
       .order('data_registro', { ascending: false });
-    
-    if (error) {
-      console.error('Erro ao buscar garantias:', error);
-      throw error;
-    }
-    
-    return (data || []).map(item => ({
-      ...item,
-      fornecedor: item.fornecedores?.nome || 'N/A'
-    }));
-  },
 
-  getById: async (id: number): Promise<Garantia | undefined> => {
+    if (error) throw error;
+
+    return data.map(item => ({
+      ...item,
+      fornecedor: item.fornecedores.nome
+    }));
+  }
+
+  async getById(id: number): Promise<Garantia> {
     const { data, error } = await supabase
       .from('garantias')
       .select(`
         *,
-        fornecedores:fornecedor_id (
-          nome
-        )
+        fornecedores!inner(nome)
       `)
       .eq('id', id)
       .single();
-    
-    if (error) {
-      console.error('Erro ao buscar garantia:', error);
-      return undefined;
-    }
-    
+
+    if (error) throw error;
+
     return {
       ...data,
-      fornecedor: data.fornecedores?.nome || 'N/A'
+      fornecedor: data.fornecedores.nome
     };
-  },
+  }
 
-  create: async (garantia: Omit<Garantia, 'id'>): Promise<Garantia> => {
+  async create(garantia: Omit<Garantia, 'id'>): Promise<Garantia> {
     const { data, error } = await supabase
       .from('garantias')
-      .insert([garantia])
-      .select(`
-        *,
-        fornecedores:fornecedor_id (
-          nome
-        )
-      `)
+      .insert(garantia)
+      .select()
       .single();
-    
-    if (error) {
-      console.error('Erro ao criar garantia:', error);
-      throw error;
-    }
-    
-    return {
-      ...data,
-      fornecedor: data.fornecedores?.nome || 'N/A'
-    };
-  },
 
-  update: async (id: number, garantia: Partial<Garantia>): Promise<Garantia | null> => {
+    if (error) throw error;
+    return data;
+  }
+
+  async update(id: number, garantia: Partial<Garantia>): Promise<Garantia> {
     const { data, error } = await supabase
       .from('garantias')
       .update(garantia)
       .eq('id', id)
-      .select(`
-        *,
-        fornecedores:fornecedor_id (
-          nome
-        )
-      `)
+      .select()
       .single();
-    
-    if (error) {
-      console.error('Erro ao atualizar garantia:', error);
-      return null;
-    }
-    
-    return {
-      ...data,
-      fornecedor: data.fornecedores?.nome || 'N/A'
-    };
-  },
 
-  delete: async (id: number): Promise<boolean> => {
+    if (error) throw error;
+    return data;
+  }
+
+  async delete(id: number): Promise<void> {
     const { error } = await supabase
       .from('garantias')
       .delete()
       .eq('id', id);
-    
-    if (error) {
-      console.error('Erro ao deletar garantia:', error);
-      return false;
-    }
-    
-    return true;
-  },
 
-  getStats: async () => {
-    const { data: garantias, error } = await supabase
-      .from('garantias')
-      .select(`
-        *,
-        fornecedores:fornecedor_id (
-          nome
-        )
-      `);
-    
-    if (error) {
-      console.error('Erro ao buscar estatísticas de garantias:', error);
-      throw error;
-    }
-    
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // Dados por mês para gráficos
-    const monthlyData = (garantias || []).reduce((acc, g) => {
-      const date = new Date(g.data_registro);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
-      if (!acc[monthKey]) {
-        acc[monthKey] = { quantidade: 0, valor: 0 };
-      }
-      
-      acc[monthKey].quantidade += g.quantidade;
-      acc[monthKey].valor += g.valor_total;
-      
-      return acc;
-    }, {} as Record<string, { quantidade: number; valor: number }>);
-
-    // Dados por fornecedor no mês atual
-    const currentMonthByFornecedor = (garantias || [])
-      .filter(g => {
-        const date = new Date(g.data_registro);
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-      })
-      .reduce((acc, g) => {
-        const fornecedor = g.fornecedores?.nome || 'N/A';
-        acc[fornecedor] = (acc[fornecedor] || 0) + g.quantidade;
-        return acc;
-      }, {} as Record<string, number>);
-
-    return Promise.resolve({
-      monthlyData,
-      currentMonthByFornecedor
-    });
+    if (error) throw error;
   }
-};
+
+  async getStatusConfiguracoes(modulo: string = 'Garantias') {
+    const { data, error } = await supabase
+      .from('status_configuracoes')
+      .select('*')
+      .eq('modulo', modulo)
+      .eq('ativo', true)
+      .order('ordem');
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getResultadoConfiguracoes(modulo: string = 'Garantias') {
+    const { data, error } = await supabase
+      .from('resultados_configuracoes')
+      .select('*')
+      .eq('modulo', modulo)
+      .eq('ativo', true)
+      .order('ordem');
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async uploadFile(file: File, bucket: string = 'garantias-nf'): Promise<string> {
+    const fileName = `${Date.now()}-${file.name}`;
+    
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  }
+
+  async deleteFile(url: string, bucket: string = 'garantias-nf'): Promise<void> {
+    const fileName = url.split('/').pop();
+    if (!fileName) return;
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([fileName]);
+
+    if (error) throw error;
+  }
+}
+
+export const garantiaService = new GarantiaService();

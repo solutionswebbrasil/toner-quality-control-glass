@@ -1,8 +1,7 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
-import { TonerForm } from '@/components/TonerForm';
-import { TonerGrid } from '@/components/TonerGrid';
 import { RetornadoForm } from '@/components/RetornadoForm';
 import { RetornadoGrid } from '@/components/RetornadoGrid';
 import { RetornadoCharts } from '@/components/RetornadoCharts';
@@ -12,8 +11,9 @@ import { GarantiaForm } from '@/components/GarantiaForm';
 import { GarantiaGrid } from '@/components/GarantiaGrid';
 import { GarantiaGeralCharts } from '@/components/GarantiaGeralCharts';
 import { GarantiaTonerGrid } from '@/components/GarantiaTonerGrid';
-import { GarantiaTonerConsulta } from '@/components/GarantiaTonerConsulta';
+import { TonerGrid } from '@/components/TonerGrid';
 import { GarantiaTonerCharts } from '@/components/GarantiaTonerCharts';
+import { TonerForm } from '@/components/TonerForm';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
 import { AuditoriaGrid } from '@/components/AuditoriaGrid';
 import { NaoConformidadeForm } from '@/components/NaoConformidadeForm';
@@ -29,90 +29,91 @@ import { ConsultaTitulosBpmn } from '@/components/ConsultaTitulosBpmn';
 import { RegistroBpmnForm } from '@/components/RegistroBpmnForm';
 import { ConsultaRegistrosBpmn } from '@/components/ConsultaRegistrosBpmn';
 import { VisualizadorBpmn } from '@/components/VisualizadorBpmn';
+import { CertificadoForm } from '@/components/CertificadoForm';
+import { CertificadoGrid } from '@/components/CertificadoGrid';
 import { FilialForm } from '@/components/FilialForm';
 import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
+import { StatusCadastro } from '@/components/StatusCadastro';
 import { UserManagement } from '@/components/UserManagement';
-import { useNaoConformidades } from '@/hooks/useNaoConformidades';
-import { CertificadoForm } from '@/components/CertificadoForm';
-import { CertificadoGrid } from '@/components/CertificadoGrid';
 
-const Index = () => {
+export default function Index() {
   const [currentPage, setCurrentPage] = useState('welcome');
-  const { naoConformidades } = useNaoConformidades();
 
-  const renderContent = () => {
+  const renderPage = () => {
     switch (currentPage) {
       case 'welcome':
         return <WelcomeScreen />;
-      case 'toners-cadastro':
-        return <TonerForm />;
-      case 'toners-consulta':
-        return <TonerGrid />;
       case 'retornados-registro':
         return <RetornadoForm />;
       case 'retornados-consulta':
         return <RetornadoGrid />;
       case 'retornados-graficos':
         return <RetornadoCharts />;
-      case 'garantias-fornecedores-cadastro':
+      case 'fornecedores-cadastro':
         return <FornecedorForm />;
-      case 'garantias-fornecedores-consulta':
+      case 'fornecedores-consulta':
         return <FornecedorGrid />;
       case 'garantias-registro':
         return <GarantiaForm />;
       case 'garantias-consulta':
         return <GarantiaGrid />;
-      case 'garantias-gerais-graficos':
+      case 'garantias-graficos-gerais':
         return <GarantiaGeralCharts />;
       case 'garantias-toners':
         return <GarantiaTonerGrid />;
-      case 'garantias-toners-consulta':
-        return <GarantiaTonerConsulta />;
-      case 'garantias-toners-graficos':
+      case 'toners-consulta':
+        return <TonerGrid />;
+      case 'toners-graficos':
         return <GarantiaTonerCharts />;
+      case 'toners-cadastro':
+        return <TonerForm />;
+      case 'toners-consulta-principal':
+        return <TonerGrid />;
       case 'auditorias-registro':
-        return <AuditoriaForm onSuccess={() => {}} />;
+        return <AuditoriaForm />;
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
-      case 'nao-conformidades-registro':
+      case 'nc-registro':
         return <NaoConformidadeForm />;
-      case 'nao-conformidades-consulta':
+      case 'nc-consulta':
         return <NaoConformidadeGrid />;
-      case 'nao-conformidades-graficos':
-        return <NaoConformidadeCharts naoConformidades={naoConformidades} />;
-      case 'itpop-titulo-cadastro':
-        return <TituloItPopForm onSuccess={() => {}} />;
-      case 'itpop-titulo-consulta':
-        return <ConsultaTitulosItPop onSuccess={() => {}} />;
-      case 'itpop-registro':
-        return <RegistroItPopForm onSuccess={() => {}} />;
-      case 'itpop-registros-consulta':
-        return <ConsultaRegistrosItPop onSuccess={() => {}} />;
-      case 'itpop-visualizar':
-        return <VisualizadorItPop onSuccess={() => {}} />;
-      case 'bpmn-titulo-cadastro':
-        return <TituloBpmnForm onSuccess={() => {}} />;
-      case 'bpmn-titulo-consulta':
-        return <ConsultaTitulosBpmn onSuccess={() => {}} />;
-      case 'bpmn-registro':
-        return <RegistroBpmnForm onSuccess={() => {}} />;
-      case 'bpmn-registros-consulta':
-        return <ConsultaRegistrosBpmn onSuccess={() => {}} />;
-      case 'bpmn-visualizar':
-        return <VisualizadorBpmn onSuccess={() => {}} />;
-      case 'configuracoes-filiais-cadastro':
-        return <FilialForm onSuccess={() => {}} />;
-      case 'configuracoes-filiais-consulta':
-        return <FilialGrid />;
-      case 'configuracoes-retornado':
-        return <ConfiguracoesRetornado />;
-      case 'configuracoes-usuarios':
-        return <UserManagement />;
+      case 'nc-graficos':
+        return <NaoConformidadeCharts />;
+      case 'titulo-itpop-cadastro':
+        return <TituloItPopForm />;
+      case 'titulo-itpop-consulta':
+        return <ConsultaTitulosItPop />;
+      case 'registro-itpop':
+        return <RegistroItPopForm />;
+      case 'registros-itpop-consulta':
+        return <ConsultaRegistrosItPop />;
+      case 'visualizar-itpop':
+        return <VisualizadorItPop />;
+      case 'titulo-bpmn-cadastro':
+        return <TituloBpmnForm />;
+      case 'titulo-bpmn-consulta':
+        return <ConsultaTitulosBpmn />;
+      case 'registro-bpmn':
+        return <RegistroBpmnForm />;
+      case 'registros-bpmn-consulta':
+        return <ConsultaRegistrosBpmn />;
+      case 'visualizar-bpmn':
+        return <VisualizadorBpmn />;
       case 'certificados-registro':
-        return <CertificadoForm onSuccess={() => {}} />;
+        return <CertificadoForm />;
       case 'certificados-consulta':
         return <CertificadoGrid />;
+      case 'filiais-cadastro':
+        return <FilialForm />;
+      case 'filiais-consulta':
+        return <FilialGrid />;
+      case 'config-retornado':
+        return <ConfiguracoesRetornado />;
+      case 'status-cadastro':
+        return <StatusCadastro />;
+      case 'usuarios':
+        return <UserManagement />;
       default:
         return <WelcomeScreen />;
     }
@@ -120,9 +121,7 @@ const Index = () => {
 
   return (
     <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderContent()}
+      {renderPage()}
     </Layout>
   );
-};
-
-export default Index;
+}

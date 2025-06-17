@@ -17,12 +17,13 @@ interface UserPermissionsModalProps {
 const MODULOS_SUBMENUS = [
   { modulo: 'Retornados', submenus: ['Registro', 'Consulta', 'Gráficos'] },
   { modulo: 'Garantias', submenus: ['Fornecedores Cadastro', 'Fornecedores Consulta', 'Registro', 'Consulta', 'Gráficos Gerais', 'Garantias Toners', 'Toners Consulta', 'Toners Gráficos'] },
+  { modulo: 'Toners', submenus: ['Cadastro', 'Consulta'] },
   { modulo: 'Auditorias', submenus: ['Registro', 'Consulta'] },
   { modulo: 'Não Conformidades', submenus: ['Registro', 'Consulta', 'Gráficos'] },
   { modulo: 'IT/POP', submenus: ['Título Cadastro', 'Título Consulta', 'Registro', 'Registros Consulta', 'Visualizar'] },
   { modulo: 'BPMN', submenus: ['Título Cadastro', 'Título Consulta', 'Registro', 'Registros Consulta', 'Visualizar'] },
   { modulo: 'Certificados', submenus: ['Registro', 'Consulta'] },
-  { modulo: 'Configurações', submenus: ['Filiais Cadastro', 'Filiais Consulta', 'Retornado', 'Usuários'] }
+  { modulo: 'Configurações', submenus: ['Filiais Cadastro', 'Filiais Consulta', 'Retornado', 'Cadastro de Status', 'Usuários'] }
 ];
 
 export const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
@@ -57,7 +58,7 @@ export const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
     return permissoes.find(p => p.modulo === modulo && p.submenu === submenu);
   };
 
-  const updatePermissao = (modulo: string, submenu: string, acao: keyof Omit<Permissao, 'id' | 'usuario_id' | 'modulo' | 'submenu'>, value: boolean) => {
+  const updatePermissao = (modulo: string, submenu: string, acao: 'pode_visualizar' | 'pode_editar' | 'pode_excluir', value: boolean) => {
     setPermissoes(prev => {
       const existing = prev.find(p => p.modulo === modulo && p.submenu === submenu);
       
@@ -73,11 +74,9 @@ export const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
           usuario_id: user.id,
           modulo,
           submenu,
-          pode_ver: acao === 'pode_ver' ? value : false,
+          pode_visualizar: acao === 'pode_visualizar' ? value : false,
           pode_editar: acao === 'pode_editar' ? value : false,
           pode_excluir: acao === 'pode_excluir' ? value : false,
-          pode_cadastrar: acao === 'pode_cadastrar' ? value : false,
-          pode_baixar: acao === 'pode_baixar' ? value : false,
         };
         return [...prev, newPermission];
       }
@@ -127,8 +126,8 @@ export const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
                     return (
                       <div key={submenu} className="border-l-2 border-gray-200 pl-4">
                         <h4 className="font-medium mb-2">{submenu}</h4>
-                        <div className="grid grid-cols-5 gap-4">
-                          {(['pode_ver', 'pode_editar', 'pode_excluir', 'pode_cadastrar', 'pode_baixar'] as const).map((acao) => (
+                        <div className="grid grid-cols-3 gap-4">
+                          {(['pode_visualizar', 'pode_editar', 'pode_excluir'] as const).map((acao) => (
                             <div key={acao} className="flex items-center space-x-2">
                               <Checkbox
                                 id={`${modulo}-${submenu}-${acao}`}
@@ -141,7 +140,8 @@ export const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
                                 htmlFor={`${modulo}-${submenu}-${acao}`}
                                 className="text-sm font-medium"
                               >
-                                {acao.replace('pode_', '').charAt(0).toUpperCase() + acao.replace('pode_', '').slice(1)}
+                                {acao === 'pode_visualizar' ? 'Visualizar' : 
+                                 acao === 'pode_editar' ? 'Editar' : 'Excluir'}
                               </label>
                             </div>
                           ))}

@@ -291,33 +291,27 @@ export type Database = {
         Row: {
           id: string
           modulo: string
-          pode_baixar: boolean
-          pode_cadastrar: boolean
-          pode_editar: boolean
-          pode_excluir: boolean
-          pode_ver: boolean
+          pode_editar: boolean | null
+          pode_excluir: boolean | null
+          pode_visualizar: boolean | null
           submenu: string
           usuario_id: string
         }
         Insert: {
           id?: string
           modulo: string
-          pode_baixar?: boolean
-          pode_cadastrar?: boolean
-          pode_editar?: boolean
-          pode_excluir?: boolean
-          pode_ver?: boolean
+          pode_editar?: boolean | null
+          pode_excluir?: boolean | null
+          pode_visualizar?: boolean | null
           submenu: string
           usuario_id: string
         }
         Update: {
           id?: string
           modulo?: string
-          pode_baixar?: boolean
-          pode_cadastrar?: boolean
-          pode_editar?: boolean
-          pode_excluir?: boolean
-          pode_ver?: boolean
+          pode_editar?: boolean | null
+          pode_excluir?: boolean | null
+          pode_visualizar?: boolean | null
           submenu?: string
           usuario_id?: string
         }
@@ -404,6 +398,33 @@ export type Database = {
           },
         ]
       }
+      resultados_configuracoes: {
+        Row: {
+          ativo: boolean | null
+          data_criacao: string | null
+          id: number
+          modulo: string
+          ordem: number | null
+          resultado_nome: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          data_criacao?: string | null
+          id?: number
+          modulo: string
+          ordem?: number | null
+          resultado_nome: string
+        }
+        Update: {
+          ativo?: boolean | null
+          data_criacao?: string | null
+          id?: number
+          modulo?: string
+          ordem?: number | null
+          resultado_nome?: string
+        }
+        Relationships: []
+      }
       retornados: {
         Row: {
           data_registro: string
@@ -444,6 +465,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      status_configuracoes: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          data_criacao: string | null
+          id: number
+          modulo: string
+          ordem: number | null
+          status_nome: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          data_criacao?: string | null
+          id?: number
+          modulo: string
+          ordem?: number | null
+          status_nome: string
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          data_criacao?: string | null
+          id?: number
+          modulo?: string
+          ordem?: number | null
+          status_nome?: string
+        }
+        Relationships: []
       }
       titulos_bpmn: {
         Row: {
