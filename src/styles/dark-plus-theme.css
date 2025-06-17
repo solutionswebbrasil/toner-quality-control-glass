@@ -1,5 +1,5 @@
 
-/* Dark Plus specific styles with improved contrast and legibility */
+/* Dark Plus specific styles with improved contrast, legibility and UI design */
 .dark-plus {
   background: #1C1C1C !important;
   
@@ -35,81 +35,99 @@
     background: #1C1C1C !important;
   }
   
-  /* Improved hover states - softer white background with dark text */
+  /* Improved hover states - softer background with smooth transitions */
   .dark-plus-hover:hover {
     background-color: #DDDDDD !important;
     color: #222222 !important;
+    transition: all 0.2s ease-in-out;
   }
   
   /* Main text colors - pure white for better contrast */
   .dark-plus-text {
     color: #FFFFFF !important;
+    font-weight: 500;
   }
   
-  /* Secondary text - improved contrast */
+  /* Secondary text - improved contrast with better readability */
   .dark-plus-secondary-text {
     color: #A0A0A0 !important;
+    font-weight: 400;
   }
   
-  /* Primary titles - vibrant blue for better visibility */
+  /* Primary titles - vibrant blue for better visibility with enhanced styling */
   .dark-plus-title {
     color: #58B1F5 !important;
     font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
-  /* Card backgrounds - using improved secondary color */
+  /* Card backgrounds - using improved secondary color with subtle shadows */
   .dark-plus-card {
     background: #2A2A2A !important;
     border-color: #444444 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
   }
   
-  /* Form elements styling with better borders */
+  /* Form elements styling with better borders and focus states */
   .dark-plus-form {
     background: #363636 !important;
     border-color: #444444 !important;
     color: #FFFFFF !important;
+    transition: all 0.2s ease-in-out;
   }
   
   .dark-plus-form:hover {
     background: #DDDDDD !important;
     color: #222222 !important;
+    border-color: #999999 !important;
   }
   
-  /* Input fields with improved contrast */
+  /* Input fields with improved contrast and focus states */
   .dark-plus-input {
     background: #2A2A2A !important;
     border-color: #444444 !important;
     color: #FFFFFF !important;
     outline: 1px solid #555555;
+    transition: all 0.2s ease-in-out;
+    border-radius: 6px;
   }
   
   .dark-plus-input:focus {
     background: #2A2A2A !important;
     border-color: #58B1F5 !important;
     color: #FFFFFF !important;
-    outline: 1px solid #58B1F5;
+    outline: 2px solid #58B1F5;
+    box-shadow: 0 0 0 3px rgba(88, 177, 245, 0.1);
   }
   
   .dark-plus-input::placeholder {
     color: #A0A0A0 !important;
   }
   
-  /* Button styles with improved hover */
+  /* Button styles with improved hover and better visual feedback */
   .dark-plus-button {
     background: #363636 !important;
     border-color: #444444 !important;
     color: #FFFFFF !important;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    border-radius: 6px;
   }
   
   .dark-plus-button:hover {
     background: #DDDDDD !important;
     color: #222222 !important;
+    border-color: #999999 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
   
-  /* Dialog and modal backgrounds */
+  /* Dialog and modal backgrounds with enhanced styling */
   .dark-plus-dialog {
     background: #1C1C1C !important;
     border-color: #444444 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   }
   
   /* Select components with improved styling */
@@ -117,14 +135,16 @@
     background: #2A2A2A !important;
     border-color: #444444 !important;
     color: #FFFFFF !important;
+    transition: all 0.2s ease-in-out;
   }
   
   .dark-plus-select:hover {
     background: #DDDDDD !important;
     color: #222222 !important;
+    border-color: #999999 !important;
   }
   
-  /* Table styles with better contrast */
+  /* Table styles with better contrast and alternating rows */
   .dark-plus-table {
     background: #1C1C1C !important;
     color: #FFFFFF !important;
@@ -133,21 +153,24 @@
   
   .dark-plus-table-row:hover {
     background: #2A2A2A !important;
+    transition: background-color 0.2s ease-in-out;
   }
   
-  /* Labels and text with pure white */
+  /* Labels and text with pure white and better typography */
   .dark-plus-label {
     color: #FFFFFF !important;
     font-weight: 600;
+    font-size: 0.875rem;
   }
   
-  /* Filter titles styling */
+  /* Filter titles styling with enhanced typography */
   .dark-plus-filter-title {
     color: #FFFFFF !important;
     font-weight: 600;
+    font-size: 1rem;
   }
   
-  /* Improved borders and dividers */
+  /* Improved borders and dividers with subtle gradients */
   .dark-plus-border {
     border-color: #444444 !important;
   }
@@ -156,7 +179,7 @@
     border-color: #555555 !important;
   }
   
-  /* Override all form containers */
+  /* Override all form containers with proper spacing */
   .space-y-4,
   .space-y-6,
   .grid,
@@ -178,7 +201,7 @@
     background: #1C1C1C !important;
   }
   
-  /* Card titles with improved visibility */
+  /* Card titles with improved visibility and typography hierarchy */
   .dark-plus h1,
   .dark-plus h2,
   .dark-plus h3,
@@ -187,11 +210,13 @@
   .dark-plus h6 {
     color: #58B1F5 !important;
     font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
-  /* General text improvements */
+  /* General text improvements with better readability */
   .dark-plus p {
     color: #FFFFFF !important;
+    line-height: 1.6;
   }
   
   .dark-plus .text-gray-500,
@@ -199,13 +224,14 @@
     color: #A0A0A0 !important;
   }
   
-  /* Badge improvements */
+  /* Badge improvements with better contrast */
   .dark-plus .bg-gray-50 {
     background: #2A2A2A !important;
     color: #FFFFFF !important;
+    border: 1px solid #444444;
   }
   
-  /* Table borders */
+  /* Table borders with consistent styling */
   .dark-plus table,
   .dark-plus th,
   .dark-plus td {
@@ -218,28 +244,72 @@
     border-color: #444444 !important;
   }
 
-  /* Welcome screen improvements for dark plus */
+  /* Welcome screen improvements for dark plus with enhanced design */
   .dark-plus .welcome-screen {
     background: #1C1C1C !important;
+    padding: 2rem;
   }
 
   .dark-plus .welcome-title {
     color: #FFFFFF !important;
     font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.025em;
   }
 
   .dark-plus .welcome-subtitle {
     color: #A0A0A0 !important;
     font-weight: 500;
+    line-height: 1.7;
   }
 
   .dark-plus .welcome-text {
     color: #FFFFFF !important;
-    font-weight: 400;
+    font-weight: 500;
+    line-height: 1.6;
   }
 
   .dark-plus .welcome-feature-text {
-    color: #FFFFFF !important;
-    font-weight: 500;
+    color: #A0A0A0 !important;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  /* Enhanced scrollbar styling for dark plus */
+  .dark-plus ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dark-plus ::-webkit-scrollbar-track {
+    background: #2A2A2A;
+    border-radius: 4px;
+  }
+
+  .dark-plus ::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 4px;
+    border: 1px solid #555555;
+  }
+
+  .dark-plus ::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+  }
+
+  /* Status badges with improved styling */
+  .dark-plus .status-badge {
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Enhanced focus states for accessibility */
+  .dark-plus *:focus-visible {
+    outline: 2px solid #58B1F5;
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
