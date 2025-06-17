@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
@@ -36,6 +35,7 @@ import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
 import { StatusCadastro } from '@/components/StatusCadastro';
 import { UserManagement } from '@/components/UserManagement';
+import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 
 export default function Index() {
   const [currentPage, setCurrentPage] = useState('welcome');
@@ -114,6 +114,8 @@ export default function Index() {
         return <StatusCadastro />;
       case 'usuarios':
         return <UserManagement />;
+      case 'apis-integracoes':
+        return <ApisIntegracoes />;
       default:
         return <WelcomeScreen />;
     }
