@@ -8,11 +8,15 @@ class AuthService {
 
   async login(credentials: LoginCredentials) {
     try {
+      console.log('Tentando login com usuário:', credentials.usuario);
+      
       // Get user first to verify existence
       const { data: users, error: userError } = await supabase
         .from('usuarios')
         .select('*')
         .eq('usuario', credentials.usuario);
+
+      console.log('Resultado da busca do usuário:', { users, userError });
 
       if (userError) {
         console.error('Login error:', userError);
@@ -20,10 +24,12 @@ class AuthService {
       }
 
       if (!users || users.length === 0) {
+        console.log('Usuário não encontrado:', credentials.usuario);
         return { success: false, error: 'Credenciais inválidas' };
       }
 
       const user = users[0];
+      console.log('Usuário encontrado:', { id: user.id, usuario: user.usuario });
 
       // Use auth-helpers edge function to verify password
       const { data, error } = await supabase.functions.invoke('auth-helpers', {
@@ -35,12 +41,15 @@ class AuthService {
         }
       });
 
+      console.log('Resultado da verificação de senha:', { data, error });
+
       if (error) {
         console.error('Login error:', error);
         return { success: false, error: 'Erro interno no servidor' };
       }
 
       if (!data || data.length === 0) {
+        console.log('Senha incorreta para usuário:', credentials.usuario);
         return { success: false, error: 'Credenciais inválidas' };
       }
 
