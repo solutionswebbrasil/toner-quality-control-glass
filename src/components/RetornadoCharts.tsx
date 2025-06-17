@@ -30,10 +30,11 @@ export const RetornadoCharts: React.FC = () => {
   const loadChartData = async () => {
     try {
       setIsLoading(true);
-      console.log('Carregando dados para gráficos...');
+      console.log('Carregando TODOS os dados do banco para gráficos...');
       
+      // Buscar TODOS os retornados do banco sem limitação
       const retornados = await retornadoService.getAll();
-      console.log('Total de dados carregados:', retornados.length);
+      console.log('Total de dados carregados para gráficos:', retornados.length);
       setTotalRegistros(retornados.length);
       
       // Verificar se há dados com valor_recuperado
@@ -42,7 +43,7 @@ export const RetornadoCharts: React.FC = () => {
       
       // Verificar destinos
       const destinosUnicos = [...new Set(retornados.map(item => item.destino_final))];
-      console.log('Destinos únicos:', destinosUnicos);
+      console.log('Destinos únicos encontrados:', destinosUnicos);
       
       // Filtrar dados baseado nas datas selecionadas
       let filteredData = retornados;
@@ -133,12 +134,12 @@ export const RetornadoCharts: React.FC = () => {
       }
 
       const periodArray = Array.from(dataMap.values());
-      console.log('Dados processados para gráfico:', periodArray);
+      console.log('Dados processados para gráfico de período:', periodArray);
       
       setMonthlyData(periodArray);
       setValorData(periodArray);
 
-      // Dados por destino
+      // Dados por destino - contar TODOS os registros filtrados
       const destinoMap = new Map();
       filteredData.forEach(item => {
         const destino = item.destino_final;
@@ -149,7 +150,7 @@ export const RetornadoCharts: React.FC = () => {
         .filter(([_, value]) => value > 0)
         .map(([name, value]) => ({ name, value }));
 
-      console.log('Dados por destino:', destinoArray);
+      console.log('Dados por destino (todos os registros):', destinoArray);
       setDestinoData(destinoArray);
     } catch (error) {
       console.error('Erro ao carregar dados dos gráficos:', error);
@@ -179,6 +180,7 @@ export const RetornadoCharts: React.FC = () => {
   };
 
   const refreshData = () => {
+    console.log('Recarregando dados dos gráficos...');
     loadChartData();
   };
 
@@ -187,7 +189,7 @@ export const RetornadoCharts: React.FC = () => {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">Gráficos de Retornados</h2>
         <div className="flex justify-center py-8">
-          <div className="text-slate-500">Carregando gráficos...</div>
+          <div className="text-slate-500">Carregando todos os dados do banco...</div>
         </div>
       </div>
     );
@@ -198,7 +200,7 @@ export const RetornadoCharts: React.FC = () => {
       const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
       return daysDifference <= 31 ? 'por Período Diário' : 'por Período Mensal';
     }
-    return 'Todos os Períodos';
+    return 'Todos os Períodos (Banco Completo)';
   };
 
   return (
@@ -211,7 +213,7 @@ export const RetornadoCharts: React.FC = () => {
           </span>
           <Button onClick={refreshData} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
-            Atualizar
+            Recarregar Banco
           </Button>
         </div>
       </div>

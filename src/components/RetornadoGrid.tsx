@@ -1,18 +1,20 @@
 
 import React from 'react';
-import { RetornadoFilters, RetornadoActions, RetornadoTable } from './retornado';
+import { RetornadoFilters, RetornadoActions } from './retornado';
+import { RetornadoTablePaginated } from './retornado/RetornadoTablePaginated';
 import { ImportModal } from './ImportModal';
-import { useRetornados } from '@/hooks/useRetornados';
+import { useRetornadoPagination } from '@/hooks/useRetornadoPagination';
 import { useRetornadoFilters } from '@/hooks/useRetornadoFilters';
 import { useRetornadoImportExport } from '@/hooks/useRetornadoImportExport';
 
 export const RetornadoGrid: React.FC = () => {
   const { 
-    retornados, 
+    allRetornados, 
     loading, 
-    loadRetornados, 
+    totalCount,
+    loadAllRetornados, 
     handleDeleteRetornado 
-  } = useRetornados();
+  } = useRetornadoPagination();
 
   const {
     dataInicio,
@@ -25,7 +27,7 @@ export const RetornadoGrid: React.FC = () => {
     setDestinoSelecionado,
     filteredRetornados,
     clearFilters
-  } = useRetornadoFilters(retornados);
+  } = useRetornadoFilters(allRetornados);
 
   const {
     importing,
@@ -36,17 +38,17 @@ export const RetornadoGrid: React.FC = () => {
     handleDownloadTemplate,
     handleImportUpload,
     handleImportCSV
-  } = useRetornadoImportExport(loadRetornados);
+  } = useRetornadoImportExport(loadAllRetornados);
 
   const handleZerarComplete = () => {
-    loadRetornados(); // Recarregar a lista após zerar
+    loadAllRetornados(); // Recarregar todos os dados após zerar
   };
 
   if (loading) {
     return (
       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50 rounded-lg p-8 text-center">
         <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-        <p className="mt-4">Carregando retornados...</p>
+        <p className="mt-4">Carregando todos os retornados...</p>
       </div>
     );
   }
@@ -61,7 +63,7 @@ export const RetornadoGrid: React.FC = () => {
           Consulte e exporte dados dos toners retornados
         </p>
         <div className="mt-2 text-sm text-slate-500">
-          Total de registros no banco: {retornados.length} | Exibindo: {filteredRetornados.length}
+          Total de registros no banco: {totalCount} | Exibindo após filtros: {filteredRetornados.length}
         </div>
       </div>
 
@@ -88,9 +90,10 @@ export const RetornadoGrid: React.FC = () => {
         />
       </div>
 
-      <RetornadoTable
+      <RetornadoTablePaginated
         retornados={filteredRetornados}
         onDelete={handleDeleteRetornado}
+        totalCount={filteredRetornados.length}
       />
 
       <ImportModal
