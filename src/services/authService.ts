@@ -4,18 +4,29 @@ import { Usuario, Permissao, LoginCredentials } from '@/types/auth';
 
 class AuthService {
   async login(credentials: LoginCredentials) {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('usuario', credentials.usuario)
-      .eq('senha', credentials.senha)
-      .single();
+    try {
+      const { data: usuario, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('usuario', credentials.usuario)
+        .eq('senha', credentials.senha)
+        .single();
 
-    if (error || !data) {
-      throw new Error('Credenciais inválidas');
+      if (error || !usuario) {
+        return { success: false, error: 'Credenciais inválidas' };
+      }
+
+      // Buscar permissões do usuário
+      const permissoes = await this.getPermissoesByUsuario(usuario.id);
+
+      return { 
+        success: true, 
+        usuario, 
+        permissoes 
+      };
+    } catch (error) {
+      return { success: false, error: 'Erro interno no servidor' };
     }
-
-    return data;
   }
 
   async getPermissoesByUsuario(usuarioId: string): Promise<Permissao[]> {

@@ -6,7 +6,7 @@ import { authService } from '@/services/authService';
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  hasPermission: (modulo: string, submenu: string, acao: 'ver' | 'editar' | 'excluir' | 'cadastrar' | 'baixar') => boolean;
+  hasPermission: (modulo: string, submenu: string, acao: 'visualizar' | 'editar' | 'excluir') => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,16 +72,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('sgq_auth');
   };
 
-  const hasPermission = (modulo: string, submenu: string, acao: 'ver' | 'editar' | 'excluir' | 'cadastrar' | 'baixar'): boolean => {
+  const hasPermission = (modulo: string, submenu: string, acao: 'visualizar' | 'editar' | 'excluir'): boolean => {
     const permissao = authState.permissoes.find(p => p.modulo === modulo && p.submenu === submenu);
     if (!permissao) return false;
 
     switch (acao) {
-      case 'ver': return permissao.pode_ver;
+      case 'visualizar': return permissao.pode_visualizar;
       case 'editar': return permissao.pode_editar;
       case 'excluir': return permissao.pode_excluir;
-      case 'cadastrar': return permissao.pode_cadastrar;
-      case 'baixar': return permissao.pode_baixar;
       default: return false;
     }
   };

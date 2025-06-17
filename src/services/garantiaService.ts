@@ -120,6 +120,54 @@ export class GarantiaService {
 
     if (error) throw error;
   }
+
+  async getStats(): Promise<any> {
+    const { data: garantias, error } = await supabase
+      .from('garantias')
+      .select('*');
+    
+    if (error) {
+      console.error('Erro ao buscar estatísticas de garantias:', error);
+      throw error;
+    }
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Dados por mês para gráficos
+    const monthlyData = (garantias || []).reduce((acc: any, g: any) => {
+      const date = new Date(g.data_registro);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!acc[monthKey]) {
+        acc[monthKey] = { quantidade: 0, valor: 0 };
+      }
+      
+      acc[monthKey].quantidade += g.quantidade || 0;
+      acc[monthKey].valor += Number(g.valor_total) || 0;
+      
+      return acc;
+    }, {} as Record<string, { quantidade: number; valor: number }>);
+
+    // Dados por fornecedor no mês atual
+    const currentMonthByFornecedor = (garantias || [])
+      .filter((g: any) => {
+        const date = new Date(g.data_registro);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      })
+      .reduce((acc: any, g: any) => {
+        // Buscar nome do fornecedor baseado no fornecedor_id
+        const fornecedor = `Fornecedor ${g.fornecedor_id}`;
+        acc[fornecedor] = (acc[fornecedor] || 0) + (g.quantidade || 0);
+        return acc;
+      }, {} as Record<string, number>);
+
+    return {
+      monthlyData,
+      currentMonthByFornecedor
+    };
+  }
 }
 
 export const garantiaService = new GarantiaService();
