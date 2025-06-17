@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, Usuario, Permissao, LoginCredentials } from '@/types/auth';
 import { authService } from '@/services/authService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
@@ -31,62 +32,115 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   useEffect(() => {
-    // Check for existing valid session
-    if (authService.isSessionValid()) {
-      const savedAuth = authService.getStoredSession();
-      if (savedAuth) {
+    // Check for existing session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Get user data from usuarios table
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (userData && !userError) {
+          // Get user permissions
+          const permissoes = await authService.getPermissoesByUsuario(userData.id);
+          
+          setAuthState({
+            isAuthenticated: true,
+            usuario: userData,
+            permissoes
+          });
+        }
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session?.user) {
         setAuthState({
-          isAuthenticated: true,
-          usuario: savedAuth.usuario,
-          permissoes: savedAuth.permissoes
+          isAuthenticated: false,
+          usuario: null,
+          permissoes: []
         });
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        // Get user data from usuarios table
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (userData && !userError) {
+          // Get user permissions
+          const permissoes = await authService.getPermissoesByUsuario(userData.id);
+          
+          setAuthState({
+            isAuthenticated: true,
+            usuario: userData,
+            permissoes
+          });
+        }
       }
-    }
+    });
 
-    // Set up session validation interval
-    const intervalId = setInterval(() => {
-      if (!authService.isSessionValid() && authState.isAuthenticated) {
-        logout();
-      }
-    }, 60000); // Check every minute
-
-    // Clear session on page unload for security
-    const handleBeforeUnload = () => {
-      if (authState.isAuthenticated) {
-        authService.clearSession();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [authState.isAuthenticated]);
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (credentials: LoginCredentials): Promise<{ success: boolean; error?: string }> => {
-    const result = await authService.login(credentials);
-    
-    if (result.success && result.usuario && result.permissoes) {
-      setAuthState({
-        isAuthenticated: true,
-        usuario: result.usuario,
-        permissoes: result.permissoes
-      });
+    try {
+      // First verify credentials with custom auth
+      const result = await authService.login(credentials);
       
+      if (!result.success) {
+        return { success: false, error: result.error };
+      }
+
+      // If custom auth succeeds, sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: `${credentials.usuario}@sgq.local`, // Create a local email format
+        password: credentials.senha
+      });
+
+      if (error) {
+        // If Supabase user doesn't exist, create it
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: `${credentials.usuario}@sgq.local`,
+          password: credentials.senha,
+          options: {
+            data: {
+              user_id: result.usuario?.id
+            }
+          }
+        });
+
+        if (signUpError) {
+          console.error('Error creating Supabase user:', signUpError);
+          return { success: false, error: 'Erro ao criar sessão' };
+        }
+
+        // Update the usuarios table with the Supabase auth ID
+        if (signUpData.user && result.usuario) {
+          await supabase
+            .from('usuarios')
+            .update({ id: signUpData.user.id })
+            .eq('id', result.usuario.id);
+        }
+      }
+
       return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Erro interno no servidor' };
     }
-    
-    return { success: false, error: result.error };
   };
 
-  const logout = () => {
-    setAuthState({
-      isAuthenticated: false,
-      usuario: null,
-      permissoes: []
-    });
+  const logout = async () => {
+    await supabase.auth.signOut();
     authService.clearSession();
   };
 

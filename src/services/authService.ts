@@ -49,17 +49,6 @@ class AuthService {
       // Buscar permissões do usuário
       const permissoes = await this.getPermissoesByUsuario(usuario.id);
 
-      // Create secure session with expiry
-      const session = {
-        usuario,
-        permissoes,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + this.sessionTimeout
-      };
-
-      // Store session with encryption-like obfuscation
-      localStorage.setItem(this.sessionKey, btoa(JSON.stringify(session)));
-
       return { 
         success: true, 
         usuario, 
@@ -68,39 +57,6 @@ class AuthService {
     } catch (error) {
       console.error('Login error:', error);
       return { success: false, error: 'Erro interno no servidor' };
-    }
-  }
-
-  isSessionValid(): boolean {
-    try {
-      const sessionData = localStorage.getItem(this.sessionKey);
-      if (!sessionData) return false;
-
-      const session = JSON.parse(atob(sessionData));
-      return Date.now() < session.expiresAt;
-    } catch {
-      return false;
-    }
-  }
-
-  getStoredSession() {
-    try {
-      const sessionData = localStorage.getItem(this.sessionKey);
-      if (!sessionData) return null;
-
-      const session = JSON.parse(atob(sessionData));
-      if (Date.now() >= session.expiresAt) {
-        this.clearSession();
-        return null;
-      }
-
-      return {
-        usuario: session.usuario,
-        permissoes: session.permissoes
-      };
-    } catch {
-      this.clearSession();
-      return null;
     }
   }
 

@@ -639,6 +639,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_permission: {
+        Args: {
+          user_id_param: string
+          modulo_param: string
+          submenu_param: string
+          acao_param: string
+        }
+        Returns: boolean
+      }
       get_next_bpmn_version: {
         Args: { titulo_id_param: number }
         Returns: number
@@ -646,6 +655,10 @@ export type Database = {
       hash_password: {
         Args: { password: string }
         Returns: string
+      }
+      is_user_admin: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
       verify_password: {
         Args: { input_password: string; stored_hash: string }
