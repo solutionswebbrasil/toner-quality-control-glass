@@ -20,8 +20,15 @@ export const Header: React.FC<HeaderProps> = ({ sidebarOpen, toggleSidebar }) =>
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
         
-        {/* Desktop spacing */}
-        <div className="hidden lg:block w-6" />
+        {/* Desktop spacing - show button on desktop too for better UX */}
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="hidden lg:flex p-2"
+          onClick={toggleSidebar}
+        >
+          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </Button>
         
         {/* Right side items */}
         <div className="flex items-center space-x-4 ml-auto">
