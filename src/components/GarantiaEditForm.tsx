@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -80,10 +79,15 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         garantiaService.getResultadoConfiguracoes('Garantias')
       ]);
       
+      console.log('Status configs loaded:', statusData);
+      console.log('Resultado configs loaded:', resultadoData);
+      console.log('Fornecedores loaded:', fornecedoresData);
+      
       setFornecedores(fornecedoresData);
       setStatusConfigs(statusData);
       setResultadoConfigs(resultadoData);
     } catch (error) {
+      console.error('Error loading data:', error);
       toast({
         title: "Erro",
         description: "Erro ao carregar dados.",
@@ -361,11 +365,15 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {statusConfigs.map((config) => (
-                    <SelectItem key={config.id} value={config.status_nome.toLowerCase().replace(/\s+/g, '_')}>
-                      {config.status_nome}
-                    </SelectItem>
-                  ))}
+                  {statusConfigs.map((config) => {
+                    const statusValue = config.status_nome.toLowerCase().replace(/\s+/g, '_');
+                    console.log('Status config:', config, 'Value:', statusValue);
+                    return (
+                      <SelectItem key={config.id} value={statusValue || 'default_status'}>
+                        {config.status_nome}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -378,11 +386,15 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="nao_definido">Não definido</SelectItem>
-                  {resultadoConfigs.map((config) => (
-                    <SelectItem key={config.id} value={config.resultado_nome.toLowerCase().replace(/\s+/g, '_')}>
-                      {config.resultado_nome}
-                    </SelectItem>
-                  ))}
+                  {resultadoConfigs.map((config) => {
+                    const resultadoValue = config.resultado_nome.toLowerCase().replace(/\s+/g, '_');
+                    console.log('Resultado config:', config, 'Value:', resultadoValue);
+                    return (
+                      <SelectItem key={config.id} value={resultadoValue || 'default_resultado'}>
+                        {config.resultado_nome}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
