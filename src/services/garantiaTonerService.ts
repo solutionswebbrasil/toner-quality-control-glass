@@ -9,7 +9,7 @@ export interface GarantiaToner {
   fornecedor: string;
   defeito: string;
   responsavel_envio: string;
-  status: 'Pendente' | 'Em Análise' | 'Aprovada' | 'Recusada' | 'Concluída';
+  status: 'Pendente' | 'Em Análise' | 'Aguardando Toner Chegar no Laboratório' | 'Enviado para Fornecedor' | 'Concluído';
   data_envio: string;
   data_registro: string;
   observacoes?: string;

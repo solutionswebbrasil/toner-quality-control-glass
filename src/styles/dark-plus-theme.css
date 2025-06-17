@@ -1,0 +1,245 @@
+
+/* Dark Plus specific styles with improved contrast and legibility */
+.dark-plus {
+  background: #1C1C1C !important;
+  
+  /* Sidebar styles - using grey11 (#1C1C1C) as base */
+  .sidebar-bg {
+    background: #1C1C1C !important;
+    border-color: #444444 !important;
+  }
+  
+  /* Header styles - using grey11 (#1C1C1C) as base */
+  .header-bg {
+    background: #1C1C1C !important;
+    border-color: #444444 !important;
+  }
+  
+  /* Main content background */
+  .dark-plus-bg {
+    background: #1C1C1C !important;
+  }
+  
+  /* All divs and containers */
+  div {
+    background-color: #1C1C1C !important;
+  }
+  
+  /* Form backgrounds */
+  form {
+    background: #1C1C1C !important;
+  }
+  
+  /* Content sections */
+  section, main, article {
+    background: #1C1C1C !important;
+  }
+  
+  /* Improved hover states - softer white background with dark text */
+  .dark-plus-hover:hover {
+    background-color: #DDDDDD !important;
+    color: #222222 !important;
+  }
+  
+  /* Main text colors - pure white for better contrast */
+  .dark-plus-text {
+    color: #FFFFFF !important;
+  }
+  
+  /* Secondary text - improved contrast */
+  .dark-plus-secondary-text {
+    color: #A0A0A0 !important;
+  }
+  
+  /* Primary titles - vibrant blue for better visibility */
+  .dark-plus-title {
+    color: #58B1F5 !important;
+    font-weight: 600;
+  }
+  
+  /* Card backgrounds - using improved secondary color */
+  .dark-plus-card {
+    background: #2A2A2A !important;
+    border-color: #444444 !important;
+  }
+  
+  /* Form elements styling with better borders */
+  .dark-plus-form {
+    background: #363636 !important;
+    border-color: #444444 !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-form:hover {
+    background: #DDDDDD !important;
+    color: #222222 !important;
+  }
+  
+  /* Input fields with improved contrast */
+  .dark-plus-input {
+    background: #2A2A2A !important;
+    border-color: #444444 !important;
+    color: #FFFFFF !important;
+    outline: 1px solid #555555;
+  }
+  
+  .dark-plus-input:focus {
+    background: #2A2A2A !important;
+    border-color: #58B1F5 !important;
+    color: #FFFFFF !important;
+    outline: 1px solid #58B1F5;
+  }
+  
+  .dark-plus-input::placeholder {
+    color: #A0A0A0 !important;
+  }
+  
+  /* Button styles with improved hover */
+  .dark-plus-button {
+    background: #363636 !important;
+    border-color: #444444 !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-button:hover {
+    background: #DDDDDD !important;
+    color: #222222 !important;
+  }
+  
+  /* Dialog and modal backgrounds */
+  .dark-plus-dialog {
+    background: #1C1C1C !important;
+    border-color: #444444 !important;
+  }
+  
+  /* Select components with improved styling */
+  .dark-plus-select {
+    background: #2A2A2A !important;
+    border-color: #444444 !important;
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus-select:hover {
+    background: #DDDDDD !important;
+    color: #222222 !important;
+  }
+  
+  /* Table styles with better contrast */
+  .dark-plus-table {
+    background: #1C1C1C !important;
+    color: #FFFFFF !important;
+    border-color: #444444 !important;
+  }
+  
+  .dark-plus-table-row:hover {
+    background: #2A2A2A !important;
+  }
+  
+  /* Labels and text with pure white */
+  .dark-plus-label {
+    color: #FFFFFF !important;
+    font-weight: 600;
+  }
+  
+  /* Filter titles styling */
+  .dark-plus-filter-title {
+    color: #FFFFFF !important;
+    font-weight: 600;
+  }
+  
+  /* Improved borders and dividers */
+  .dark-plus-border {
+    border-color: #444444 !important;
+  }
+  
+  .dark-plus-divider {
+    border-color: #555555 !important;
+  }
+  
+  /* Override all form containers */
+  .space-y-4,
+  .space-y-6,
+  .grid,
+  .flex {
+    background: transparent !important;
+  }
+  
+  /* Specific form element backgrounds */
+  .dark-plus [role="dialog"] {
+    background: #1C1C1C !important;
+  }
+  
+  .dark-plus .max-w-4xl {
+    background: #1C1C1C !important;
+  }
+  
+  /* Content areas */
+  .dark-plus .overflow-y-auto {
+    background: #1C1C1C !important;
+  }
+  
+  /* Card titles with improved visibility */
+  .dark-plus h1,
+  .dark-plus h2,
+  .dark-plus h3,
+  .dark-plus h4,
+  .dark-plus h5,
+  .dark-plus h6 {
+    color: #58B1F5 !important;
+    font-weight: 600;
+  }
+  
+  /* General text improvements */
+  .dark-plus p {
+    color: #FFFFFF !important;
+  }
+  
+  .dark-plus .text-gray-500,
+  .dark-plus .text-slate-500 {
+    color: #A0A0A0 !important;
+  }
+  
+  /* Badge improvements */
+  .dark-plus .bg-gray-50 {
+    background: #2A2A2A !important;
+    color: #FFFFFF !important;
+  }
+  
+  /* Table borders */
+  .dark-plus table,
+  .dark-plus th,
+  .dark-plus td {
+    border-color: #444444 !important;
+  }
+  
+  /* Card border improvements */
+  .dark-plus .border-white\/20,
+  .dark-plus .border-slate-700\/50 {
+    border-color: #444444 !important;
+  }
+
+  /* Welcome screen improvements for dark plus */
+  .dark-plus .welcome-screen {
+    background: #1C1C1C !important;
+  }
+
+  .dark-plus .welcome-title {
+    color: #FFFFFF !important;
+    font-weight: 700;
+  }
+
+  .dark-plus .welcome-subtitle {
+    color: #A0A0A0 !important;
+    font-weight: 500;
+  }
+
+  .dark-plus .welcome-text {
+    color: #FFFFFF !important;
+    font-weight: 400;
+  }
+
+  .dark-plus .welcome-feature-text {
+    color: #FFFFFF !important;
+    font-weight: 500;
+  }
+}

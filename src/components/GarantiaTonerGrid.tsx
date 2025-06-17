@@ -9,8 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Wrench, Calendar, User, Building2, AlertCircle } from 'lucide-react';
 import { garantiaTonerService, GarantiaToner } from '@/services/garantiaTonerService';
 import { toast } from '@/hooks/use-toast';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 export const GarantiaTonerGrid: React.FC = () => {
+  const { theme } = useTheme();
   const [garantias, setGarantias] = useState<GarantiaToner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -28,7 +31,7 @@ export const GarantiaTonerGrid: React.FC = () => {
       setLoading(true);
       const data = await garantiaTonerService.getAll();
       // Filtrar apenas garantias que não estão concluídas
-      const garantiasPendentes = data.filter(g => g.status !== 'Concluída');
+      const garantiasPendentes = data.filter(g => g.status !== 'Concluído');
       setGarantias(garantiasPendentes);
     } catch (error) {
       console.error('Erro ao carregar garantias de toners:', error);
@@ -75,34 +78,69 @@ export const GarantiaTonerGrid: React.FC = () => {
     switch (status) {
       case 'Pendente': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'Em Análise': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'Aprovada': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'Recusada': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'Concluída': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      case 'Aguardando Toner Chegar no Laboratório': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+      case 'Enviado para Fornecedor': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'Concluído': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getCardClasses = () => {
+    if (theme === 'dark-plus') {
+      return "dark-plus-card";
+    }
+    return "bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50";
+  };
+
+  const getTextClasses = () => {
+    if (theme === 'dark-plus') {
+      return "dark-plus-text";
+    }
+    return "";
+  };
+
+  const getLabelClasses = () => {
+    if (theme === 'dark-plus') {
+      return "dark-plus-label";
+    }
+    return "";
+  };
+
+  const getInputClasses = () => {
+    if (theme === 'dark-plus') {
+      return "dark-plus-input";
+    }
+    return "";
+  };
+
+  const getButtonClasses = () => {
+    if (theme === 'dark-plus') {
+      return "dark-plus-button";
+    }
+    return "";
+  };
+
   if (loading) {
     return (
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+      <Card className={cn(getCardClasses())}>
         <CardContent className="p-6">
-          <div className="text-center">Carregando garantias de toners...</div>
+          <div className={cn("text-center", getTextClasses())}>Carregando garantias de toners...</div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+    <Card className={cn(getCardClasses())}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className={cn("flex items-center gap-2", theme === 'dark-plus' && "dark-plus-title")}>
           <Wrench className="w-5 h-5" />
           Garantias de Toners Pendentes
         </CardTitle>
       </CardHeader>
       <CardContent>
         {garantias.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className={cn("text-center py-8", getTextClasses())}>
             Nenhuma garantia de toner pendente.
           </div>
         ) : (
@@ -110,17 +148,20 @@ export const GarantiaTonerGrid: React.FC = () => {
             {garantias.map((garantia) => (
               <div
                 key={garantia.id}
-                className="border rounded-lg p-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+                className={cn(
+                  "border rounded-lg p-4 backdrop-blur",
+                  theme === 'dark-plus' ? "dark-plus-card" : "bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50"
+                )}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{garantia.modelo_toner}</h3>
+                      <h3 className={cn("font-semibold text-lg", getTextClasses())}>{garantia.modelo_toner}</h3>
                       <Badge className={`${getStatusColor(garantia.status)} border-0`}>
                         {garantia.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                    <div className={cn("text-sm font-medium", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-600 dark:text-gray-400")}>
                       Ticket: {garantia.ticket_numero}
                     </div>
                   </div>
@@ -130,24 +171,24 @@ export const GarantiaTonerGrid: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-blue-600" />
                     <div>
-                      <div className="text-xs text-gray-500">Filial</div>
-                      <div className="font-medium">{garantia.filial_origem}</div>
+                      <div className={cn("text-xs", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-500")}>Filial</div>
+                      <div className={cn("font-medium", getTextClasses())}>{garantia.filial_origem}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-green-600" />
                     <div>
-                      <div className="text-xs text-gray-500">Responsável</div>
-                      <div className="font-medium">{garantia.responsavel_envio}</div>
+                      <div className={cn("text-xs", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-500")}>Responsável</div>
+                      <div className={cn("font-medium", getTextClasses())}>{garantia.responsavel_envio}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-purple-600" />
                     <div>
-                      <div className="text-xs text-gray-500">Data Envio</div>
-                      <div className="font-medium">
+                      <div className={cn("text-xs", theme === 'dark-plus' ? "dark-plus-secondary-text" : "text-gray-500")}>Data Envio</div>
+                      <div className={cn("font-medium", getTextClasses())}>
                         {new Date(garantia.data_envio).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
@@ -157,63 +198,64 @@ export const GarantiaTonerGrid: React.FC = () => {
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium">Fornecedor:</span>
-                    <span>{garantia.fornecedor}</span>
+                    <span className={cn("text-sm font-medium", getTextClasses())}>Fornecedor:</span>
+                    <span className={cn(getTextClasses())}>{garantia.fornecedor}</span>
                   </div>
-                  <div className="text-sm">
+                  <div className={cn("text-sm", getTextClasses())}>
                     <span className="font-medium">Defeito:</span> {garantia.defeito}
                   </div>
                   {garantia.observacoes && (
-                    <div className="text-sm mt-2">
+                    <div className={cn("text-sm mt-2", getTextClasses())}>
                       <span className="font-medium">Observações:</span> {garantia.observacoes}
                     </div>
                   )}
                 </div>
 
                 {editingId === garantia.id ? (
-                  <div className="space-y-3 border-t pt-3">
+                  <div className={cn("space-y-3 border-t pt-3", theme === 'dark-plus' && "dark-plus-border")}>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label>Novo Status</Label>
+                        <Label className={cn(getLabelClasses())}>Novo Status</Label>
                         <Select value={newStatus} onValueChange={(value) => setNewStatus(value as GarantiaToner['status'])}>
-                          <SelectTrigger>
+                          <SelectTrigger className={cn(getInputClasses())}>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Pendente">Pendente</SelectItem>
-                            <SelectItem value="Em Análise">Em Análise</SelectItem>
-                            <SelectItem value="Aprovada">Aprovada</SelectItem>
-                            <SelectItem value="Recusada">Recusada</SelectItem>
-                            <SelectItem value="Concluída">Concluída</SelectItem>
+                          <SelectContent className={cn(theme === 'dark-plus' && "dark-plus-dialog")}>
+                            <SelectItem value="Pendente" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Pendente</SelectItem>
+                            <SelectItem value="Em Análise" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Em Análise</SelectItem>
+                            <SelectItem value="Aguardando Toner Chegar no Laboratório" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Aguardando Toner Chegar no Laboratório</SelectItem>
+                            <SelectItem value="Enviado para Fornecedor" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Enviado para Fornecedor</SelectItem>
+                            <SelectItem value="Concluído" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Concluído</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       <div>
-                        <Label>Destino Final</Label>
+                        <Label className={cn(getLabelClasses())}>Destino Final</Label>
                         <Select value={destinoFinal} onValueChange={setDestinoFinal}>
-                          <SelectTrigger>
+                          <SelectTrigger className={cn(getInputClasses())}>
                             <SelectValue placeholder="Selecione o destino" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">Não definido</SelectItem>
-                            <SelectItem value="Virou crédito">Virou crédito</SelectItem>
-                            <SelectItem value="Garantia expirada">Garantia expirada</SelectItem>
-                            <SelectItem value="Não era uma garantia válida">Não era uma garantia válida</SelectItem>
-                            <SelectItem value="Virou troca">Virou troca</SelectItem>
-                            <SelectItem value="Virou bonificação">Virou bonificação</SelectItem>
-                            <SelectItem value="Fornecedor consertou">Fornecedor consertou</SelectItem>
+                          <SelectContent className={cn(theme === 'dark-plus' && "dark-plus-dialog")}>
+                            <SelectItem value="nao_definido" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Não definido</SelectItem>
+                            <SelectItem value="Virou crédito" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Virou crédito</SelectItem>
+                            <SelectItem value="Garantia expirada" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Garantia expirada</SelectItem>
+                            <SelectItem value="Não era uma garantia válida" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Não era uma garantia válida</SelectItem>
+                            <SelectItem value="Virou troca" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Virou troca</SelectItem>
+                            <SelectItem value="Virou bonificação" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Virou bonificação</SelectItem>
+                            <SelectItem value="Fornecedor consertou" className={cn(theme === 'dark-plus' && "dark-plus-hover dark-plus-text")}>Fornecedor consertou</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       <div>
-                        <Label>Observações</Label>
+                        <Label className={cn(getLabelClasses())}>Observações</Label>
                         <Textarea
                           value={observacoes}
                           onChange={(e) => setObservacoes(e.target.value)}
                           placeholder="Observações adicionais..."
                           rows={2}
+                          className={cn(getInputClasses())}
                         />
                       </div>
                     </div>
@@ -221,7 +263,7 @@ export const GarantiaTonerGrid: React.FC = () => {
                       <Button
                         onClick={() => handleUpdateStatus(garantia.id!)}
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700"
+                        className={cn("bg-green-600 hover:bg-green-700", getButtonClasses())}
                         disabled={updating}
                       >
                         {updating ? 'Salvando...' : 'Salvar'}
@@ -236,13 +278,14 @@ export const GarantiaTonerGrid: React.FC = () => {
                         size="sm"
                         variant="outline"
                         disabled={updating}
+                        className={cn(getButtonClasses())}
                       >
                         Cancelar
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="border-t pt-3">
+                  <div className={cn("border-t pt-3", theme === 'dark-plus' && "dark-plus-border")}>
                     <Button
                       onClick={() => {
                         setEditingId(garantia.id!);
@@ -252,6 +295,7 @@ export const GarantiaTonerGrid: React.FC = () => {
                       }}
                       size="sm"
                       variant="outline"
+                      className={cn(getButtonClasses())}
                     >
                       Atualizar Status
                     </Button>
