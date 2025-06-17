@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export const WelcomeScreen: React.FC = () => {
-  const { usuario } = useAuth();
+  const { profile } = useAuth();
   const { theme } = useTheme();
 
   const currentDate = new Date().toLocaleDateString('pt-BR', {
@@ -70,9 +70,9 @@ export const WelcomeScreen: React.FC = () => {
                 </div>
                 <div className="text-center sm:text-left">
                   <h2 className="text-xl lg:text-2xl font-semibold text-slate-800 dark:text-slate-200">
-                    Olá, {usuario?.nome_completo}!
+                    Olá, {profile?.nome_completo}!
                   </h2>
-                  <p className="text-slate-600 dark:text-slate-400">@{usuario?.usuario}</p>
+                  <p className="text-slate-600 dark:text-slate-400">{profile?.email}</p>
                 </div>
               </div>
               

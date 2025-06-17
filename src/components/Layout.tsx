@@ -10,7 +10,7 @@ import { LayoutProps } from './layout/types';
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const { usuario } = useAuth();
+  const { profile } = useAuth();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -26,7 +26,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
 
   const filteredMenuItems = menuItems.filter(item => {
     if (item.id === 'configuracoes') {
-      return usuario?.usuario === 'admin.admin';
+      return profile?.role === 'admin';
     }
     return true;
   });
