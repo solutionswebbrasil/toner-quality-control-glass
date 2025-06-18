@@ -1,38 +1,62 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Retornado } from '@/types';
 import { tonerService } from './tonerService';
 
 export const retornadoService = {
   async getAll(): Promise<Retornado[]> {
-    console.log('🔄 Iniciando busca de TODOS os retornados no banco...');
+    console.log('🔄 Iniciando busca de TODOS os retornados no banco (sem limite)...');
     
-    // Buscar com .range() para garantir que pegamos todos os dados
-    // Usando um range muito alto para não ter limitação
-    const { data, error, count } = await supabase
-      .from('retornados')
-      .select(`
-        *,
-        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `, { count: 'exact' })
-      .range(0, 999999) // Range muito alto para pegar todos os dados
-      .order('data_registro', { ascending: false });
+    let allData: any[] = [];
+    const batchSize = 1000;
+    let offset = 0;
+    let hasMoreData = true;
 
-    if (error) {
-      console.error('❌ Error fetching retornados:', error);
-      throw error;
+    while (hasMoreData) {
+      console.log(`📊 Buscando lote ${offset / batchSize + 1} (offset: ${offset})...`);
+      
+      const { data, error, count } = await supabase
+        .from('retornados')
+        .select(`
+          *,
+          toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
+        `, { count: 'exact' })
+        .range(offset, offset + batchSize - 1)
+        .order('data_registro', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao buscar retornados:', error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        console.log(`✅ Lote carregado: ${data.length} registros. Total acumulado: ${allData.length}`);
+        
+        // Se retornou menos que o batch size, não há mais dados
+        if (data.length < batchSize) {
+          hasMoreData = false;
+        } else {
+          offset += batchSize;
+        }
+      } else {
+        hasMoreData = false;
+      }
+
+      // Log do total no banco na primeira consulta
+      if (offset === 0 && count !== null) {
+        console.log(`📈 Total de registros no banco: ${count}`);
+      }
     }
 
-    console.log(`✅ Total de retornados encontrados no banco: ${count}`);
-    console.log(`📊 Dados carregados na consulta: ${data?.length || 0}`);
+    console.log(`🎯 CARREGAMENTO COMPLETO: ${allData.length} registros carregados`);
 
-    if (!data || data.length === 0) {
-      console.warn('⚠️ Nenhum dado foi retornado da consulta');
+    if (allData.length === 0) {
+      console.warn('⚠️ Nenhum dado foi retornado das consultas');
       return [];
     }
 
     // Transform data to match Retornado interface with proper types and calculate valor_recuperado
-    const transformedData = data.map(item => {
+    const transformedData = allData.map(item => {
       let valorRecuperadoCalculado = item.valor_recuperado;
 
       // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
@@ -61,29 +85,53 @@ export const retornadoService = {
   },
 
   async getAllForCharts(): Promise<Retornado[]> {
-    console.log('📈 Carregando TODOS os dados para gráficos...');
+    console.log('📈 Carregando TODOS os dados para gráficos (sem limite)...');
     
-    // Método específico para gráficos que garante carregar TODOS os dados
-    const { data, error, count } = await supabase
-      .from('retornados')
-      .select(`
-        *,
-        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `, { count: 'exact' })
-      .range(0, 999999) // Sem limite prático
-      .order('data_registro', { ascending: false });
+    let allData: any[] = [];
+    const batchSize = 1000;
+    let offset = 0;
+    let hasMoreData = true;
 
-    if (error) {
-      console.error('❌ Erro ao buscar dados para gráficos:', error);
-      throw error;
+    while (hasMoreData) {
+      console.log(`📊 [Gráficos] Buscando lote ${offset / batchSize + 1} (offset: ${offset})...`);
+      
+      const { data, error, count } = await supabase
+        .from('retornados')
+        .select(`
+          *,
+          toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
+        `, { count: 'exact' })
+        .range(offset, offset + batchSize - 1)
+        .order('data_registro', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao buscar dados para gráficos:', error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        console.log(`✅ [Gráficos] Lote carregado: ${data.length} registros. Total acumulado: ${allData.length}`);
+        
+        if (data.length < batchSize) {
+          hasMoreData = false;
+        } else {
+          offset += batchSize;
+        }
+      } else {
+        hasMoreData = false;
+      }
+
+      if (offset === 0 && count !== null) {
+        console.log(`📈 [Gráficos] Total de registros no banco: ${count}`);
+      }
     }
 
-    console.log(`📊 Total de registros no banco (gráficos): ${count}`);
-    console.log(`📈 Dados carregados para gráficos: ${data?.length || 0}`);
+    console.log(`🎯 [Gráficos] CARREGAMENTO COMPLETO: ${allData.length} registros para gráficos`);
 
-    if (!data) return [];
+    if (!allData || allData.length === 0) return [];
 
-    return data.map(item => {
+    return allData.map(item => {
       let valorRecuperadoCalculado = item.valor_recuperado;
 
       if ((item.destino_final === 'Estoque' || item.destino_final === 'Estoque Semi Novo') && !item.valor_recuperado) {
