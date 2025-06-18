@@ -23,13 +23,14 @@ Deno.serve(async (req) => {
       }
     });
 
-    console.log('API Retornados: Iniciando consulta dos dados...');
+    console.log('API Retornados: Iniciando busca de TODOS os registros...');
 
-    // Buscar TODOS os dados sem limitação usando paginação
+    // Buscar TODOS os dados usando paginação em lotes
     let allData: any[] = [];
     const batchSize = 1000;
     let offset = 0;
     let hasMoreData = true;
+    let totalCount = 0;
 
     while (hasMoreData) {
       console.log(`API Retornados: Buscando lote ${Math.floor(offset / batchSize) + 1} (offset: ${offset})...`);
@@ -48,6 +49,12 @@ Deno.serve(async (req) => {
         throw error;
       }
 
+      // Capturar o total na primeira consulta
+      if (offset === 0 && count !== null) {
+        totalCount = count;
+        console.log(`API Retornados: Total de registros no banco: ${totalCount}`);
+      }
+
       if (data && data.length > 0) {
         allData = [...allData, ...data];
         console.log(`API Retornados: Lote ${Math.floor(offset / batchSize) + 1} carregado: ${data.length} registros. Total acumulado: ${allData.length}`);
@@ -61,14 +68,9 @@ Deno.serve(async (req) => {
       } else {
         hasMoreData = false;
       }
-
-      // Log do total na primeira consulta
-      if (offset === 0 && count !== null) {
-        console.log(`API Retornados: Total de registros no banco: ${count}`);
-      }
     }
 
-    console.log(`API Retornados: ${allData.length} registros encontrados`);
+    console.log(`API Retornados: CARREGAMENTO COMPLETO: ${allData.length} registros carregados de ${totalCount} no banco`);
 
     // Transform data to include modelo and calculated valor_recuperado
     const transformedData = allData.map(item => {
@@ -82,11 +84,32 @@ Deno.serve(async (req) => {
         valorRecuperadoCalculado = folhasRestantes * item.toners.valor_por_folha;
       }
 
+      // Extrair ano, mês e trimestre da data
+      const dataRegistro = new Date(item.data_registro);
+      const ano = dataRegistro.getFullYear();
+      const mes = dataRegistro.getMonth() + 1;
+      const trimestre = Math.ceil(mes / 3);
+      
+      // Array com nomes dos meses
+      const mesesNomes = [
+        'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+        'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+      ];
+
       return {
-        ...item,
-        modelo: item.toners.modelo,
+        id: item.id,
+        id_cliente: item.id_cliente,
+        modelo_toner: item.toners.modelo,
+        cor_toner: item.toners.cor || 'N/A',
+        filial: item.filial,
+        destino_final: item.destino_final,
         valor_recuperado: valorRecuperadoCalculado,
-        // Campos adicionais para cálculos
+        data_registro: item.data_registro.split('T')[0], // Formato YYYY-MM-DD
+        ano: ano,
+        mes: mes,
+        mes_nome: mesesNomes[mes - 1],
+        trimestre: trimestre,
+        peso: item.peso,
         peso_vazio: item.toners.peso_vazio,
         gramatura: item.toners.gramatura,
         capacidade_folhas: item.toners.capacidade_folhas,
@@ -94,13 +117,21 @@ Deno.serve(async (req) => {
       };
     });
 
+    // Resposta no formato esperado pelo Power BI
+    const response = {
+      success: true,
+      total_registros: transformedData.length,
+      data_atualizacao: new Date().toISOString(),
+      dados: transformedData
+    };
+
     // Log para audit/debugging
     const clientIP = req.headers.get('x-forwarded-for') || 
                     req.headers.get('x-real-ip') || 
                     'unknown';
-    console.log(`API Access: ${clientIP} at ${new Date().toISOString()}`);
+    console.log(`API Access: ${clientIP} at ${new Date().toISOString()} - Retornados: ${transformedData.length} registros`);
 
-    return new Response(JSON.stringify(transformedData), {
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -109,6 +140,7 @@ Deno.serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: 'Erro interno do servidor',
         message: error.message 
       }),
