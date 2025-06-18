@@ -3,7 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 Deno.serve(async (req) => {
@@ -23,7 +24,25 @@ Deno.serve(async (req) => {
       }
     });
 
-    console.log('API Retornados: Iniciando busca de TODOS os registros...');
+    console.log('API Retornados: Iniciando busca de dados...');
+
+    // Verificar autenticação por API Key (opcional)
+    const apiKey = req.headers.get('X-API-Key');
+    if (apiKey && apiKey !== 'powerbi-access-2024') {
+      console.log('API Key inválida fornecida:', apiKey);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'API Key inválida',
+          total_registros: 0,
+          dados: []
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Buscar TODOS os dados usando paginação em lotes
     let allData: any[] = [];

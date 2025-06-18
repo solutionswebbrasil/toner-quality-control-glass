@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -13,7 +12,6 @@ import {
   ApiTestResult,
   ApiResponseFormat,
   PowerBiInstructions,
-  ApiStats,
   useApiTest
 } from './apis';
 
@@ -79,7 +77,6 @@ export const ApisIntegracoes: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="api-description">Descrição</Label>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                   API segura que retorna todos os dados de retornados formatados para integração com Power BI. 
                   Inclui informações detalhadas sobre toners, valores recuperados e datas para criação de dashboards.
@@ -112,8 +109,6 @@ export const ApisIntegracoes: React.FC = () => {
               <PowerBiInstructions />
             </div>
           </div>
-
-          <ApiStats />
         </CardContent>
       </Card>
     </div>

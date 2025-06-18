@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Upload } from 'lucide-react';
-import { garantiaService } from '@/services/garantiaService';
-import { fornecedorService } from '@/services/fornecedorService';
-import { fileUploadService } from '@/services/fileUploadService';
-import { toast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import type { Garantia, Fornecedor } from '@/types';
 
-export const GarantiaForm = () => {
+export const GarantiaForm: React.FC = () => {
   const [formData, setFormData] = useState({
     item: '',
     quantidade: '',
@@ -145,12 +141,15 @@ export const GarantiaForm = () => {
   return (
     <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
           <Shield className="w-5 h-5" />
           Registrar Garantia Geral
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      
+      <Separator className="mx-6 bg-gradient-to-r from-blue-500/20 via-purple-500/40 to-blue-500/20" />
+      
+      <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
