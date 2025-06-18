@@ -3,12 +3,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Profile {
+  id: string;
+  nome_completo: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  hasPermission: (modulo: string, submenu: string, acao: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,7 +38,38 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const loadProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Erro ao carregar perfil:', error);
+        return;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Erro inesperado ao carregar perfil:', error);
+    }
+  };
+
+  const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
+    if (!profile) return false;
+    
+    // Admin tem todas as permissões
+    if (profile.role === 'admin') return true;
+    
+    // Aqui você pode implementar a lógica de permissões baseada na tabela permissions
+    // Por enquanto, usuários comuns têm permissão básica
+    return profile.role === 'user' && acao === 'visualizar';
+  };
 
   useEffect(() => {
     // Configurar listener de autenticação
@@ -37,6 +78,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Usar setTimeout para evitar problemas de deadlock
+          setTimeout(() => {
+            loadProfile(session.user.id);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
         setLoading(false);
       }
     );
@@ -45,6 +96,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        loadProfile(session.user.id);
+      }
+      
       setLoading(false);
     });
 
@@ -94,11 +150,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.clear();
       sessionStorage.clear();
       
-      // Invalidar todos os caches do QueryClient se disponível
-      if (window.queryClient) {
-        window.queryClient.clear();
-      }
-      
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Erro no logout:', error);
@@ -115,9 +166,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     session,
+    profile,
     loading,
     signIn,
     signOut,
+    hasPermission,
   };
 
   return (
