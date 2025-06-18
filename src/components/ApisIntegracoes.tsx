@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Eye, EyeOff, RefreshCw, Shield, Clock, Key } from 'lucide-react';
+import { Copy, ExternalLink, Eye, EyeOff, RefreshCw, Shield, Clock, Key, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -13,6 +13,7 @@ export const ApisIntegracoes: React.FC = () => {
   const { toast } = useToast();
   const [showUrl, setShowUrl] = useState(false);
   const [isTestingApi, setIsTestingApi] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState<any>(null);
   
   const apiUrl = 'https://olyozgenxsccrodcfetf.supabase.co/functions/v1/api-retornados';
 
@@ -34,13 +35,33 @@ export const ApisIntegracoes: React.FC = () => {
 
   const testApi = async () => {
     setIsTestingApi(true);
+    setApiTestResult(null);
+    
     try {
+      console.log('Testando API:', apiUrl);
+      
       const response = await fetch(apiUrl, {
+        method: 'GET',
         headers: {
-          'X-API-Key': 'powerbi-access-2024'
+          'X-API-Key': 'powerbi-access-2024',
+          'Content-Type': 'application/json'
         }
       });
+      
+      console.log('Status da resposta:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('Dados recebidos:', data);
+      
+      setApiTestResult({
+        success: true,
+        status: response.status,
+        data: data
+      });
       
       if (data.success) {
         toast({
@@ -51,9 +72,17 @@ export const ApisIntegracoes: React.FC = () => {
         throw new Error(data.message || 'Erro na resposta da API');
       }
     } catch (error) {
+      console.error('Erro no teste da API:', error);
+      
+      setApiTestResult({
+        success: false,
+        error: error.message,
+        status: null
+      });
+      
       toast({
         title: "Erro no Teste",
-        description: "A API não está respondendo corretamente.",
+        description: `Erro: ${error.message}`,
         variant: "destructive"
       });
     } finally {
@@ -89,6 +118,15 @@ export const ApisIntegracoes: React.FC = () => {
           <CardTitle className="flex items-center gap-2">
             <span>API de Retornados</span>
             <Badge variant="secondary" className="bg-green-100 text-green-800">Segura</Badge>
+            {apiTestResult && (
+              <Badge variant={apiTestResult.success ? "default" : "destructive"}>
+                {apiTestResult.success ? (
+                  <><CheckCircle className="h-3 w-3 mr-1" />Funcionando</>
+                ) : (
+                  <><XCircle className="h-3 w-3 mr-1" />Com Erro</>
+                )}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -172,6 +210,33 @@ export const ApisIntegracoes: React.FC = () => {
                   Abrir no Navegador
                 </Button>
               </div>
+
+              {/* Resultado do Teste */}
+              {apiTestResult && (
+                <div className="mt-4">
+                  <Label>Resultado do Teste</Label>
+                  <div className={`mt-1 p-3 rounded-md border ${
+                    apiTestResult.success 
+                      ? 'bg-green-50 border-green-200 text-green-800' 
+                      : 'bg-red-50 border-red-200 text-red-800'
+                  }`}>
+                    {apiTestResult.success ? (
+                      <div>
+                        <p className="font-semibold">✅ Teste bem-sucedido!</p>
+                        <p className="text-sm">Status HTTP: {apiTestResult.status}</p>
+                        <p className="text-sm">Total de registros: {apiTestResult.data?.total_registros || 0}</p>
+                        <p className="text-sm">Última atualização: {apiTestResult.data?.data_atualizacao ? new Date(apiTestResult.data.data_atualizacao).toLocaleString('pt-BR') : 'N/A'}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-semibold">❌ Erro no teste</p>
+                        <p className="text-sm">{apiTestResult.error}</p>
+                        {apiTestResult.status && <p className="text-sm">Status HTTP: {apiTestResult.status}</p>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -196,7 +261,12 @@ export const ApisIntegracoes: React.FC = () => {
       "ano": 2024,
       "mes": 1,
       "mes_nome": "janeiro",
-      "trimestre": 1
+      "trimestre": 1,
+      "peso": 1.2,
+      "peso_vazio": 0.8,
+      "gramatura": 85.5,
+      "capacidade_folhas": 2300,
+      "valor_por_folha": 0.02
     }
   ]
 }`}
@@ -211,7 +281,9 @@ export const ApisIntegracoes: React.FC = () => {
                     <li>1. Abra o Power BI Desktop</li>
                     <li>2. Vá em "Obter Dados" → "Web"</li>
                     <li>3. Cole a URL da API acima</li>
-                    <li>4. Adicione header: X-API-Key: powerbi-access-2024</li>
+                    <li>4. Em "Opções Avançadas", adicione header:</li>
+                    <li className="ml-4">• Nome: X-API-Key</li>
+                    <li className="ml-4">• Valor: powerbi-access-2024</li>
                     <li>5. Clique em "OK" e configure os dados</li>
                     <li>6. Use os campos para criar seus dashboards</li>
                   </ol>
@@ -236,9 +308,9 @@ export const ApisIntegracoes: React.FC = () => {
               <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-md">
                 <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1">
                   <Clock className="h-5 w-5" />
-                  Rate Limited
+                  Completa
                 </div>
-                <div className="text-sm text-orange-700 dark:text-orange-300">100 req/15min</div>
+                <div className="text-sm text-orange-700 dark:text-orange-300">Todos os dados</div>
               </div>
               <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">Tempo Real</div>

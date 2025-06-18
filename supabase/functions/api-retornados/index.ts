@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
         .from('retornados')
         .select(`
           *,
-          toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
+          toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha, cor)
         `, { count: 'exact' })
         .range(offset, offset + batchSize - 1)
         .order('data_registro', { ascending: false });
@@ -142,7 +142,9 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: false,
         error: 'Erro interno do servidor',
-        message: error.message 
+        message: error.message,
+        total_registros: 0,
+        dados: []
       }),
       { 
         status: 500, 

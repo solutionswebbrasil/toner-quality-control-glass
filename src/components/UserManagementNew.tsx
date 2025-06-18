@@ -76,56 +76,66 @@ export const UserManagementNew: React.FC = () => {
     loadPermissions();
   }, []);
 
-  // Função para sincronizar usuários do auth com profiles
-  const syncAuthUsers = async () => {
+  // Função para sincronizar todos os usuários do auth com profiles
+  const syncAllUsers = async () => {
     try {
-      console.log('Sincronizando usuários do auth com profiles...');
+      console.log('Executando sincronização completa de usuários...');
       
-      // Buscar todos os usuários do auth (só admin pode fazer isso)
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.log('Não foi possível acessar usuários do auth (normal para não-admin):', authError);
-        return;
-      }
+      // Primeiro, tentar buscar usuários do auth se temos permissões admin
+      try {
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (!authError && authUsers) {
+          console.log(`Encontrados ${authUsers.users.length} usuários no auth`);
+          
+          // Para cada usuário do auth, garantir que existe no profiles
+          for (const authUser of authUsers.users) {
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('id', authUser.id)
+              .single();
 
-      // Para cada usuário do auth, verificar se existe no profiles
-      for (const authUser of authUsers.users) {
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', authUser.id)
-          .single();
+            if (!existingProfile) {
+              console.log(`Criando profile para usuário: ${authUser.email}`);
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: authUser.id,
+                  email: authUser.email || '',
+                  nome_completo: authUser.user_metadata?.nome_completo || authUser.email || '',
+                  role: authUser.email === 'admin@sgqpro.com' ? 'admin' : 'user'
+                });
 
-        if (!existingProfile) {
-          // Criar profile se não existir
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: authUser.id,
-              email: authUser.email || '',
-              nome_completo: authUser.user_metadata?.nome_completo || authUser.email || '',
-              role: authUser.email === 'admin@sgqpro.com' ? 'admin' : 'user'
-            });
-
-          if (insertError) {
-            console.error('Erro ao criar profile para usuário:', authUser.id, insertError);
-          } else {
-            console.log('Profile criado para usuário:', authUser.email);
+              if (insertError) {
+                console.error('Erro ao criar profile:', insertError);
+              } else {
+                console.log(`Profile criado para: ${authUser.email}`);
+              }
+            }
           }
         }
+      } catch (authError) {
+        console.log('Não foi possível acessar usuários do auth (esperado para não-admin):', authError);
       }
+
+      // Forçar reload das permissões para garantir que tudo está sincronizado
+      await loadPermissions();
+
     } catch (error) {
-      console.log('Erro na sincronização (esperado para usuários não-admin):', error);
+      console.error('Erro na sincronização:', error);
     }
   };
 
   const loadProfiles = async () => {
     try {
       setLoading(true);
+      setError('');
       
-      // Tentar sincronizar usuários primeiro
-      await syncAuthUsers();
+      console.log('Carregando profiles...');
+      
+      // Sincronizar usuários antes de carregar
+      await syncAllUsers();
       
       const { data, error } = await supabase
         .from('profiles')
@@ -133,15 +143,15 @@ export const UserManagementNew: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        setError('Erro ao carregar usuários');
-        console.error('Erro:', error);
+        setError('Erro ao carregar usuários: ' + error.message);
+        console.error('Erro ao carregar profiles:', error);
       } else {
         setProfiles(data || []);
-        console.log('Usuários carregados:', data?.length || 0);
+        console.log('Profiles carregados:', data?.length || 0);
       }
     } catch (error) {
-      setError('Erro interno');
-      console.error('Erro:', error);
+      setError('Erro interno ao carregar usuários');
+      console.error('Erro interno:', error);
     } finally {
       setLoading(false);
     }
@@ -149,10 +159,18 @@ export const UserManagementNew: React.FC = () => {
 
   const refreshProfiles = async () => {
     setRefreshing(true);
-    await loadProfiles();
-    setRefreshing(false);
-    setSuccess('Lista de usuários atualizada!');
-    setTimeout(() => setSuccess(''), 3000);
+    setError('');
+    setSuccess('');
+    
+    try {
+      await loadProfiles();
+      setSuccess('Lista de usuários atualizada com sucesso!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError('Erro ao atualizar lista de usuários');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const loadPermissions = async () => {
@@ -168,20 +186,26 @@ export const UserManagementNew: React.FC = () => {
         setPermissions(data || []);
       }
     } catch (error) {
-      console.error('Erro:', error);
+      console.error('Erro ao carregar permissões:', error);
     }
   };
 
   const createUser = async () => {
     if (!newUser.email || !newUser.password || !newUser.nome_completo) {
-      setError('Preencha todos os campos');
+      setError('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (newUser.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
 
     try {
       console.log('Criando usuário:', newUser.email);
+      setError('');
       
-      // Usar signUp normal em vez de admin.createUser
+      // Usar signUp normal
       const { data, error } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -200,16 +224,42 @@ export const UserManagementNew: React.FC = () => {
         return;
       }
 
-      console.log('Usuário criado:', data);
+      if (data.user) {
+        console.log('Usuário criado:', data.user.email);
+        
+        // Aguardar um pouco para o trigger processar
+        setTimeout(async () => {
+          try {
+            // Tentar criar o profile manualmente se não foi criado pelo trigger
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('id', data.user!.id)
+              .single();
 
-      setSuccess('Usuário criado com sucesso! O usuário receberá um email de confirmação.');
-      setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
-      setCreateUserOpen(false);
-      
-      // Aguardar um pouco antes de recarregar para dar tempo do trigger criar o perfil
-      setTimeout(() => {
-        refreshProfiles();
-      }, 2000);
+            if (!existingProfile) {
+              console.log('Criando profile manualmente...');
+              await supabase
+                .from('profiles')
+                .insert({
+                  id: data.user!.id,
+                  email: newUser.email,
+                  nome_completo: newUser.nome_completo,
+                  role: newUser.role
+                });
+            }
+
+            // Recarregar a lista
+            await refreshProfiles();
+          } catch (syncError) {
+            console.error('Erro na sincronização manual:', syncError);
+          }
+        }, 2000);
+
+        setSuccess('Usuário criado com sucesso! O usuário receberá um email de confirmação.');
+        setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
+        setCreateUserOpen(false);
+      }
 
     } catch (error) {
       console.error('Erro interno ao criar usuário:', error);
@@ -239,7 +289,7 @@ export const UserManagementNew: React.FC = () => {
       setSuccess('Usuário atualizado com sucesso!');
       setEditUserOpen(false);
       setEditingUser(null);
-      loadProfiles();
+      refreshProfiles();
     } catch (error) {
       setError('Erro interno');
       console.error('Erro:', error);
@@ -275,7 +325,7 @@ export const UserManagementNew: React.FC = () => {
       }
 
       setSuccess('Usuário excluído com sucesso!');
-      loadProfiles();
+      refreshProfiles();
     } catch (error) {
       setError('Erro interno');
       console.error('Erro:', error);
@@ -358,7 +408,14 @@ export const UserManagementNew: React.FC = () => {
   const rolePermissions = permissions.filter(p => p.role === selectedRole);
 
   if (loading) {
-    return <div className="p-6">Carregando usuários...</div>;
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Carregando usuários...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -367,6 +424,7 @@ export const UserManagementNew: React.FC = () => {
         <div className="flex items-center gap-2">
           <Users className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Gerenciamento de Usuários</h1>
+          <Badge variant="outline">{profiles.length} usuários</Badge>
         </div>
         
         <div className="flex gap-2">
@@ -377,7 +435,7 @@ export const UserManagementNew: React.FC = () => {
             className="flex items-center gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Atualizar Lista
+            {refreshing ? 'Sincronizando...' : 'Atualizar Lista'}
           </Button>
 
           <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
@@ -509,29 +567,32 @@ export const UserManagementNew: React.FC = () => {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="name">Nome Completo</Label>
+                      <Label htmlFor="name">Nome Completo *</Label>
                       <Input
                         id="name"
                         value={newUser.nome_completo}
                         onChange={(e) => setNewUser(prev => ({ ...prev, nome_completo: e.target.value }))}
+                        placeholder="Digite o nome completo"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">Email *</Label>
                       <Input
                         id="email"
                         type="email"
                         value={newUser.email}
                         onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Digite o email"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="password">Senha</Label>
+                      <Label htmlFor="password">Senha *</Label>
                       <Input
                         id="password"
                         type="password"
                         value={newUser.password}
                         onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                        placeholder="Mínimo 6 caracteres"
                       />
                     </div>
                     <div>
@@ -627,6 +688,13 @@ export const UserManagementNew: React.FC = () => {
             <CardContent className="p-8 text-center">
               <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500">Nenhum usuário encontrado</p>
+              <Button 
+                onClick={refreshProfiles} 
+                className="mt-4"
+                variant="outline"
+              >
+                Sincronizar Usuários
+              </Button>
             </CardContent>
           </Card>
         )}
