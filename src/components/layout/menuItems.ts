@@ -1,119 +1,212 @@
-
 import {
-  FileText,
-  BarChart3,
+  Home,
+  Package,
   Shield,
+  Printer,
   AlertTriangle,
+  FileCheck,
   Award,
   Settings,
-  Wrench,
-  ClipboardList,
-  Search,
-  TrendingUp,
-  Users,
-  Building2,
-  Package,
-  Link
 } from 'lucide-react';
 
-export const menuItems = [
+interface MenuItem {
+  title: string;
+  icon: keyof typeof Icons;
+  items: {
+    title: string;
+    href: string;
+    description: string;
+  }[];
+}
+
+const Icons = {
+  Home,
+  Package,
+  Shield,
+  Printer,
+  AlertTriangle,
+  FileCheck,
+  Award,
+  Settings,
+};
+
+export const menuItems: MenuItem[] = [
   {
-    id: 'retornados',
-    label: 'Retornados',
-    icon: Package,
-    submenu: [
-      { id: 'retornados-registro', label: 'Registro', page: 'retornados-registro' },
-      { id: 'retornados-consulta', label: 'Consulta', page: 'retornados-consulta' },
-      { id: 'retornados-graficos', label: 'Gráficos', page: 'retornados-graficos' }
-    ]
+    title: 'Dashboard',
+    icon: 'Home',
+    items: [
+      {
+        title: 'Visão Geral',
+        href: '/',
+        description: 'Resumo geral do sistema'
+      }
+    ],
   },
   {
-    id: 'garantias',
-    label: 'Garantias',
-    icon: Shield,
-    submenu: [
-      { id: 'fornecedores-cadastro', label: 'Fornecedores Cadastro', page: 'fornecedores-cadastro' },
-      { id: 'fornecedores-consulta', label: 'Fornecedores Consulta', page: 'fornecedores-consulta' },
-      { id: 'garantias-registro', label: 'Registro', page: 'garantias-registro' },
-      { id: 'garantias-consulta', label: 'Consulta', page: 'garantias-consulta' },
-      { id: 'garantias-graficos-gerais', label: 'Gráficos Gerais', page: 'garantias-graficos-gerais' },
-      { id: 'garantias-toners', label: 'Garantias Toners', page: 'garantias-toners' },
-      { id: 'toners-consulta', label: 'Toners Consulta', page: 'toners-consulta' },
-      { id: 'toners-graficos', label: 'Toners Gráficos', page: 'toners-graficos' }
-    ]
+    title: 'Retornados',
+    icon: 'Package',
+    items: [
+      {
+        title: 'Novo Retornado',
+        href: '/retornado-form',
+        description: 'Cadastrar novo item retornado'
+      },
+      {
+        title: 'Consultar Retornados',
+        href: '/retornado-grid',
+        description: 'Listagem e busca de itens retornados'
+      },
+      {
+        title: 'Gráficos Retornados',
+        href: '/retornado-charts',
+        description: 'Visualização gráfica dos dados de retornados'
+      }
+    ],
   },
   {
-    id: 'toners',
-    label: 'Toners',
-    icon: Package,
-    submenu: [
-      { id: 'toners-cadastro', label: 'Cadastro', page: 'toners-cadastro' },
-      { id: 'toners-consulta-principal', label: 'Consulta', page: 'toners-consulta-principal' }
-    ]
+    title: 'Garantias',
+    icon: 'Shield',
+    items: [
+      {
+        title: 'Registrar Garantia',
+        href: '/garantia-form',
+        description: 'Abrir um chamado de garantia'
+      },
+      {
+        title: 'Consultar Garantias',
+        href: '/garantia-grid',
+        description: 'Acompanhar o status das garantias'
+      },
+      {
+        title: 'Gráficos de Garantias',
+        href: '/garantia-charts',
+        description: 'Análise visual das garantias'
+      },
+	  {
+        title: 'Gráficos Gerais',
+        href: '/garantia-geral-charts',
+        description: 'Análise visual geral das garantias'
+      },
+      {
+        title: 'Consultar Toners',
+        href: '/garantia-toner-consulta',
+        description: 'Consulta específica de garantias de toners'
+      },
+      {
+        title: 'Listar Toners',
+        href: '/garantia-toner-grid',
+        description: 'Listagem de garantias de toners'
+      },
+      {
+        title: 'Gráficos de Toners',
+        href: '/garantia-toner-charts',
+        description: 'Visualização gráfica das garantias de toners'
+      }
+    ],
   },
   {
-    id: 'auditorias',
-    label: 'Auditorias',
-    icon: ClipboardList,
-    submenu: [
-      { id: 'auditorias-registro', label: 'Registro', page: 'auditorias-registro' },
-      { id: 'auditorias-consulta', label: 'Consulta', page: 'auditorias-consulta' }
-    ]
+    title: 'Toners',
+    icon: 'Printer',
+    items: [
+      {
+        title: 'Novo Toner',
+        href: '/toner-form',
+        description: 'Cadastrar um novo toner'
+      },
+      {
+        title: 'Consultar Toners',
+        href: '/toner-grid',
+        description: 'Listar e buscar toners cadastrados'
+      }
+    ],
   },
   {
-    id: 'nao-conformidades',
-    label: 'Não Conformidades',
-    icon: AlertTriangle,
-    submenu: [
-      { id: 'nc-registro', label: 'Registro', page: 'nc-registro' },
-      { id: 'nc-consulta', label: 'Consulta', page: 'nc-consulta' },
-      { id: 'nc-graficos', label: 'Gráficos', page: 'nc-graficos' }
-    ]
+    title: 'Não Conformidades',
+    icon: 'AlertTriangle',
+    items: [
+      {
+        title: 'Nova Não Conformidade',
+        href: '/nao-conformidade-form',
+        description: 'Registrar uma não conformidade'
+      },
+      {
+        title: 'Consultar Não Conformidades',
+        href: '/nao-conformidade-grid',
+        description: 'Listar as não conformidades registradas'
+      },
+      {
+        title: 'Gráficos de Não Conformidades',
+        href: '/nao-conformidade-charts',
+        description: 'Visualização gráfica das não conformidades'
+      }
+    ],
   },
   {
-    id: 'itpop',
-    label: 'IT/POP',
-    icon: FileText,
-    submenu: [
-      { id: 'titulo-itpop-cadastro', label: 'Título Cadastro', page: 'titulo-itpop-cadastro' },
-      { id: 'titulo-itpop-consulta', label: 'Título Consulta', page: 'titulo-itpop-consulta' },
-      { id: 'registro-itpop', label: 'Registro', page: 'registro-itpop' },
-      { id: 'registros-itpop-consulta', label: 'Registros Consulta', page: 'registros-itpop-consulta' },
-      { id: 'visualizar-itpop', label: 'Visualizar', page: 'visualizar-itpop' }
-    ]
+    title: 'Auditorias',
+    icon: 'FileCheck',
+    items: [
+      {
+        title: 'Nova Auditoria',
+        href: '/auditoria-form',
+        description: 'Agendar e registrar auditorias'
+      },
+      {
+        title: 'Consultar Auditorias',
+        href: '/auditoria-grid',
+        description: 'Listar auditorias realizadas'
+      }
+    ],
   },
   {
-    id: 'bpmn',
-    label: 'BPMN',
-    icon: TrendingUp,
-    submenu: [
-      { id: 'titulo-bpmn-cadastro', label: 'Título Cadastro', page: 'titulo-bpmn-cadastro' },
-      { id: 'titulo-bpmn-consulta', label: 'Título Consulta', page: 'titulo-bpmn-consulta' },
-      { id: 'registro-bpmn', label: 'Registro', page: 'registro-bpmn' },
-      { id: 'registros-bpmn-consulta', label: 'Registros Consulta', page: 'registros-bpmn-consulta' },
-      { id: 'visualizar-bpmn', label: 'Visualizar', page: 'visualizar-bpmn' }
-    ]
+    title: 'Certificados',
+    icon: 'Award',
+    items: [
+      {
+        title: 'Novo Certificado',
+        href: '/certificado-form',
+        description: 'Cadastrar um novo certificado'
+      },
+      {
+        title: 'Consultar Certificados',
+        href: '/certificado-grid',
+        description: 'Gerenciar certificados da empresa'
+      }
+    ],
   },
   {
-    id: 'certificados',
-    label: 'Certificados',
-    icon: Award,
-    submenu: [
-      { id: 'certificados-registro', label: 'Registro', page: 'certificados-registro' },
-      { id: 'certificados-consulta', label: 'Consulta', page: 'certificados-consulta' }
-    ]
+    title: 'Configurações',
+    icon: 'Settings',
+    items: [
+      {
+        title: 'Filiais',
+        href: '/filiais',
+        description: 'Gerenciar filiais da empresa'
+      },
+      {
+        title: 'Fornecedores',
+        href: '/fornecedores',
+        description: 'Cadastro e consulta de fornecedores'
+      },
+      {
+        title: 'Usuários',
+        href: '/usuarios',
+        description: 'Gerenciamento de usuários do sistema'
+      },
+      {
+        title: 'Consulta Usuários',
+        href: '/consulta-usuarios',
+        description: 'Consultar e gerenciar usuários cadastrados'
+      },
+      {
+        title: 'APIs de Integrações',
+        href: '/apis-integracoes',
+        description: 'Configurar APIs para integrações externas'
+      },
+      {
+        title: 'Configurar Retornados',
+        href: '/configurar-retornados',
+        description: 'Configurar opções para retornados'
+      }
+    ],
   },
-  {
-    id: 'configuracoes',
-    label: 'Configurações',
-    icon: Settings,
-    submenu: [
-      { id: 'filiais-cadastro', label: 'Filiais Cadastro', page: 'filiais-cadastro' },
-      { id: 'filiais-consulta', label: 'Filiais Consulta', page: 'filiais-consulta' },
-      { id: 'config-retornado', label: 'Retornado', page: 'config-retornado' },
-      { id: 'status-cadastro', label: 'Cadastro de Status', page: 'status-cadastro' },
-      { id: 'apis-integracoes', label: 'APIs de Integrações', page: 'apis-integracoes' },
-      { id: 'usuarios', label: 'Usuários', page: 'usuarios' }
-    ]
-  }
 ];
