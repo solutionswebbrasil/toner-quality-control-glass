@@ -53,11 +53,19 @@ import { RegistroItPopForm } from '@/components/RegistroItPopForm';
 import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { ConsultaRegistrosItPop } from '@/components/ConsultaRegistrosItPop';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
-import NotFound from '@/pages/NotFound';
+import { NotFound } from '@/pages/NotFound';
 
 const queryClient = new QueryClient();
 
 function App() {
+  const handleSuccess = () => {
+    console.log('Operation completed successfully');
+  };
+
+  const handlePageChange = (page: string) => {
+    console.log('Page changed to:', page);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -70,7 +78,7 @@ function App() {
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="dashboard" onPageChange={() => {}}>
+                      <Layout currentPage="dashboard" onPageChange={handlePageChange}>
                         <Dashboard />
                       </Layout>
                     </ProtectedRoute>
@@ -80,7 +88,7 @@ function App() {
                   path="/retornados/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="retornados-novo" onPageChange={() => {}}>
+                      <Layout currentPage="retornados-novo" onPageChange={handlePageChange}>
                         <RetornadoForm />
                       </Layout>
                     </ProtectedRoute>
@@ -90,7 +98,7 @@ function App() {
                   path="/retornados/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="retornados-lista" onPageChange={() => {}}>
+                      <Layout currentPage="retornados-lista" onPageChange={handlePageChange}>
                         <RetornadoGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -100,7 +108,7 @@ function App() {
                   path="/retornados/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="retornados-charts" onPageChange={() => {}}>
+                      <Layout currentPage="retornados-charts" onPageChange={handlePageChange}>
                         <RetornadoCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -110,7 +118,7 @@ function App() {
                   path="/toners/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="toners-novo" onPageChange={() => {}}>
+                      <Layout currentPage="toners-novo" onPageChange={handlePageChange}>
                         <TonerForm />
                       </Layout>
                     </ProtectedRoute>
@@ -120,7 +128,7 @@ function App() {
                   path="/toners/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="toners-lista" onPageChange={() => {}}>
+                      <Layout currentPage="toners-lista" onPageChange={handlePageChange}>
                         <TonerGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -130,8 +138,8 @@ function App() {
                   path="/toners/editar/:id"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="toners-editar" onPageChange={() => {}}>
-                        <TonerEditForm />
+                      <Layout currentPage="toners-editar" onPageChange={handlePageChange}>
+                        <div>Toner Edit Form - ID based routing not implemented</div>
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -140,7 +148,7 @@ function App() {
                   path="/garantias/nova"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-nova" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-nova" onPageChange={handlePageChange}>
                         <GarantiaForm />
                       </Layout>
                     </ProtectedRoute>
@@ -150,7 +158,7 @@ function App() {
                   path="/garantias/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-lista" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-lista" onPageChange={handlePageChange}>
                         <GarantiaGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -160,8 +168,8 @@ function App() {
                   path="/garantias/editar/:id"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-editar" onPageChange={() => {}}>
-                        <GarantiaEditForm />
+                      <Layout currentPage="garantias-editar" onPageChange={handlePageChange}>
+                        <div>Garantia Edit Form - ID based routing not implemented</div>
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -170,7 +178,7 @@ function App() {
                   path="/garantias/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-charts" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-charts" onPageChange={handlePageChange}>
                         <GarantiaCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -180,7 +188,7 @@ function App() {
                   path="/garantias/geral-charts"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-geral-charts" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-geral-charts" onPageChange={handlePageChange}>
                         <GarantiaGeralCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -190,7 +198,7 @@ function App() {
                   path="/garantias-toner/consulta"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-toner-consulta" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-toner-consulta" onPageChange={handlePageChange}>
                         <GarantiaTonerConsulta />
                       </Layout>
                     </ProtectedRoute>
@@ -200,7 +208,7 @@ function App() {
                   path="/garantias-toner/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-toner-lista" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-toner-lista" onPageChange={handlePageChange}>
                         <GarantiaTonerGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -210,7 +218,7 @@ function App() {
                   path="/garantias-toner/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="garantias-toner-charts" onPageChange={() => {}}>
+                      <Layout currentPage="garantias-toner-charts" onPageChange={handlePageChange}>
                         <GarantiaTonerCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -220,7 +228,7 @@ function App() {
                   path="/nao-conformidades/nova"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="nao-conformidades-nova" onPageChange={() => {}}>
+                      <Layout currentPage="nao-conformidades-nova" onPageChange={handlePageChange}>
                         <NaoConformidadeForm />
                       </Layout>
                     </ProtectedRoute>
@@ -230,7 +238,7 @@ function App() {
                   path="/nao-conformidades/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="nao-conformidades-lista" onPageChange={() => {}}>
+                      <Layout currentPage="nao-conformidades-lista" onPageChange={handlePageChange}>
                         <NaoConformidadeGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -240,8 +248,8 @@ function App() {
                   path="/nao-conformidades/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="nao-conformidades-charts" onPageChange={() => {}}>
-                        <NaoConformidadeCharts />
+                      <Layout currentPage="nao-conformidades-charts" onPageChange={handlePageChange}>
+                        <NaoConformidadeCharts naoConformidades={[]} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -250,8 +258,8 @@ function App() {
                   path="/auditorias/nova"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="auditorias-nova" onPageChange={() => {}}>
-                        <AuditoriaForm />
+                      <Layout currentPage="auditorias-nova" onPageChange={handlePageChange}>
+                        <AuditoriaForm onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -260,7 +268,7 @@ function App() {
                   path="/auditorias/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="auditorias-lista" onPageChange={() => {}}>
+                      <Layout currentPage="auditorias-lista" onPageChange={handlePageChange}>
                         <AuditoriaGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -270,7 +278,7 @@ function App() {
                   path="/certificados/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="certificados-novo" onPageChange={() => {}}>
+                      <Layout currentPage="certificados-novo" onPageChange={handlePageChange}>
                         <CertificadoForm />
                       </Layout>
                     </ProtectedRoute>
@@ -280,7 +288,7 @@ function App() {
                   path="/certificados/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="certificados-lista" onPageChange={() => {}}>
+                      <Layout currentPage="certificados-lista" onPageChange={handlePageChange}>
                         <CertificadoGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -290,7 +298,7 @@ function App() {
                   path="/filiais"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="filiais" onPageChange={() => {}}>
+                      <Layout currentPage="filiais" onPageChange={handlePageChange}>
                         <FilialGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -300,8 +308,8 @@ function App() {
                   path="/filiais/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="filiais-novo" onPageChange={() => {}}>
-                        <FilialForm />
+                      <Layout currentPage="filiais-novo" onPageChange={handlePageChange}>
+                        <FilialForm onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -310,7 +318,7 @@ function App() {
                   path="/fornecedores"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="fornecedores" onPageChange={() => {}}>
+                      <Layout currentPage="fornecedores" onPageChange={handlePageChange}>
                         <FornecedorGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -320,7 +328,7 @@ function App() {
                   path="/fornecedores/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="fornecedores-novo" onPageChange={() => {}}>
+                      <Layout currentPage="fornecedores-novo" onPageChange={handlePageChange}>
                         <FornecedorForm />
                       </Layout>
                     </ProtectedRoute>
@@ -330,7 +338,7 @@ function App() {
                   path="/usuarios"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="usuarios" onPageChange={() => {}}>
+                      <Layout currentPage="usuarios" onPageChange={handlePageChange}>
                         <UserManagement />
                       </Layout>
                     </ProtectedRoute>
@@ -340,7 +348,7 @@ function App() {
                   path="/consulta-usuarios"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="consulta-usuarios" onPageChange={() => {}}>
+                      <Layout currentPage="consulta-usuarios" onPageChange={handlePageChange}>
                         <ConsultaUsuarios />
                       </Layout>
                     </ProtectedRoute>
@@ -350,7 +358,7 @@ function App() {
                   path="/apis-integracoes"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="apis-integracoes" onPageChange={() => {}}>
+                      <Layout currentPage="apis-integracoes" onPageChange={handlePageChange}>
                         <ApisIntegracoes />
                       </Layout>
                     </ProtectedRoute>
@@ -360,7 +368,7 @@ function App() {
                   path="/configurar-retornados"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="configurar-retornados" onPageChange={() => {}}>
+                      <Layout currentPage="configurar-retornados" onPageChange={handlePageChange}>
                         <ConfiguracoesRetornado />
                       </Layout>
                     </ProtectedRoute>
@@ -370,8 +378,8 @@ function App() {
                   path="/bpmn/titulos/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="bpmn-titulos-novo" onPageChange={() => {}}>
-                        <TituloBpmnForm />
+                      <Layout currentPage="bpmn-titulos-novo" onPageChange={handlePageChange}>
+                        <TituloBpmnForm onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -380,8 +388,8 @@ function App() {
                   path="/bpmn/registros/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="bpmn-registros-novo" onPageChange={() => {}}>
-                        <RegistroBpmnForm />
+                      <Layout currentPage="bpmn-registros-novo" onPageChange={handlePageChange}>
+                        <RegistroBpmnForm onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -390,8 +398,8 @@ function App() {
                   path="/bpmn/titulos/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="bpmn-titulos-lista" onPageChange={() => {}}>
-                        <ConsultaTitulosBpmn />
+                      <Layout currentPage="bpmn-titulos-lista" onPageChange={handlePageChange}>
+                        <ConsultaTitulosBpmn onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -400,8 +408,8 @@ function App() {
                   path="/bpmn/registros/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="bpmn-registros-lista" onPageChange={() => {}}>
-                        <ConsultaRegistrosBpmn />
+                      <Layout currentPage="bpmn-registros-lista" onPageChange={handlePageChange}>
+                        <ConsultaRegistrosBpmn onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -410,8 +418,8 @@ function App() {
                   path="/bpmn/baixar"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="bpmn-baixar" onPageChange={() => {}}>
-                        <BaixarBpmn />
+                      <Layout currentPage="bpmn-baixar" onPageChange={handlePageChange}>
+                        <BaixarBpmn onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -420,8 +428,8 @@ function App() {
                   path="/bpmn/visualizar"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="bpmn-visualizar" onPageChange={() => {}}>
-                        <VisualizadorBpmn />
+                      <Layout currentPage="bpmn-visualizar" onPageChange={handlePageChange}>
+                        <VisualizadorBpmn onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -430,8 +438,8 @@ function App() {
                   path="/itpop/titulos/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="itpop-titulos-novo" onPageChange={() => {}}>
-                        <TituloItPopForm />
+                      <Layout currentPage="itpop-titulos-novo" onPageChange={handlePageChange}>
+                        <TituloItPopForm onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -440,8 +448,8 @@ function App() {
                   path="/itpop/registros/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="itpop-registros-novo" onPageChange={() => {}}>
-                        <RegistroItPopForm />
+                      <Layout currentPage="itpop-registros-novo" onPageChange={handlePageChange}>
+                        <RegistroItPopForm onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -450,8 +458,8 @@ function App() {
                   path="/itpop/titulos/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="itpop-titulos-lista" onPageChange={() => {}}>
-                        <ConsultaTitulosItPop />
+                      <Layout currentPage="itpop-titulos-lista" onPageChange={handlePageChange}>
+                        <ConsultaTitulosItPop onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -460,8 +468,8 @@ function App() {
                   path="/itpop/registros/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="itpop-registros-lista" onPageChange={() => {}}>
-                        <ConsultaRegistrosItPop />
+                      <Layout currentPage="itpop-registros-lista" onPageChange={handlePageChange}>
+                        <ConsultaRegistrosItPop onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -470,8 +478,8 @@ function App() {
                   path="/itpop/visualizar"
                   element={
                     <ProtectedRoute>
-                      <Layout currentPage="itpop-visualizar" onPageChange={() => {}}>
-                        <VisualizadorItPop />
+                      <Layout currentPage="itpop-visualizar" onPageChange={handlePageChange}>
+                        <VisualizadorItPop onSuccess={handleSuccess} />
                       </Layout>
                     </ProtectedRoute>
                   }
