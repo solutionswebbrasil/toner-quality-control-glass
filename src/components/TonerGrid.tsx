@@ -3,6 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Search, Edit, Trash2, Eye, AlertTriangle, Package } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/tonerService';
@@ -20,6 +29,13 @@ export const TonerGrid: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [editingToner, setEditingToner] = useState<Toner | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+
+  const totalPages = Math.ceil(filteredToners.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filteredToners.slice(startIndex, endIndex);
 
   useEffect(() => {
     loadToners();
@@ -32,6 +48,7 @@ export const TonerGrid: React.FC = () => {
       toner.impressoras_compat.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredToners(filtered);
+    setCurrentPage(1); // Reset to first page when filtering
   }, [toners, searchTerm]);
 
   const loadToners = async () => {
@@ -135,6 +152,97 @@ export const TonerGrid: React.FC = () => {
   // Contar toners que precisam de atualização
   const tonersNeedingUpdate = filteredToners.filter(needsUpdate).length;
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Primeira página
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            onClick={() => handlePageChange(1)}
+            isActive={currentPage === 1}
+            className="cursor-pointer"
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Ellipsis no início se necessário
+      if (currentPage > 3) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Páginas ao redor da atual
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Ellipsis no final se necessário
+      if (currentPage < totalPages - 2) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Última página
+      if (totalPages > 1) {
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              onClick={() => handlePageChange(totalPages)}
+              isActive={currentPage === totalPages}
+              className="cursor-pointer"
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+
+    return items;
+  };
+
   if (editingToner) {
     return (
       <TonerEditForm
@@ -218,90 +326,120 @@ export const TonerGrid: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/20 dark:border-slate-700/50">
-                    <th className="text-left p-3 font-semibold">Modelo</th>
-                    <th className="text-left p-3 font-semibold">Cor</th>
-                    <th className="text-left p-3 font-semibold">Peso Cheio</th>
-                    <th className="text-left p-3 font-semibold">Peso Vazio</th>
-                    <th className="text-left p-3 font-semibold">Gramatura</th>
-                    <th className="text-left p-3 font-semibold">Preço</th>
-                    <th className="text-left p-3 font-semibold">Capacidade</th>
-                    <th className="text-left p-3 font-semibold">Valor/Folha</th>
-                    <th className="text-left p-3 font-semibold">Data Registro</th>
-                    <th className="text-left p-3 font-semibold">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredToners.map((toner) => {
-                    const needsUpdateFlag = needsUpdate(toner);
-                    return (
-                      <tr 
-                        key={toner.id} 
-                        className={cn(
-                          "border-b transition-colors border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20",
-                          needsUpdateFlag && "border-orange-300 dark:border-orange-600"
-                        )}
-                      >
-                        <td className="p-3 font-medium">
-                          <div className="flex items-center gap-2">
-                            {toner.modelo}
-                            {needsUpdateFlag && (
-                              <AlertTriangle className="w-4 h-4 text-orange-600" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          {toner.cor ? (
-                            <span className={cn("px-2 py-1 rounded-full text-xs font-medium", 
-                              toner.cor === 'Preto' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' :
-                              toner.cor === 'Ciano' ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' :
-                              toner.cor === 'Magenta' ? 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200' :
-                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            )}>
-                              {toner.cor}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 italic">Não informado</span>
+            <>
+              <div className="mb-4 text-sm text-slate-600 dark:text-slate-400">
+                Página {currentPage} de {totalPages} | Mostrando {currentItems.length} de {filteredToners.length} toners
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/20 dark:border-slate-700/50">
+                      <th className="text-left p-3 font-semibold">Modelo</th>
+                      <th className="text-left p-3 font-semibold">Cor</th>
+                      <th className="text-left p-3 font-semibold">Peso Cheio</th>
+                      <th className="text-left p-3 font-semibold">Peso Vazio</th>
+                      <th className="text-left p-3 font-semibold">Gramatura</th>
+                      <th className="text-left p-3 font-semibold">Preço</th>
+                      <th className="text-left p-3 font-semibold">Capacidade</th>
+                      <th className="text-left p-3 font-semibold">Valor/Folha</th>
+                      <th className="text-left p-3 font-semibold">Data Registro</th>
+                      <th className="text-left p-3 font-semibold">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((toner) => {
+                      const needsUpdateFlag = needsUpdate(toner);
+                      return (
+                        <tr 
+                          key={toner.id} 
+                          className={cn(
+                            "border-b transition-colors border-white/10 dark:border-slate-700/30 hover:bg-white/20 dark:hover:bg-slate-800/20",
+                            needsUpdateFlag && "border-orange-300 dark:border-orange-600"
                           )}
-                        </td>
-                        <td className="p-3">{toner.peso_cheio || 0}g</td>
-                        <td className="p-3">{toner.peso_vazio || 0}g</td>
-                        <td className="p-3 font-medium text-blue-600 dark:text-blue-400">{toner.gramatura || 0}g</td>
-                        <td className="p-3">R$ {(toner.preco_produto || 0).toFixed(2)}</td>
-                        <td className="p-3">{(toner.capacidade_folhas || 0).toLocaleString()}</td>
-                        <td className="p-3 font-medium text-green-600 dark:text-green-400">R$ {(toner.valor_por_folha || 0).toFixed(4)}</td>
-                        <td className="p-3">{new Date(toner.data_registro).toLocaleDateString('pt-BR')}</td>
-                        <td className="p-3">
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEdit(toner)}
-                              className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800 text-blue-700 hover:text-blue-800"
-                              title="Editar toner"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => toner.id && handleDelete(toner.id, toner.modelo)}
-                              className="bg-red-500/10 hover:bg-red-500/20 border-red-200 dark:border-red-800 text-red-600 hover:text-red-700"
-                              title="Excluir toner"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        >
+                          <td className="p-3 font-medium">
+                            <div className="flex items-center gap-2">
+                              {toner.modelo}
+                              {needsUpdateFlag && (
+                                <AlertTriangle className="w-4 h-4 text-orange-600" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            {toner.cor ? (
+                              <span className={cn("px-2 py-1 rounded-full text-xs font-medium", 
+                                toner.cor === 'Preto' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' :
+                                toner.cor === 'Ciano' ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' :
+                                toner.cor === 'Magenta' ? 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200' :
+                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              )}>
+                                {toner.cor}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 italic">Não informado</span>
+                            )}
+                          </td>
+                          <td className="p-3">{toner.peso_cheio || 0}g</td>
+                          <td className="p-3">{toner.peso_vazio || 0}g</td>
+                          <td className="p-3 font-medium text-blue-600 dark:text-blue-400">{toner.gramatura || 0}g</td>
+                          <td className="p-3">R$ {(toner.preco_produto || 0).toFixed(2)}</td>
+                          <td className="p-3">{(toner.capacidade_folhas || 0).toLocaleString()}</td>
+                          <td className="p-3 font-medium text-green-600 dark:text-green-400">R$ {(toner.valor_por_folha || 0).toFixed(4)}</td>
+                          <td className="p-3">{new Date(toner.data_registro).toLocaleDateString('pt-BR')}</td>
+                          <td className="p-3">
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(toner)}
+                                className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-200 dark:border-blue-800 text-blue-700 hover:text-blue-800"
+                                title="Editar toner"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => toner.id && handleDelete(toner.id, toner.modelo)}
+                                className="bg-red-500/10 hover:bg-red-500/20 border-red-200 dark:border-red-800 text-red-600 hover:text-red-700"
+                                title="Excluir toner"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-6 flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          className={`cursor-pointer ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''}`}
+                        />
+                      </PaginationItem>
+                      
+                      {renderPaginationItems()}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          className={`cursor-pointer ${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}`}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
