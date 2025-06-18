@@ -6,19 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-
-const filiais = [
-  'Todas',
-  'Matriz',
-  'Filial 1',
-  'Filial 2',
-  'Filial 3',
-  'Filial 4',
-  'Filial 5',
-  'Jundiaí',
-  'São Paulo',
-  'Campinas'
-];
+import { useFiliais } from '@/hooks/useFiliais';
 
 const destinosFinais = [
   'Todos',
@@ -54,6 +42,8 @@ export const RetornadoFilters: React.FC<RetornadoFiltersProps> = ({
   clearFilters,
   resultCount
 }) => {
+  const { filiais, loading: loadingFiliais } = useFiliais();
+
   return (
     <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
       <CardHeader>
@@ -86,14 +76,19 @@ export const RetornadoFilters: React.FC<RetornadoFiltersProps> = ({
 
           <div className="space-y-2">
             <Label>Unidade/Filial</Label>
-            <Select value={filialSelecionada} onValueChange={setFilialSelecionada}>
+            <Select 
+              value={filialSelecionada} 
+              onValueChange={setFilialSelecionada}
+              disabled={loadingFiliais}
+            >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder={loadingFiliais ? "Carregando..." : "Selecionar filial"} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="Todas">Todas</SelectItem>
                 {filiais.map((filial) => (
-                  <SelectItem key={filial} value={filial}>
-                    {filial}
+                  <SelectItem key={filial.id} value={filial.nome}>
+                    {filial.nome}
                   </SelectItem>
                 ))}
               </SelectContent>
