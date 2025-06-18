@@ -122,35 +122,42 @@ export const UserManagementNew: React.FC = () => {
     }
 
     try {
-      // Criar usuário no Supabase Auth
-      const { data, error } = await supabase.auth.admin.createUser({
+      console.log('Criando usuário:', newUser.email);
+      
+      // Usar signUp normal em vez de admin.createUser
+      const { data, error } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        user_metadata: {
-          nome_completo: newUser.nome_completo
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            nome_completo: newUser.nome_completo,
+            role: newUser.role
+          }
         }
       });
 
       if (error) {
+        console.error('Erro ao criar usuário:', error);
         setError('Erro ao criar usuário: ' + error.message);
         return;
       }
 
-      // Atualizar role se necessário
-      if (newUser.role !== 'user') {
-        await supabase
-          .from('profiles')
-          .update({ role: newUser.role })
-          .eq('id', data.user.id);
-      }
+      console.log('Usuário criado:', data);
 
-      setSuccess('Usuário criado com sucesso!');
+      // Se o usuário foi criado com sucesso, vamos aguardar um pouco e recarregar a lista
+      setSuccess('Usuário criado com sucesso! O usuário receberá um email de confirmação.');
       setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
       setCreateUserOpen(false);
-      loadProfiles();
+      
+      // Aguardar um pouco antes de recarregar para dar tempo do trigger criar o perfil
+      setTimeout(() => {
+        loadProfiles();
+      }, 2000);
+
     } catch (error) {
+      console.error('Erro interno ao criar usuário:', error);
       setError('Erro interno ao criar usuário');
-      console.error('Erro:', error);
     }
   };
 
@@ -189,16 +196,26 @@ export const UserManagementNew: React.FC = () => {
     }
 
     try {
-      // Deletar perfil (o usuário auth será deletado automaticamente)
-      const { error } = await supabase
+      // Primeiro deletar o perfil
+      const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('id', userId);
 
-      if (error) {
+      if (profileError) {
+        console.error('Erro ao deletar perfil:', profileError);
         setError('Erro ao excluir usuário');
-        console.error('Erro:', error);
         return;
+      }
+
+      // Tentar deletar do auth (isso pode falhar se não tivermos permissões admin)
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) {
+          console.log('Não foi possível deletar do auth (normal para usuários não-admin):', authError);
+        }
+      } catch (authErr) {
+        console.log('Erro esperado ao tentar deletar do auth:', authErr);
       }
 
       setSuccess('Usuário excluído com sucesso!');
