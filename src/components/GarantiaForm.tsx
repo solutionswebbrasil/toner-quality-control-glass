@@ -5,10 +5,17 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Shield, Upload } from 'lucide-react';
+import { fornecedorService } from '@/services/fornecedorService';
+import { garantiaService } from '@/services/garantiaService';
+import { fileUploadService } from '@/services/fileUploadService';
 import type { Garantia, Fornecedor } from '@/types';
 
 export const GarantiaForm: React.FC = () => {
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     item: '',
     quantidade: '',
