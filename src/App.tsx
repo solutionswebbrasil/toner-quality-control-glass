@@ -53,7 +53,7 @@ import { RegistroItPopForm } from '@/components/RegistroItPopForm';
 import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { ConsultaRegistrosItPop } from '@/components/ConsultaRegistrosItPop';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
-import { NotFound } from '@/pages/NotFound';
+import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient();
 
@@ -139,7 +139,11 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout currentPage="toners-editar" onPageChange={handlePageChange}>
-                        <div>Toner Edit Form - ID based routing not implemented</div>
+                        <TonerEditForm 
+                          toner={{} as any} 
+                          onSuccess={handleSuccess} 
+                          onCancel={() => {}} 
+                        />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -169,7 +173,12 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Layout currentPage="garantias-editar" onPageChange={handlePageChange}>
-                        <div>Garantia Edit Form - ID based routing not implemented</div>
+                        <GarantiaEditForm 
+                          garantia={{} as any} 
+                          isOpen={true} 
+                          onClose={() => {}} 
+                          onSuccess={handleSuccess} 
+                        />
                       </Layout>
                     </ProtectedRoute>
                   }
