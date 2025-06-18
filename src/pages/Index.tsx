@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { RetornadoForm } from '@/components/RetornadoForm';
@@ -41,101 +41,85 @@ import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 export default function Index() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
+  // Debug log para ver mudanças de página
+  useEffect(() => {
+    console.log('🔄 Index currentPage changed to:', currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (newPage: string) => {
+    console.log('📄 Page change requested:', newPage);
+    setCurrentPage(newPage);
+  };
+
   const renderPage = () => {
-    console.log('🔥 Renderizando página:', currentPage);
+    console.log('🎨 Rendering page:', currentPage);
     
     switch (currentPage) {
       case 'dashboard':
-        console.log('✅ Renderizando WelcomeScreen');
         return <WelcomeScreen />;
       
       // Retornados
       case 'retornado-form':
-        console.log('✅ Renderizando RetornadoForm');
         return <RetornadoForm />;
       case 'retornado-grid':
-        console.log('✅ Renderizando RetornadoGrid');
         return <RetornadoGrid />;
       case 'retornado-charts':
-        console.log('✅ Renderizando RetornadoCharts');
         return <RetornadoCharts />;
       
       // Garantias
       case 'garantia-form':
-        console.log('✅ Renderizando GarantiaForm');
         return <GarantiaForm />;
       case 'garantia-grid':
-        console.log('✅ Renderizando GarantiaGrid');
         return <GarantiaGrid />;
       case 'garantia-charts':
-        console.log('✅ Renderizando GarantiaGrid (placeholder)');
-        return <GarantiaGrid />; // Usar grid por enquanto
+        return <GarantiaGrid />; // Placeholder
       case 'garantia-geral-charts':
-        console.log('✅ Renderizando GarantiaGeralCharts');
         return <GarantiaGeralCharts />;
       case 'garantia-toner-consulta':
-        console.log('✅ Renderizando GarantiaTonerGrid (consulta)');
         return <GarantiaTonerGrid />;
       case 'garantia-toner-grid':
-        console.log('✅ Renderizando GarantiaTonerGrid');
         return <GarantiaTonerGrid />;
       case 'garantia-toner-charts':
-        console.log('✅ Renderizando GarantiaTonerCharts');
         return <GarantiaTonerCharts />;
       
       // Toners
       case 'toner-form':
-        console.log('✅ Renderizando TonerForm');
         return <TonerForm />;
       case 'toner-grid':
-        console.log('✅ Renderizando TonerGrid');
         return <TonerGrid />;
       
       // Não Conformidades
       case 'nao-conformidade-form':
-        console.log('✅ Renderizando NaoConformidadeForm');
         return <NaoConformidadeForm />;
       case 'nao-conformidade-grid':
-        console.log('✅ Renderizando NaoConformidadeGrid');
         return <NaoConformidadeGrid />;
       case 'nao-conformidade-charts':
-        console.log('✅ Renderizando NaoConformidadeCharts');
         return <NaoConformidadeCharts naoConformidades={[]} />;
       
       // Auditorias
       case 'auditoria-form':
-        console.log('✅ Renderizando AuditoriaForm');
         return <AuditoriaForm onSuccess={() => {}} />;
       case 'auditoria-grid':
-        console.log('✅ Renderizando AuditoriaGrid');
         return <AuditoriaGrid />;
       
       // Certificados
       case 'certificado-form':
-        console.log('✅ Renderizando CertificadoForm');
         return <CertificadoForm />;
       case 'certificado-grid':
-        console.log('✅ Renderizando CertificadoGrid');
         return <CertificadoGrid />;
       
       // Configurações
       case 'filiais':
-        console.log('✅ Renderizando FilialGrid');
         return <FilialGrid />;
       case 'fornecedores':
-        console.log('✅ Renderizando FornecedorGrid');
         return <FornecedorGrid />;
       case 'usuarios':
-        console.log('✅ Renderizando UserManagement');
         return <UserManagement />;
       case 'consulta-usuarios':
-        console.log('✅ Renderizando UserManagement (consulta)');
         return <UserManagement />;
       case 'apis-integracoes':
-        console.log('✅ Renderizando ApisIntegracoes');
         return <ApisIntegracoes />;
       case 'configurar-retornados':
-        console.log('✅ Renderizando ConfiguracoesRetornado');
         return <ConfiguracoesRetornado />;
       
       default:
@@ -144,10 +128,8 @@ export default function Index() {
     }
   };
 
-  console.log('🚀 Index component renderizando com currentPage:', currentPage);
-
   return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+    <Layout currentPage={currentPage} onPageChange={handlePageChange}>
       {renderPage()}
     </Layout>
   );

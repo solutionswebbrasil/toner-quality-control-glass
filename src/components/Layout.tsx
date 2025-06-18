@@ -12,6 +12,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const { profile, loading } = useAuth();
 
+  // Debug log para ver mudanças de currentPage
+  useEffect(() => {
+    console.log('🏗️ Layout currentPage prop changed to:', currentPage);
+  }, [currentPage]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSidebarOpen(localStorage.getItem('sidebarOpen') === 'true');
@@ -39,9 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     return true;
   });
 
-  console.log('Layout - Profile:', profile, 'Loading:', loading);
-  console.log('Filtered menu items:', filteredMenuItems.length);
-  console.log('Current page:', currentPage);
+  console.log('🏗️ Layout render - currentPage:', currentPage, 'profile:', profile?.role);
 
   if (loading) {
     return (
@@ -75,13 +78,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         {/* Main Content */}
         <main className="flex-1 pt-16 overflow-auto">
           <div className="p-4 max-w-full">
-            {profile && (
-              <div className="mb-4">
-                <p className="text-sm text-gray-600">
-                  Página atual: {currentPage} | Usuário: {profile.nome_completo} ({profile.role})
-                </p>
-              </div>
-            )}
+            <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Página atual:</strong> {currentPage}
+                {profile && (
+                  <>
+                    {' | '}
+                    <strong>Usuário:</strong> {profile.nome_completo} ({profile.role})
+                  </>
+                )}
+              </p>
+            </div>
             {children}
           </div>
         </main>
