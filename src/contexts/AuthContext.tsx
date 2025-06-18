@@ -66,8 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Admin tem todas as permissões
     if (profile.role === 'admin') return true;
     
-    // Aqui você pode implementar a lógica de permissões baseada na tabela permissions
-    // Por enquanto, usuários comuns têm permissão básica
+    // Para outros usuários, seria necessário consultar a tabela de permissões
+    // Por enquanto, usuários comuns têm permissão básica de visualização
     return profile.role === 'user' && acao === 'visualizar';
   };
 

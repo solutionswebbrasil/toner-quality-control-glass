@@ -16,10 +16,21 @@ export const certificadoService = {
     return data || [];
   },
 
-  async create(certificado: Omit<Certificado, 'id' | 'data_registro'>): Promise<Certificado> {
+  async create(certificado: Omit<Certificado, 'id' | 'data_registro' | 'user_id'>): Promise<Certificado> {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const certificadoWithUser = {
+      ...certificado,
+      user_id: user.id
+    };
+
     const { data, error } = await supabase
       .from('certificados')
-      .insert(certificado)
+      .insert(certificadoWithUser)
       .select()
       .single();
 

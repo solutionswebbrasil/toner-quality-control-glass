@@ -16,7 +16,6 @@ export const auditoriaService = {
     }
     
     console.log('✅ Auditorias encontradas:', data?.length || 0);
-    console.log('📊 Dados:', data);
     return data || [];
   },
 
@@ -37,12 +36,23 @@ export const auditoriaService = {
     return data;
   },
 
-  create: async (auditoria: Omit<Auditoria, 'id'>): Promise<Auditoria> => {
+  create: async (auditoria: Omit<Auditoria, 'id' | 'data_registro' | 'user_id'>): Promise<Auditoria> => {
     console.log('📝 Criando nova auditoria:', auditoria);
+    
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const auditoriaWithUser = {
+      ...auditoria,
+      user_id: user.id
+    };
     
     const { data, error } = await supabase
       .from('auditorias')
-      .insert([auditoria])
+      .insert([auditoriaWithUser])
       .select()
       .single();
     
@@ -58,9 +68,12 @@ export const auditoriaService = {
   update: async (id: number, auditoria: Partial<Auditoria>): Promise<Auditoria | null> => {
     console.log('📝 Atualizando auditoria ID:', id, 'com dados:', auditoria);
     
+    // Remove user_id from update data to prevent unauthorized changes
+    const { user_id, ...updateData } = auditoria;
+    
     const { data, error } = await supabase
       .from('auditorias')
-      .update(auditoria)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

@@ -32,10 +32,21 @@ export const naoConformidadeService = {
     return data;
   },
 
-  async create(naoConformidade: Omit<NaoConformidade, 'id' | 'data_registro' | 'data_atualizacao'>): Promise<NaoConformidade> {
+  async create(naoConformidade: Omit<NaoConformidade, 'id' | 'data_registro' | 'data_atualizacao' | 'user_id'>): Promise<NaoConformidade> {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const naoConformidadeWithUser = {
+      ...naoConformidade,
+      user_id: user.id
+    };
+
     const { data, error } = await supabase
       .from('nao_conformidades')
-      .insert([naoConformidade])
+      .insert([naoConformidadeWithUser])
       .select()
       .single();
 
@@ -48,9 +59,12 @@ export const naoConformidadeService = {
   },
 
   async update(id: number, naoConformidade: Partial<NaoConformidade>): Promise<NaoConformidade> {
+    // Remove user_id from update data to prevent unauthorized changes
+    const { user_id, ...updateData } = naoConformidade;
+
     const { data, error } = await supabase
       .from('nao_conformidades')
-      .update(naoConformidade)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

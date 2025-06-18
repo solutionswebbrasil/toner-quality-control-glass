@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       auditorias: {
         Row: {
           data_fim: string
@@ -17,7 +56,7 @@ export type Database = {
           formulario_pdf: string | null
           id: number
           unidade_auditada: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           data_fim: string
@@ -26,7 +65,7 @@ export type Database = {
           formulario_pdf?: string | null
           id?: number
           unidade_auditada: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           data_fim?: string
@@ -35,7 +74,7 @@ export type Database = {
           formulario_pdf?: string | null
           id?: number
           unidade_auditada?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -46,7 +85,7 @@ export type Database = {
           data_registro: string
           id: number
           nome_certificado: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           arquivo_pdf?: string | null
@@ -54,7 +93,7 @@ export type Database = {
           data_registro?: string
           id?: number
           nome_certificado: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           arquivo_pdf?: string | null
@@ -62,7 +101,7 @@ export type Database = {
           data_registro?: string
           id?: number
           nome_certificado?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -143,7 +182,7 @@ export type Database = {
           quantidade: number
           resultado: string | null
           status: string
-          user_id: string | null
+          user_id: string
           valor_total: number
           valor_unitario: number
         }
@@ -160,7 +199,7 @@ export type Database = {
           quantidade: number
           resultado?: string | null
           status?: string
-          user_id?: string | null
+          user_id: string
           valor_total: number
           valor_unitario: number
         }
@@ -177,7 +216,7 @@ export type Database = {
           quantidade?: number
           resultado?: string | null
           status?: string
-          user_id?: string | null
+          user_id?: string
           valor_total?: number
           valor_unitario?: number
         }
@@ -206,7 +245,7 @@ export type Database = {
           responsavel_envio: string
           status: string
           ticket_numero: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           data_envio: string
@@ -222,7 +261,7 @@ export type Database = {
           responsavel_envio: string
           status?: string
           ticket_numero: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           data_envio?: string
@@ -238,7 +277,7 @@ export type Database = {
           responsavel_envio?: string
           status?: string
           ticket_numero?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -262,7 +301,7 @@ export type Database = {
           status: string
           tipo_nc: string
           unidade_filial: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           acao_corretiva_proposta?: string | null
@@ -283,7 +322,7 @@ export type Database = {
           status?: string
           tipo_nc: string
           unidade_filial: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           acao_corretiva_proposta?: string | null
@@ -304,7 +343,7 @@ export type Database = {
           status?: string
           tipo_nc?: string
           unidade_filial?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -471,7 +510,7 @@ export type Database = {
           id_cliente: number
           id_modelo: number
           peso: number
-          user_id: string | null
+          user_id: string
           valor_recuperado: number | null
         }
         Insert: {
@@ -482,7 +521,7 @@ export type Database = {
           id_cliente: number
           id_modelo: number
           peso: number
-          user_id?: string | null
+          user_id: string
           valor_recuperado?: number | null
         }
         Update: {
@@ -493,7 +532,7 @@ export type Database = {
           id_cliente?: number
           id_modelo?: number
           peso?: number
-          user_id?: string | null
+          user_id?: string
           valor_recuperado?: number | null
         }
         Relationships: [
@@ -591,7 +630,7 @@ export type Database = {
           peso_vazio: number
           preco_produto: number
           registrado_por: number
-          user_id: string | null
+          user_id: string
           valor_por_folha: number
         }
         Insert: {
@@ -606,7 +645,7 @@ export type Database = {
           peso_vazio: number
           preco_produto: number
           registrado_por: number
-          user_id?: string | null
+          user_id: string
           valor_por_folha: number
         }
         Update: {
@@ -621,7 +660,7 @@ export type Database = {
           peso_vazio?: number
           preco_produto?: number
           registrado_por?: number
-          user_id?: string | null
+          user_id?: string
           valor_por_folha?: number
         }
         Relationships: []

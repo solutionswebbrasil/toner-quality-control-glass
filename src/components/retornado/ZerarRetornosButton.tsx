@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Trash2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { retornadoService } from '@/services/retornadoService';
 
 interface ZerarRetornosButtonProps {
@@ -14,21 +14,24 @@ interface ZerarRetornosButtonProps {
 
 export const ZerarRetornosButton: React.FC<ZerarRetornosButtonProps> = ({ onZerarComplete }) => {
   const { toast } = useToast();
+  const { hasPermission } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [senha, setSenha] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Check if user has admin permissions to delete all records
+  const canDeleteAll = hasPermission('Retornados', 'Consulta', 'excluir') && 
+                       hasPermission('Configurações', 'Usuários', 'editar'); // Admin check
+
+  if (!canDeleteAll) {
+    return null; // Hide button if user doesn't have permissions
+  }
+
   const handleZerarRetornos = async () => {
-    if (senha !== '4817') {
-      toast({
-        title: "Erro",
-        description: "Senha incorreta! Acesso negado.",
-        variant: "destructive"
-      });
+    if (!confirm('ATENÇÃO: Esta ação irá excluir TODOS os retornados do banco de dados. Esta operação não pode ser desfeita. Tem certeza que deseja continuar?')) {
       return;
     }
 
-    if (!confirm('ATENÇÃO: Esta ação irá excluir TODOS os retornados do banco de dados. Esta operação não pode ser desfeita. Tem certeza que deseja continuar?')) {
+    if (!confirm('CONFIRMAÇÃO FINAL: Você tem certeza absoluta de que deseja excluir TODOS os registros de retornados? Esta ação é IRREVERSÍVEL!')) {
       return;
     }
 
@@ -44,12 +47,11 @@ export const ZerarRetornosButton: React.FC<ZerarRetornosButtonProps> = ({ onZera
       
       onZerarComplete();
       setIsOpen(false);
-      setSenha('');
     } catch (error) {
       console.error('Erro ao zerar retornados:', error);
       toast({
         title: "Erro",
-        description: "Erro ao excluir os retornados.",
+        description: "Erro ao excluir os retornados. Verifique suas permissões.",
         variant: "destructive"
       });
     } finally {
@@ -59,7 +61,6 @@ export const ZerarRetornosButton: React.FC<ZerarRetornosButtonProps> = ({ onZera
 
   const handleClose = () => {
     setIsOpen(false);
-    setSenha('');
   };
 
   return (
@@ -76,26 +77,17 @@ export const ZerarRetornosButton: React.FC<ZerarRetornosButtonProps> = ({ onZera
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-800 font-medium">
-              <strong>ATENÇÃO:</strong> Esta ação irá excluir permanentemente TODOS os retornados do banco de dados.
-            </p>
-            <p className="text-sm text-red-700 mt-2">
-              Esta operação não pode ser desfeita!
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="senha-admin">Senha de Administrador:</Label>
-            <Input
-              id="senha-admin"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="Digite a senha de administrador"
-              className="w-full"
-            />
-          </div>
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="text-sm text-red-800 font-medium mb-2">
+                <strong>ATENÇÃO:</strong> Esta ação irá excluir permanentemente TODOS os retornados do banco de dados.
+              </p>
+              <p className="text-sm text-red-700">
+                Esta operação não pode ser desfeita e requer permissões de administrador!
+              </p>
+            </AlertDescription>
+          </Alert>
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={handleClose} disabled={isProcessing}>
@@ -104,7 +96,7 @@ export const ZerarRetornosButton: React.FC<ZerarRetornosButtonProps> = ({ onZera
             <Button 
               variant="destructive" 
               onClick={handleZerarRetornos}
-              disabled={isProcessing || !senha}
+              disabled={isProcessing}
             >
               {isProcessing ? 'Processando...' : 'Confirmar Exclusão'}
             </Button>

@@ -20,12 +20,23 @@ export const filialService = {
     return data || [];
   },
 
-  create: async (filial: Omit<Filial, 'id' | 'data_cadastro'>): Promise<Filial> => {
+  create: async (filial: Omit<Filial, 'id' | 'data_cadastro' | 'user_id'>): Promise<Filial> => {
     console.log('📝 Criando nova filial:', filial);
+    
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const filialWithUser = {
+      ...filial,
+      user_id: user.id
+    };
     
     const { data, error } = await supabase
       .from('filiais')
-      .insert([filial])
+      .insert([filialWithUser])
       .select()
       .single();
     
@@ -41,9 +52,12 @@ export const filialService = {
   update: async (id: number, filial: Partial<Filial>): Promise<Filial | null> => {
     console.log('📝 Atualizando filial:', id, filial);
     
+    // Remove user_id from update data to prevent unauthorized changes
+    const { user_id, ...updateData } = filial;
+    
     const { data, error } = await supabase
       .from('filiais')
-      .update(filial)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

@@ -2,12 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Toner } from '@/types';
 
-// Função para adicionar parâmetros anti-cache
-const addNoCacheParams = () => `?_t=${Date.now()}&_r=${Math.random()}`;
-
 export const tonerService = {
   getAll: async (): Promise<Toner[]> => {
-    // Adiciona cabeçalhos anti-cache
     const { data, error } = await supabase
       .from('toners')
       .select('*')
@@ -36,10 +32,21 @@ export const tonerService = {
     return data;
   },
 
-  create: async (toner: Omit<Toner, 'id'>): Promise<Toner> => {
+  create: async (toner: Omit<Toner, 'id' | 'data_registro' | 'user_id'>): Promise<Toner> => {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const tonerWithUser = {
+      ...toner,
+      user_id: user.id
+    };
+
     const { data, error } = await supabase
       .from('toners')
-      .insert([toner])
+      .insert([tonerWithUser])
       .select()
       .single();
     
@@ -52,9 +59,12 @@ export const tonerService = {
   },
 
   update: async (id: number, toner: Partial<Toner>): Promise<Toner | null> => {
+    // Remove user_id from update data to prevent unauthorized changes
+    const { user_id, ...updateData } = toner;
+
     const { data, error } = await supabase
       .from('toners')
-      .update(toner)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
