@@ -2,8 +2,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Toner } from '@/types';
 
+// Função para adicionar parâmetros anti-cache
+const addNoCacheParams = () => `?_t=${Date.now()}&_r=${Math.random()}`;
+
 export const tonerService = {
   getAll: async (): Promise<Toner[]> => {
+    // Adiciona cabeçalhos anti-cache
     const { data, error } = await supabase
       .from('toners')
       .select('*')

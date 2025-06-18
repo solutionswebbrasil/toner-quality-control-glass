@@ -10,7 +10,22 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Configurar QueryClient para desabilitar cache
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0, // Dados sempre considerados obsoletos
+      gcTime: 0, // Garbage collection imediato (era cacheTime antes)
+      refetchOnWindowFocus: true, // Recarrega ao focar na janela
+      refetchOnMount: true, // Sempre recarrega ao montar componente
+      refetchOnReconnect: true, // Recarrega ao reconectar
+      retry: false, // Não tenta novamente em caso de erro
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 const App = () => {
   return (
