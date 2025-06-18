@@ -10,7 +10,7 @@ import { LayoutProps } from './layout/types';
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -24,12 +24,34 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
+  // Mostrar todos os itens para admin, filtrar outros usuários conforme necessário
   const filteredMenuItems = menuItems.filter(item => {
-    if (item.id === 'configuracoes') {
-      return profile?.role === 'admin';
+    // Sempre mostrar para admin
+    if (profile?.role === 'admin') {
+      return true;
     }
+    
+    // Para usuários comuns, esconder apenas configurações por enquanto
+    if (item.id === 'configuracoes') {
+      return false;
+    }
+    
     return true;
   });
+
+  console.log('Layout - Profile:', profile, 'Loading:', loading);
+  console.log('Filtered menu items:', filteredMenuItems.length);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex">

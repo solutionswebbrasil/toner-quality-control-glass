@@ -54,6 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
+      console.log('Perfil carregado:', data);
       setProfile(data);
     } catch (error) {
       console.error('Erro inesperado ao carregar perfil:', error);
@@ -61,14 +62,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
-    if (!profile) return false;
+    console.log('Verificando permissão:', { modulo, submenu, acao, profile });
+    
+    if (!profile) {
+      console.log('Sem perfil carregado');
+      return false;
+    }
     
     // Admin tem todas as permissões
-    if (profile.role === 'admin') return true;
+    if (profile.role === 'admin') {
+      console.log('Usuário é admin - permissão concedida');
+      return true;
+    }
     
     // Para outros usuários, seria necessário consultar a tabela de permissões
     // Por enquanto, usuários comuns têm permissão básica de visualização
-    return profile.role === 'user' && acao === 'visualizar';
+    const hasBasicPermission = profile.role === 'user' && acao === 'visualizar';
+    console.log('Verificação de permissão básica:', hasBasicPermission);
+    
+    return hasBasicPermission;
   };
 
   useEffect(() => {

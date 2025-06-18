@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
@@ -38,84 +39,62 @@ import { UserManagement } from '@/components/UserManagement';
 import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 
 export default function Index() {
-  const [currentPage, setCurrentPage] = useState('welcome');
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   const renderPage = () => {
+    console.log('Renderizando página:', currentPage);
+    
     switch (currentPage) {
-      case 'welcome':
+      case 'dashboard':
         return <WelcomeScreen />;
-      case 'retornados-registro':
+      case 'retornado-form':
         return <RetornadoForm />;
-      case 'retornados-consulta':
+      case 'retornado-grid':
         return <RetornadoGrid />;
-      case 'retornados-graficos':
+      case 'retornado-charts':
         return <RetornadoCharts />;
-      case 'fornecedores-cadastro':
-        return <FornecedorForm />;
-      case 'fornecedores-consulta':
+      case 'fornecedores':
         return <FornecedorGrid />;
-      case 'garantias-registro':
+      case 'garantia-form':
         return <GarantiaForm />;
-      case 'garantias-consulta':
+      case 'garantia-grid':
         return <GarantiaGrid />;
-      case 'garantias-graficos-gerais':
+      case 'garantia-geral-charts':
         return <GarantiaGeralCharts />;
-      case 'garantias-toners':
+      case 'garantia-toner-consulta':
         return <GarantiaTonerGrid />;
-      case 'toners-consulta':
-        return <TonerGrid />;
-      case 'toners-graficos':
+      case 'garantia-toner-grid':
+        return <GarantiaTonerGrid />;
+      case 'garantia-toner-charts':
         return <GarantiaTonerCharts />;
-      case 'toners-cadastro':
+      case 'toner-form':
         return <TonerForm />;
-      case 'toners-consulta-principal':
+      case 'toner-grid':
         return <TonerGrid />;
-      case 'auditorias-registro':
+      case 'auditoria-form':
         return <AuditoriaForm onSuccess={() => {}} />;
-      case 'auditorias-consulta':
+      case 'auditoria-grid':
         return <AuditoriaGrid />;
-      case 'nc-registro':
+      case 'nao-conformidade-form':
         return <NaoConformidadeForm />;
-      case 'nc-consulta':
+      case 'nao-conformidade-grid':
         return <NaoConformidadeGrid />;
-      case 'nc-graficos':
+      case 'nao-conformidade-charts':
         return <NaoConformidadeCharts naoConformidades={[]} />;
-      case 'titulo-itpop-cadastro':
-        return <TituloItPopForm onSuccess={() => {}} />;
-      case 'titulo-itpop-consulta':
-        return <ConsultaTitulosItPop onSuccess={() => {}} />;
-      case 'registro-itpop':
-        return <RegistroItPopForm onSuccess={() => {}} />;
-      case 'registros-itpop-consulta':
-        return <ConsultaRegistrosItPop onSuccess={() => {}} />;
-      case 'visualizar-itpop':
-        return <VisualizadorItPop onSuccess={() => {}} />;
-      case 'titulo-bpmn-cadastro':
-        return <TituloBpmnForm onSuccess={() => {}} />;
-      case 'titulo-bpmn-consulta':
-        return <ConsultaTitulosBpmn onSuccess={() => {}} />;
-      case 'registro-bpmn':
-        return <RegistroBpmnForm onSuccess={() => {}} />;
-      case 'registros-bpmn-consulta':
-        return <ConsultaRegistrosBpmn onSuccess={() => {}} />;
-      case 'visualizar-bpmn':
-        return <VisualizadorBpmn onSuccess={() => {}} />;
-      case 'certificados-registro':
+      case 'certificado-form':
         return <CertificadoForm />;
-      case 'certificados-consulta':
+      case 'certificado-grid':
         return <CertificadoGrid />;
-      case 'filiais-cadastro':
-        return <FilialForm onSuccess={() => {}} />;
-      case 'filiais-consulta':
+      case 'filiais':
         return <FilialGrid />;
-      case 'config-retornado':
-        return <ConfiguracoesRetornado />;
-      case 'status-cadastro':
-        return <StatusCadastro />;
       case 'usuarios':
+        return <UserManagement />;
+      case 'consulta-usuarios':
         return <UserManagement />;
       case 'apis-integracoes':
         return <ApisIntegracoes />;
+      case 'configurar-retornados':
+        return <ConfiguracoesRetornado />;
       default:
         return <WelcomeScreen />;
     }
