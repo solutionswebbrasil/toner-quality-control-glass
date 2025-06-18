@@ -54,18 +54,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     );
   }
 
-  // Se não há perfil carregado, não renderizar o layout
-  if (!profile) {
-    console.warn('Profile não carregado, não renderizando layout');
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <p>Carregando perfil...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex">
       <Sidebar
@@ -87,11 +75,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         {/* Main Content */}
         <main className="flex-1 pt-16 overflow-auto">
           <div className="p-4 max-w-full">
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">
-                Página atual: {currentPage} | Usuário: {profile.nome_completo} ({profile.role})
-              </p>
-            </div>
+            {profile && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  Página atual: {currentPage} | Usuário: {profile.nome_completo} ({profile.role})
+                </p>
+              </div>
+            )}
             {children}
           </div>
         </main>
