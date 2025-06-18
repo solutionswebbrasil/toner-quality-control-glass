@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,20 +29,28 @@ export const RetornadoCharts: React.FC = () => {
   const loadChartData = async () => {
     try {
       setIsLoading(true);
-      console.log('Carregando TODOS os dados do banco para gráficos...');
+      console.log('📊 Gráficos: Carregando TODOS os dados do banco para gráficos...');
       
-      // Buscar TODOS os retornados do banco sem limitação
-      const retornados = await retornadoService.getAll();
-      console.log('Total de dados carregados para gráficos:', retornados.length);
+      // Usar método específico para gráficos que garante carregar todos os dados
+      const retornados = await retornadoService.getAllForCharts();
+      console.log(`🎯 Gráficos: Total de dados carregados: ${retornados.length}`);
       setTotalRegistros(retornados.length);
+      
+      if (retornados.length === 0) {
+        console.warn('⚠️ Gráficos: Nenhum dado encontrado no banco');
+        setMonthlyData([]);
+        setValorData([]);
+        setDestinoData([]);
+        return;
+      }
       
       // Verificar se há dados com valor_recuperado
       const comValor = retornados.filter(item => item.valor_recuperado && item.valor_recuperado > 0);
-      console.log('Registros com valor_recuperado:', comValor.length);
+      console.log(`💰 Gráficos: Registros com valor_recuperado: ${comValor.length}`);
       
       // Verificar destinos
       const destinosUnicos = [...new Set(retornados.map(item => item.destino_final))];
-      console.log('Destinos únicos encontrados:', destinosUnicos);
+      console.log(`🎯 Gráficos: Destinos únicos encontrados:`, destinosUnicos);
       
       // Filtrar dados baseado nas datas selecionadas
       let filteredData = retornados;
@@ -53,7 +60,7 @@ export const RetornadoCharts: React.FC = () => {
           const itemDate = new Date(item.data_registro);
           return itemDate >= startDate && itemDate <= endDate;
         });
-        console.log('Dados filtrados por período:', filteredData.length, 'registros');
+        console.log(`📅 Gráficos: Dados filtrados por período: ${filteredData.length} registros`);
       }
 
       // Preparar dados baseado no período selecionado
@@ -108,7 +115,7 @@ export const RetornadoCharts: React.FC = () => {
           const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
           const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
           
-          console.log('Período total dos dados:', format(minDate, 'dd/MM/yyyy'), 'até', format(maxDate, 'dd/MM/yyyy'));
+          console.log(`📅 Gráficos: Período total dos dados: ${format(minDate, 'dd/MM/yyyy')} até ${format(maxDate, 'dd/MM/yyyy')}`);
           
           const monthsInterval = eachMonthOfInterval({ 
             start: startOfMonth(minDate), 
@@ -134,7 +141,7 @@ export const RetornadoCharts: React.FC = () => {
       }
 
       const periodArray = Array.from(dataMap.values());
-      console.log('Dados processados para gráfico de período:', periodArray);
+      console.log(`📊 Gráficos: Dados processados para gráfico de período:`, periodArray.length, 'pontos');
       
       setMonthlyData(periodArray);
       setValorData(periodArray);
@@ -150,16 +157,17 @@ export const RetornadoCharts: React.FC = () => {
         .filter(([_, value]) => value > 0)
         .map(([name, value]) => ({ name, value }));
 
-      console.log('Dados por destino (todos os registros):', destinoArray);
+      console.log(`🎯 Gráficos: Dados por destino:`, destinoArray);
       setDestinoData(destinoArray);
     } catch (error) {
-      console.error('Erro ao carregar dados dos gráficos:', error);
+      console.error('❌ Gráficos: Erro ao carregar dados dos gráficos:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('🚀 Gráficos: Componente montado, carregando dados...');
     loadChartData();
   }, [startDate, endDate]);
 
@@ -180,7 +188,7 @@ export const RetornadoCharts: React.FC = () => {
   };
 
   const refreshData = () => {
-    console.log('Recarregando dados dos gráficos...');
+    console.log('🔄 Gráficos: Recarregando dados dos gráficos...');
     loadChartData();
   };
 

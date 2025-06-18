@@ -5,21 +5,34 @@ import { tonerService } from './tonerService';
 
 export const retornadoService = {
   async getAll(): Promise<Retornado[]> {
-    const { data, error } = await supabase
+    console.log('🔄 Iniciando busca de TODOS os retornados no banco...');
+    
+    // Buscar com .range() para garantir que pegamos todos os dados
+    // Usando um range muito alto para não ter limitação
+    const { data, error, count } = await supabase
       .from('retornados')
       .select(`
         *,
         toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `)
+      `, { count: 'exact' })
+      .range(0, 999999) // Range muito alto para pegar todos os dados
       .order('data_registro', { ascending: false });
 
     if (error) {
-      console.error('Error fetching retornados:', error);
+      console.error('❌ Error fetching retornados:', error);
       throw error;
     }
 
+    console.log(`✅ Total de retornados encontrados no banco: ${count}`);
+    console.log(`📊 Dados carregados na consulta: ${data?.length || 0}`);
+
+    if (!data || data.length === 0) {
+      console.warn('⚠️ Nenhum dado foi retornado da consulta');
+      return [];
+    }
+
     // Transform data to match Retornado interface with proper types and calculate valor_recuperado
-    return data.map(item => {
+    const transformedData = data.map(item => {
       let valorRecuperadoCalculado = item.valor_recuperado;
 
       // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
@@ -36,6 +49,55 @@ export const retornadoService = {
         destino_final: item.destino_final as Retornado['destino_final'],
         valor_recuperado: valorRecuperadoCalculado,
         // Campos adicionais para cálculos
+        peso_vazio: item.toners.peso_vazio,
+        gramatura: item.toners.gramatura,
+        capacidade_folhas: item.toners.capacidade_folhas,
+        valor_por_folha: item.toners.valor_por_folha,
+      };
+    });
+
+    console.log(`🎯 Dados transformados com sucesso: ${transformedData.length} registros`);
+    return transformedData;
+  },
+
+  async getAllForCharts(): Promise<Retornado[]> {
+    console.log('📈 Carregando TODOS os dados para gráficos...');
+    
+    // Método específico para gráficos que garante carregar TODOS os dados
+    const { data, error, count } = await supabase
+      .from('retornados')
+      .select(`
+        *,
+        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
+      `, { count: 'exact' })
+      .range(0, 999999) // Sem limite prático
+      .order('data_registro', { ascending: false });
+
+    if (error) {
+      console.error('❌ Erro ao buscar dados para gráficos:', error);
+      throw error;
+    }
+
+    console.log(`📊 Total de registros no banco (gráficos): ${count}`);
+    console.log(`📈 Dados carregados para gráficos: ${data?.length || 0}`);
+
+    if (!data) return [];
+
+    return data.map(item => {
+      let valorRecuperadoCalculado = item.valor_recuperado;
+
+      if ((item.destino_final === 'Estoque' || item.destino_final === 'Estoque Semi Novo') && !item.valor_recuperado) {
+        const gramaturaRestante = item.peso - item.toners.peso_vazio;
+        const percentualGramatura = (gramaturaRestante / item.toners.gramatura) * 100;
+        const folhasRestantes = (percentualGramatura / 100) * item.toners.capacidade_folhas;
+        valorRecuperadoCalculado = folhasRestantes * item.toners.valor_por_folha;
+      }
+
+      return {
+        ...item,
+        modelo: item.toners.modelo,
+        destino_final: item.destino_final as Retornado['destino_final'],
+        valor_recuperado: valorRecuperadoCalculado,
         peso_vazio: item.toners.peso_vazio,
         gramatura: item.toners.gramatura,
         capacidade_folhas: item.toners.capacidade_folhas,
