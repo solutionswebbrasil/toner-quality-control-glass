@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Retornado } from '@/types';
+import { auditLogger } from '@/utils/auditLogger';
 
 export const retornadoService = {
   getAll: async (): Promise<Retornado[]> => {
@@ -16,6 +17,22 @@ export const retornadoService = {
     }
     
     console.log('✅ Retornados encontrados:', data?.length || 0);
+    return data || [];
+  },
+
+  getAllForCharts: async (): Promise<Retornado[]> => {
+    console.log('📊 Gráficos: Buscando TODOS os dados do banco para gráficos...');
+    const { data, error } = await supabase
+      .from('retornados')
+      .select('*')
+      .order('data_registro', { ascending: false });
+    
+    if (error) {
+      console.error('❌ Gráficos: Erro ao buscar retornados:', error);
+      throw error;
+    }
+    
+    console.log(`🎯 Gráficos: Total de dados carregados: ${data?.length || 0}`);
     return data || [];
   },
 
@@ -61,19 +78,19 @@ export const retornadoService = {
       throw error;
     }
     
+    // Log audit
+    await auditLogger.logCreate('retornados', data.id.toString(), data);
+    
     console.log('✅ Retornado criado com sucesso:', data);
     return data;
   },
 
-  update: async (id: number, retornado: Partial<Retornado>): Promise<Retornado | null> => {
+  update: async (id: number, retornado: Omit<Partial<Retornado>, 'user_id'>): Promise<Retornado | null> => {
     console.log('📝 Atualizando retornado:', id, retornado);
-    
-    // Remove user_id from update data to prevent unauthorized changes
-    const { user_id, ...updateData } = retornado;
     
     const { data, error } = await supabase
       .from('retornados')
-      .update(updateData)
+      .update(retornado)
       .eq('id', id)
       .select()
       .single();
@@ -83,12 +100,22 @@ export const retornadoService = {
       return null;
     }
     
+    // Log audit
+    await auditLogger.logUpdate('retornados', id.toString(), {}, data);
+    
     console.log('✅ Retornado atualizado:', data);
     return data;
   },
 
   delete: async (id: number): Promise<boolean> => {
     console.log('🗑️ Deletando retornado:', id);
+    
+    // Get record before deletion for audit
+    const { data: oldRecord } = await supabase
+      .from('retornados')
+      .select('*')
+      .eq('id', id)
+      .single();
     
     const { error } = await supabase
       .from('retornados')
@@ -98,6 +125,11 @@ export const retornadoService = {
     if (error) {
       console.error('❌ Erro ao deletar retornado:', error);
       return false;
+    }
+    
+    // Log audit
+    if (oldRecord) {
+      await auditLogger.logDelete('retornados', id.toString(), oldRecord);
     }
     
     console.log('✅ Retornado deletado');
@@ -113,6 +145,11 @@ export const retornadoService = {
       throw new Error('Usuário não autenticado');
     }
 
+    // Count records before deletion for audit
+    const { count } = await supabase
+      .from('retornados')
+      .select('*', { count: 'exact', head: true });
+
     const { error } = await supabase
       .from('retornados')
       .delete()
@@ -122,6 +159,9 @@ export const retornadoService = {
       console.error('❌ Erro ao deletar todos os retornados:', error);
       throw error;
     }
+    
+    // Log bulk deletion audit
+    await auditLogger.logBulkDelete('retornados', count || 0);
     
     console.log('✅ Todos os retornados foram deletados');
     return true;

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Auditoria } from '@/types';
+import { auditLogger } from '@/utils/auditLogger';
 
 export const auditoriaService = {
   getAll: async (): Promise<Auditoria[]> => {
@@ -61,19 +62,19 @@ export const auditoriaService = {
       throw error;
     }
     
+    // Log audit
+    await auditLogger.logCreate('auditorias', data.id.toString(), data);
+    
     console.log('✅ Auditoria criada com sucesso:', data);
     return data;
   },
 
-  update: async (id: number, auditoria: Partial<Auditoria>): Promise<Auditoria | null> => {
+  update: async (id: number, auditoria: Omit<Partial<Auditoria>, 'user_id'>): Promise<Auditoria | null> => {
     console.log('📝 Atualizando auditoria ID:', id, 'com dados:', auditoria);
-    
-    // Remove user_id from update data to prevent unauthorized changes
-    const { user_id, ...updateData } = auditoria;
     
     const { data, error } = await supabase
       .from('auditorias')
-      .update(updateData)
+      .update(auditoria)
       .eq('id', id)
       .select()
       .single();
@@ -83,12 +84,22 @@ export const auditoriaService = {
       return null;
     }
     
+    // Log audit
+    await auditLogger.logUpdate('auditorias', id.toString(), {}, data);
+    
     console.log('✅ Auditoria atualizada:', data);
     return data;
   },
 
   delete: async (id: number): Promise<boolean> => {
     console.log('🗑️ Deletando auditoria ID:', id);
+    
+    // Get record before deletion for audit
+    const { data: oldRecord } = await supabase
+      .from('auditorias')
+      .select('*')
+      .eq('id', id)
+      .single();
     
     const { error } = await supabase
       .from('auditorias')
@@ -98,6 +109,11 @@ export const auditoriaService = {
     if (error) {
       console.error('❌ Erro ao deletar auditoria:', error);
       return false;
+    }
+    
+    // Log audit
+    if (oldRecord) {
+      await auditLogger.logDelete('auditorias', id.toString(), oldRecord);
     }
     
     console.log('✅ Auditoria deletada com sucesso');

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Toner } from '@/types';
+import { auditLogger } from '@/utils/auditLogger';
 
 export const tonerService = {
   getAll: async (): Promise<Toner[]> => {
@@ -55,16 +56,16 @@ export const tonerService = {
       throw error;
     }
     
+    // Log audit
+    await auditLogger.logCreate('toners', data.id.toString(), data);
+    
     return data;
   },
 
-  update: async (id: number, toner: Partial<Toner>): Promise<Toner | null> => {
-    // Remove user_id from update data to prevent unauthorized changes
-    const { user_id, ...updateData } = toner;
-
+  update: async (id: number, toner: Omit<Partial<Toner>, 'user_id'>): Promise<Toner | null> => {
     const { data, error } = await supabase
       .from('toners')
-      .update(updateData)
+      .update(toner)
       .eq('id', id)
       .select()
       .single();
@@ -74,10 +75,20 @@ export const tonerService = {
       return null;
     }
     
+    // Log audit
+    await auditLogger.logUpdate('toners', id.toString(), {}, data);
+    
     return data;
   },
 
   delete: async (id: number): Promise<boolean> => {
+    // Get record before deletion for audit
+    const { data: oldRecord } = await supabase
+      .from('toners')
+      .select('*')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase
       .from('toners')
       .delete()
@@ -86,6 +97,11 @@ export const tonerService = {
     if (error) {
       console.error('Erro ao deletar toner:', error);
       return false;
+    }
+    
+    // Log audit
+    if (oldRecord) {
+      await auditLogger.logDelete('toners', id.toString(), oldRecord);
     }
     
     return true;
