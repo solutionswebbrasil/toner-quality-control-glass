@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -52,13 +53,13 @@ import { RegistroItPopForm } from '@/components/RegistroItPopForm';
 import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { ConsultaRegistrosItPop } from '@/components/ConsultaRegistrosItPop';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
-import { NotFound } from '@/pages/NotFound';
+import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <Router>
@@ -69,7 +70,7 @@ function App() {
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="dashboard" onPageChange={() => {}}>
                         <Dashboard />
                       </Layout>
                     </ProtectedRoute>
@@ -79,7 +80,7 @@ function App() {
                   path="/retornados/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="retornados-novo" onPageChange={() => {}}>
                         <RetornadoForm />
                       </Layout>
                     </ProtectedRoute>
@@ -89,7 +90,7 @@ function App() {
                   path="/retornados/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="retornados-lista" onPageChange={() => {}}>
                         <RetornadoGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -99,7 +100,7 @@ function App() {
                   path="/retornados/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="retornados-charts" onPageChange={() => {}}>
                         <RetornadoCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -109,7 +110,7 @@ function App() {
                   path="/toners/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="toners-novo" onPageChange={() => {}}>
                         <TonerForm />
                       </Layout>
                     </ProtectedRoute>
@@ -119,7 +120,7 @@ function App() {
                   path="/toners/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="toners-lista" onPageChange={() => {}}>
                         <TonerGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -129,7 +130,7 @@ function App() {
                   path="/toners/editar/:id"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="toners-editar" onPageChange={() => {}}>
                         <TonerEditForm />
                       </Layout>
                     </ProtectedRoute>
@@ -139,7 +140,7 @@ function App() {
                   path="/garantias/nova"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-nova" onPageChange={() => {}}>
                         <GarantiaForm />
                       </Layout>
                     </ProtectedRoute>
@@ -149,7 +150,7 @@ function App() {
                   path="/garantias/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-lista" onPageChange={() => {}}>
                         <GarantiaGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -159,7 +160,7 @@ function App() {
                   path="/garantias/editar/:id"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-editar" onPageChange={() => {}}>
                         <GarantiaEditForm />
                       </Layout>
                     </ProtectedRoute>
@@ -169,7 +170,7 @@ function App() {
                   path="/garantias/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-charts" onPageChange={() => {}}>
                         <GarantiaCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -179,7 +180,7 @@ function App() {
                   path="/garantias/geral-charts"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-geral-charts" onPageChange={() => {}}>
                         <GarantiaGeralCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -189,7 +190,7 @@ function App() {
                   path="/garantias-toner/consulta"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-toner-consulta" onPageChange={() => {}}>
                         <GarantiaTonerConsulta />
                       </Layout>
                     </ProtectedRoute>
@@ -199,7 +200,7 @@ function App() {
                   path="/garantias-toner/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-toner-lista" onPageChange={() => {}}>
                         <GarantiaTonerGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -209,7 +210,7 @@ function App() {
                   path="/garantias-toner/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="garantias-toner-charts" onPageChange={() => {}}>
                         <GarantiaTonerCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -219,7 +220,7 @@ function App() {
                   path="/nao-conformidades/nova"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="nao-conformidades-nova" onPageChange={() => {}}>
                         <NaoConformidadeForm />
                       </Layout>
                     </ProtectedRoute>
@@ -229,7 +230,7 @@ function App() {
                   path="/nao-conformidades/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="nao-conformidades-lista" onPageChange={() => {}}>
                         <NaoConformidadeGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -239,7 +240,7 @@ function App() {
                   path="/nao-conformidades/charts"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="nao-conformidades-charts" onPageChange={() => {}}>
                         <NaoConformidadeCharts />
                       </Layout>
                     </ProtectedRoute>
@@ -249,7 +250,7 @@ function App() {
                   path="/auditorias/nova"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="auditorias-nova" onPageChange={() => {}}>
                         <AuditoriaForm />
                       </Layout>
                     </ProtectedRoute>
@@ -259,7 +260,7 @@ function App() {
                   path="/auditorias/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="auditorias-lista" onPageChange={() => {}}>
                         <AuditoriaGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -269,7 +270,7 @@ function App() {
                   path="/certificados/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="certificados-novo" onPageChange={() => {}}>
                         <CertificadoForm />
                       </Layout>
                     </ProtectedRoute>
@@ -279,7 +280,7 @@ function App() {
                   path="/certificados/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="certificados-lista" onPageChange={() => {}}>
                         <CertificadoGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -289,7 +290,7 @@ function App() {
                   path="/filiais"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="filiais" onPageChange={() => {}}>
                         <FilialGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -299,7 +300,7 @@ function App() {
                   path="/filiais/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="filiais-novo" onPageChange={() => {}}>
                         <FilialForm />
                       </Layout>
                     </ProtectedRoute>
@@ -309,7 +310,7 @@ function App() {
                   path="/fornecedores"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="fornecedores" onPageChange={() => {}}>
                         <FornecedorGrid />
                       </Layout>
                     </ProtectedRoute>
@@ -319,7 +320,7 @@ function App() {
                   path="/fornecedores/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="fornecedores-novo" onPageChange={() => {}}>
                         <FornecedorForm />
                       </Layout>
                     </ProtectedRoute>
@@ -329,7 +330,7 @@ function App() {
                   path="/usuarios"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="usuarios" onPageChange={() => {}}>
                         <UserManagement />
                       </Layout>
                     </ProtectedRoute>
@@ -339,7 +340,7 @@ function App() {
                   path="/consulta-usuarios"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="consulta-usuarios" onPageChange={() => {}}>
                         <ConsultaUsuarios />
                       </Layout>
                     </ProtectedRoute>
@@ -349,7 +350,7 @@ function App() {
                   path="/apis-integracoes"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="apis-integracoes" onPageChange={() => {}}>
                         <ApisIntegracoes />
                       </Layout>
                     </ProtectedRoute>
@@ -359,7 +360,7 @@ function App() {
                   path="/configurar-retornados"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="configurar-retornados" onPageChange={() => {}}>
                         <ConfiguracoesRetornado />
                       </Layout>
                     </ProtectedRoute>
@@ -369,7 +370,7 @@ function App() {
                   path="/bpmn/titulos/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="bpmn-titulos-novo" onPageChange={() => {}}>
                         <TituloBpmnForm />
                       </Layout>
                     </ProtectedRoute>
@@ -379,7 +380,7 @@ function App() {
                   path="/bpmn/registros/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="bpmn-registros-novo" onPageChange={() => {}}>
                         <RegistroBpmnForm />
                       </Layout>
                     </ProtectedRoute>
@@ -389,7 +390,7 @@ function App() {
                   path="/bpmn/titulos/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="bpmn-titulos-lista" onPageChange={() => {}}>
                         <ConsultaTitulosBpmn />
                       </Layout>
                     </ProtectedRoute>
@@ -399,7 +400,7 @@ function App() {
                   path="/bpmn/registros/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="bpmn-registros-lista" onPageChange={() => {}}>
                         <ConsultaRegistrosBpmn />
                       </Layout>
                     </ProtectedRoute>
@@ -409,7 +410,7 @@ function App() {
                   path="/bpmn/baixar"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="bpmn-baixar" onPageChange={() => {}}>
                         <BaixarBpmn />
                       </Layout>
                     </ProtectedRoute>
@@ -419,7 +420,7 @@ function App() {
                   path="/bpmn/visualizar"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="bpmn-visualizar" onPageChange={() => {}}>
                         <VisualizadorBpmn />
                       </Layout>
                     </ProtectedRoute>
@@ -429,7 +430,7 @@ function App() {
                   path="/itpop/titulos/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="itpop-titulos-novo" onPageChange={() => {}}>
                         <TituloItPopForm />
                       </Layout>
                     </ProtectedRoute>
@@ -439,7 +440,7 @@ function App() {
                   path="/itpop/registros/novo"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="itpop-registros-novo" onPageChange={() => {}}>
                         <RegistroItPopForm />
                       </Layout>
                     </ProtectedRoute>
@@ -449,7 +450,7 @@ function App() {
                   path="/itpop/titulos/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="itpop-titulos-lista" onPageChange={() => {}}>
                         <ConsultaTitulosItPop />
                       </Layout>
                     </ProtectedRoute>
@@ -459,7 +460,7 @@ function App() {
                   path="/itpop/registros/lista"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="itpop-registros-lista" onPageChange={() => {}}>
                         <ConsultaRegistrosItPop />
                       </Layout>
                     </ProtectedRoute>
@@ -469,7 +470,7 @@ function App() {
                   path="/itpop/visualizar"
                   element={
                     <ProtectedRoute>
-                      <Layout>
+                      <Layout currentPage="itpop-visualizar" onPageChange={() => {}}>
                         <VisualizadorItPop />
                       </Layout>
                     </ProtectedRoute>
@@ -482,7 +483,7 @@ function App() {
           <Toaster />
         </ThemeProvider>
       </AuthProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 

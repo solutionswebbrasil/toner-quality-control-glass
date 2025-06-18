@@ -1,3 +1,4 @@
+
 import {
   Home,
   Package,
@@ -8,204 +9,186 @@ import {
   Award,
   Settings,
 } from 'lucide-react';
-
-interface MenuItem {
-  title: string;
-  icon: keyof typeof Icons;
-  items: {
-    title: string;
-    href: string;
-    description: string;
-  }[];
-}
-
-const Icons = {
-  Home,
-  Package,
-  Shield,
-  Printer,
-  AlertTriangle,
-  FileCheck,
-  Award,
-  Settings,
-};
+import { MenuItem } from './types';
 
 export const menuItems: MenuItem[] = [
   {
-    title: 'Dashboard',
-    icon: 'Home',
-    items: [
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: Home,
+    page: 'dashboard',
+  },
+  {
+    id: 'retornados',
+    label: 'Retornados',
+    icon: Package,
+    submenu: [
       {
-        title: 'Visão Geral',
-        href: '/',
-        description: 'Resumo geral do sistema'
+        id: 'retornados-novo',
+        label: 'Novo Retornado',
+        page: 'retornado-form'
+      },
+      {
+        id: 'retornados-lista',
+        label: 'Consultar Retornados',
+        page: 'retornado-grid'
+      },
+      {
+        id: 'retornados-charts',
+        label: 'Gráficos Retornados',
+        page: 'retornado-charts'
       }
     ],
   },
   {
-    title: 'Retornados',
-    icon: 'Package',
-    items: [
+    id: 'garantias',
+    label: 'Garantias',
+    icon: Shield,
+    submenu: [
       {
-        title: 'Novo Retornado',
-        href: '/retornado-form',
-        description: 'Cadastrar novo item retornado'
+        id: 'garantias-nova',
+        label: 'Registrar Garantia',
+        page: 'garantia-form'
       },
       {
-        title: 'Consultar Retornados',
-        href: '/retornado-grid',
-        description: 'Listagem e busca de itens retornados'
+        id: 'garantias-lista',
+        label: 'Consultar Garantias',
+        page: 'garantia-grid'
       },
       {
-        title: 'Gráficos Retornados',
-        href: '/retornado-charts',
-        description: 'Visualização gráfica dos dados de retornados'
+        id: 'garantias-charts',
+        label: 'Gráficos de Garantias',
+        page: 'garantia-charts'
+      },
+      {
+        id: 'garantias-geral-charts',
+        label: 'Gráficos Gerais',
+        page: 'garantia-geral-charts'
+      },
+      {
+        id: 'garantias-toner-consulta',
+        label: 'Consultar Toners',
+        page: 'garantia-toner-consulta'
+      },
+      {
+        id: 'garantias-toner-lista',
+        label: 'Listar Toners',
+        page: 'garantia-toner-grid'
+      },
+      {
+        id: 'garantias-toner-charts',
+        label: 'Gráficos de Toners',
+        page: 'garantia-toner-charts'
       }
     ],
   },
   {
-    title: 'Garantias',
-    icon: 'Shield',
-    items: [
+    id: 'toners',
+    label: 'Toners',
+    icon: Printer,
+    submenu: [
       {
-        title: 'Registrar Garantia',
-        href: '/garantia-form',
-        description: 'Abrir um chamado de garantia'
+        id: 'toners-novo',
+        label: 'Novo Toner',
+        page: 'toner-form'
       },
       {
-        title: 'Consultar Garantias',
-        href: '/garantia-grid',
-        description: 'Acompanhar o status das garantias'
-      },
-      {
-        title: 'Gráficos de Garantias',
-        href: '/garantia-charts',
-        description: 'Análise visual das garantias'
-      },
-	  {
-        title: 'Gráficos Gerais',
-        href: '/garantia-geral-charts',
-        description: 'Análise visual geral das garantias'
-      },
-      {
-        title: 'Consultar Toners',
-        href: '/garantia-toner-consulta',
-        description: 'Consulta específica de garantias de toners'
-      },
-      {
-        title: 'Listar Toners',
-        href: '/garantia-toner-grid',
-        description: 'Listagem de garantias de toners'
-      },
-      {
-        title: 'Gráficos de Toners',
-        href: '/garantia-toner-charts',
-        description: 'Visualização gráfica das garantias de toners'
+        id: 'toners-lista',
+        label: 'Consultar Toners',
+        page: 'toner-grid'
       }
     ],
   },
   {
-    title: 'Toners',
-    icon: 'Printer',
-    items: [
+    id: 'nao-conformidades',
+    label: 'Não Conformidades',
+    icon: AlertTriangle,
+    submenu: [
       {
-        title: 'Novo Toner',
-        href: '/toner-form',
-        description: 'Cadastrar um novo toner'
+        id: 'nao-conformidades-nova',
+        label: 'Nova Não Conformidade',
+        page: 'nao-conformidade-form'
       },
       {
-        title: 'Consultar Toners',
-        href: '/toner-grid',
-        description: 'Listar e buscar toners cadastrados'
+        id: 'nao-conformidades-lista',
+        label: 'Consultar Não Conformidades',
+        page: 'nao-conformidade-grid'
+      },
+      {
+        id: 'nao-conformidades-charts',
+        label: 'Gráficos de Não Conformidades',
+        page: 'nao-conformidade-charts'
       }
     ],
   },
   {
-    title: 'Não Conformidades',
-    icon: 'AlertTriangle',
-    items: [
+    id: 'auditorias',
+    label: 'Auditorias',
+    icon: FileCheck,
+    submenu: [
       {
-        title: 'Nova Não Conformidade',
-        href: '/nao-conformidade-form',
-        description: 'Registrar uma não conformidade'
+        id: 'auditorias-nova',
+        label: 'Nova Auditoria',
+        page: 'auditoria-form'
       },
       {
-        title: 'Consultar Não Conformidades',
-        href: '/nao-conformidade-grid',
-        description: 'Listar as não conformidades registradas'
-      },
-      {
-        title: 'Gráficos de Não Conformidades',
-        href: '/nao-conformidade-charts',
-        description: 'Visualização gráfica das não conformidades'
+        id: 'auditorias-lista',
+        label: 'Consultar Auditorias',
+        page: 'auditoria-grid'
       }
     ],
   },
   {
-    title: 'Auditorias',
-    icon: 'FileCheck',
-    items: [
+    id: 'certificados',
+    label: 'Certificados',
+    icon: Award,
+    submenu: [
       {
-        title: 'Nova Auditoria',
-        href: '/auditoria-form',
-        description: 'Agendar e registrar auditorias'
+        id: 'certificados-novo',
+        label: 'Novo Certificado',
+        page: 'certificado-form'
       },
       {
-        title: 'Consultar Auditorias',
-        href: '/auditoria-grid',
-        description: 'Listar auditorias realizadas'
+        id: 'certificados-lista',
+        label: 'Consultar Certificados',
+        page: 'certificado-grid'
       }
     ],
   },
   {
-    title: 'Certificados',
-    icon: 'Award',
-    items: [
+    id: 'configuracoes',
+    label: 'Configurações',
+    icon: Settings,
+    submenu: [
       {
-        title: 'Novo Certificado',
-        href: '/certificado-form',
-        description: 'Cadastrar um novo certificado'
+        id: 'filiais',
+        label: 'Filiais',
+        page: 'filiais'
       },
       {
-        title: 'Consultar Certificados',
-        href: '/certificado-grid',
-        description: 'Gerenciar certificados da empresa'
-      }
-    ],
-  },
-  {
-    title: 'Configurações',
-    icon: 'Settings',
-    items: [
-      {
-        title: 'Filiais',
-        href: '/filiais',
-        description: 'Gerenciar filiais da empresa'
+        id: 'fornecedores',
+        label: 'Fornecedores',
+        page: 'fornecedores'
       },
       {
-        title: 'Fornecedores',
-        href: '/fornecedores',
-        description: 'Cadastro e consulta de fornecedores'
+        id: 'usuarios',
+        label: 'Usuários',
+        page: 'usuarios'
       },
       {
-        title: 'Usuários',
-        href: '/usuarios',
-        description: 'Gerenciamento de usuários do sistema'
+        id: 'consulta-usuarios',
+        label: 'Consulta Usuários',
+        page: 'consulta-usuarios'
       },
       {
-        title: 'Consulta Usuários',
-        href: '/consulta-usuarios',
-        description: 'Consultar e gerenciar usuários cadastrados'
+        id: 'apis-integracoes',
+        label: 'APIs de Integrações',
+        page: 'apis-integracoes'
       },
       {
-        title: 'APIs de Integrações',
-        href: '/apis-integracoes',
-        description: 'Configurar APIs para integrações externas'
-      },
-      {
-        title: 'Configurar Retornados',
-        href: '/configurar-retornados',
-        description: 'Configurar opções para retornados'
+        id: 'configurar-retornados',
+        label: 'Configurar Retornados',
+        page: 'configurar-retornados'
       }
     ],
   },
