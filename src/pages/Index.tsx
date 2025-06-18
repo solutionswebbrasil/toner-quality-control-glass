@@ -47,18 +47,22 @@ export default function Index() {
     switch (currentPage) {
       case 'dashboard':
         return <WelcomeScreen />;
+      
+      // Retornados
       case 'retornado-form':
         return <RetornadoForm />;
       case 'retornado-grid':
         return <RetornadoGrid />;
       case 'retornado-charts':
         return <RetornadoCharts />;
-      case 'fornecedores':
-        return <FornecedorGrid />;
+      
+      // Garantias
       case 'garantia-form':
         return <GarantiaForm />;
       case 'garantia-grid':
         return <GarantiaGrid />;
+      case 'garantia-charts':
+        return <GarantiaGrid />; // Usar grid por enquanto
       case 'garantia-geral-charts':
         return <GarantiaGeralCharts />;
       case 'garantia-toner-consulta':
@@ -67,26 +71,38 @@ export default function Index() {
         return <GarantiaTonerGrid />;
       case 'garantia-toner-charts':
         return <GarantiaTonerCharts />;
+      
+      // Toners
       case 'toner-form':
         return <TonerForm />;
       case 'toner-grid':
         return <TonerGrid />;
-      case 'auditoria-form':
-        return <AuditoriaForm onSuccess={() => {}} />;
-      case 'auditoria-grid':
-        return <AuditoriaGrid />;
+      
+      // Não Conformidades
       case 'nao-conformidade-form':
         return <NaoConformidadeForm />;
       case 'nao-conformidade-grid':
         return <NaoConformidadeGrid />;
       case 'nao-conformidade-charts':
         return <NaoConformidadeCharts naoConformidades={[]} />;
+      
+      // Auditorias
+      case 'auditoria-form':
+        return <AuditoriaForm onSuccess={() => {}} />;
+      case 'auditoria-grid':
+        return <AuditoriaGrid />;
+      
+      // Certificados
       case 'certificado-form':
         return <CertificadoForm />;
       case 'certificado-grid':
         return <CertificadoGrid />;
+      
+      // Configurações
       case 'filiais':
         return <FilialGrid />;
+      case 'fornecedores':
+        return <FornecedorGrid />;
       case 'usuarios':
         return <UserManagement />;
       case 'consulta-usuarios':
@@ -95,7 +111,9 @@ export default function Index() {
         return <ApisIntegracoes />;
       case 'configurar-retornados':
         return <ConfiguracoesRetornado />;
+      
       default:
+        console.warn('Página não encontrada:', currentPage);
         return <WelcomeScreen />;
     }
   };

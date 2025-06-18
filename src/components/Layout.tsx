@@ -24,14 +24,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
-  // Mostrar todos os itens para admin, filtrar outros usuários conforme necessário
+  // Admin tem acesso a todos os itens, outros usuários têm acesso limitado
   const filteredMenuItems = menuItems.filter(item => {
-    // Sempre mostrar para admin
+    // Admin sempre tem acesso
     if (profile?.role === 'admin') {
       return true;
     }
     
-    // Para usuários comuns, esconder apenas configurações por enquanto
+    // Para outros usuários, filtrar configurações
     if (item.id === 'configuracoes') {
       return false;
     }
@@ -41,6 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
 
   console.log('Layout - Profile:', profile, 'Loading:', loading);
   console.log('Filtered menu items:', filteredMenuItems.length);
+  console.log('Current page:', currentPage);
 
   if (loading) {
     return (
@@ -48,6 +49,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não há perfil carregado, não renderizar o layout
+  if (!profile) {
+    console.warn('Profile não carregado, não renderizando layout');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <p>Carregando perfil...</p>
         </div>
       </div>
     );
@@ -74,6 +87,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
         {/* Main Content */}
         <main className="flex-1 pt-16 overflow-auto">
           <div className="p-4 max-w-full">
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                Página atual: {currentPage} | Usuário: {profile.nome_completo} ({profile.role})
+              </p>
+            </div>
             {children}
           </div>
         </main>
