@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Crown, User, Trash2, AlertTriangle, Plus, Edit, Key, Shield } from 'lucide-react';
+import { Users, Crown, User, Trash2, AlertTriangle, Plus, Edit, Key, Shield, RefreshCw } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -37,6 +36,7 @@ export const UserManagementNew: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -76,9 +76,57 @@ export const UserManagementNew: React.FC = () => {
     loadPermissions();
   }, []);
 
+  // Função para sincronizar usuários do auth com profiles
+  const syncAuthUsers = async () => {
+    try {
+      console.log('Sincronizando usuários do auth com profiles...');
+      
+      // Buscar todos os usuários do auth (só admin pode fazer isso)
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.log('Não foi possível acessar usuários do auth (normal para não-admin):', authError);
+        return;
+      }
+
+      // Para cada usuário do auth, verificar se existe no profiles
+      for (const authUser of authUsers.users) {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authUser.id)
+          .single();
+
+        if (!existingProfile) {
+          // Criar profile se não existir
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authUser.id,
+              email: authUser.email || '',
+              nome_completo: authUser.user_metadata?.nome_completo || authUser.email || '',
+              role: authUser.email === 'admin@sgqpro.com' ? 'admin' : 'user'
+            });
+
+          if (insertError) {
+            console.error('Erro ao criar profile para usuário:', authUser.id, insertError);
+          } else {
+            console.log('Profile criado para usuário:', authUser.email);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Erro na sincronização (esperado para usuários não-admin):', error);
+    }
+  };
+
   const loadProfiles = async () => {
     try {
       setLoading(true);
+      
+      // Tentar sincronizar usuários primeiro
+      await syncAuthUsers();
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -89,6 +137,7 @@ export const UserManagementNew: React.FC = () => {
         console.error('Erro:', error);
       } else {
         setProfiles(data || []);
+        console.log('Usuários carregados:', data?.length || 0);
       }
     } catch (error) {
       setError('Erro interno');
@@ -96,6 +145,14 @@ export const UserManagementNew: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshProfiles = async () => {
+    setRefreshing(true);
+    await loadProfiles();
+    setRefreshing(false);
+    setSuccess('Lista de usuários atualizada!');
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   const loadPermissions = async () => {
@@ -145,14 +202,13 @@ export const UserManagementNew: React.FC = () => {
 
       console.log('Usuário criado:', data);
 
-      // Se o usuário foi criado com sucesso, vamos aguardar um pouco e recarregar a lista
       setSuccess('Usuário criado com sucesso! O usuário receberá um email de confirmação.');
       setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
       setCreateUserOpen(false);
       
       // Aguardar um pouco antes de recarregar para dar tempo do trigger criar o perfil
       setTimeout(() => {
-        loadProfiles();
+        refreshProfiles();
       }, 2000);
 
     } catch (error) {
@@ -314,6 +370,16 @@ export const UserManagementNew: React.FC = () => {
         </div>
         
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={refreshProfiles}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar Lista
+          </Button>
+
           <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
