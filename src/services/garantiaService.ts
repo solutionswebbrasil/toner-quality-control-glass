@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Garantia } from '@/types';
-import { auditLogger } from '@/utils/auditLogger';
 
 export class GarantiaService {
   async getAll(): Promise<Garantia[]> {
@@ -39,33 +38,18 @@ export class GarantiaService {
     };
   }
 
-  async create(garantia: Omit<Garantia, 'id' | 'data_registro' | 'user_id'>): Promise<Garantia> {
-    // Get current user ID
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('Usuário não autenticado');
-    }
-
-    const garantiaWithUser = {
-      ...garantia,
-      user_id: user.id
-    };
-
+  async create(garantia: Omit<Garantia, 'id'>): Promise<Garantia> {
     const { data, error } = await supabase
       .from('garantias')
-      .insert(garantiaWithUser)
+      .insert(garantia)
       .select()
       .single();
 
     if (error) throw error;
-    
-    // Log audit
-    await auditLogger.logCreate('garantias', data.id.toString(), data);
-    
     return data;
   }
 
-  async update(id: number, garantia: Omit<Partial<Garantia>, 'user_id'>): Promise<Garantia> {
+  async update(id: number, garantia: Partial<Garantia>): Promise<Garantia> {
     const { data, error } = await supabase
       .from('garantias')
       .update(garantia)
@@ -74,32 +58,16 @@ export class GarantiaService {
       .single();
 
     if (error) throw error;
-    
-    // Log audit
-    await auditLogger.logUpdate('garantias', id.toString(), {}, data);
-    
     return data;
   }
 
   async delete(id: number): Promise<void> {
-    // Get record before deletion for audit
-    const { data: oldRecord } = await supabase
-      .from('garantias')
-      .select('*')
-      .eq('id', id)
-      .single();
-
     const { error } = await supabase
       .from('garantias')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
-    
-    // Log audit
-    if (oldRecord) {
-      await auditLogger.logDelete('garantias', id.toString(), oldRecord);
-    }
   }
 
   async getStatusConfiguracoes(modulo: string = 'Garantias') {
@@ -182,12 +150,14 @@ export class GarantiaService {
       return acc;
     }, {} as Record<string, { quantidade: number; valor: number }>);
 
+    // Dados por fornecedor no mês atual
     const currentMonthByFornecedor = (garantias || [])
       .filter((g: any) => {
         const date = new Date(g.data_registro);
         return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
       })
       .reduce((acc: any, g: any) => {
+        // Buscar nome do fornecedor baseado no fornecedor_id
         const fornecedor = `Fornecedor ${g.fornecedor_id}`;
         acc[fornecedor] = (acc[fornecedor] || 0) + (g.quantidade || 0);
         return acc;

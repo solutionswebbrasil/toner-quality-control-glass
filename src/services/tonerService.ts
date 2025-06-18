@@ -1,10 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Toner } from '@/types';
-import { auditLogger } from '@/utils/auditLogger';
+
+// Função para adicionar parâmetros anti-cache
+const addNoCacheParams = () => `?_t=${Date.now()}&_r=${Math.random()}`;
 
 export const tonerService = {
   getAll: async (): Promise<Toner[]> => {
+    // Adiciona cabeçalhos anti-cache
     const { data, error } = await supabase
       .from('toners')
       .select('*')
@@ -33,21 +36,10 @@ export const tonerService = {
     return data;
   },
 
-  create: async (toner: Omit<Toner, 'id' | 'data_registro' | 'user_id'>): Promise<Toner> => {
-    // Get current user ID
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('Usuário não autenticado');
-    }
-
-    const tonerWithUser = {
-      ...toner,
-      user_id: user.id
-    };
-
+  create: async (toner: Omit<Toner, 'id'>): Promise<Toner> => {
     const { data, error } = await supabase
       .from('toners')
-      .insert([tonerWithUser])
+      .insert([toner])
       .select()
       .single();
     
@@ -56,13 +48,10 @@ export const tonerService = {
       throw error;
     }
     
-    // Log audit
-    await auditLogger.logCreate('toners', data.id.toString(), data);
-    
     return data;
   },
 
-  update: async (id: number, toner: Omit<Partial<Toner>, 'user_id'>): Promise<Toner | null> => {
+  update: async (id: number, toner: Partial<Toner>): Promise<Toner | null> => {
     const { data, error } = await supabase
       .from('toners')
       .update(toner)
@@ -75,20 +64,10 @@ export const tonerService = {
       return null;
     }
     
-    // Log audit
-    await auditLogger.logUpdate('toners', id.toString(), {}, data);
-    
     return data;
   },
 
   delete: async (id: number): Promise<boolean> => {
-    // Get record before deletion for audit
-    const { data: oldRecord } = await supabase
-      .from('toners')
-      .select('*')
-      .eq('id', id)
-      .single();
-
     const { error } = await supabase
       .from('toners')
       .delete()
@@ -97,11 +76,6 @@ export const tonerService = {
     if (error) {
       console.error('Erro ao deletar toner:', error);
       return false;
-    }
-    
-    // Log audit
-    if (oldRecord) {
-      await auditLogger.logDelete('toners', id.toString(), oldRecord);
     }
     
     return true;

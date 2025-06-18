@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { RetornadoForm } from '@/components/RetornadoForm';
@@ -39,97 +38,91 @@ import { UserManagement } from '@/components/UserManagement';
 import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 
 export default function Index() {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  // Debug log para ver mudanças de página
-  useEffect(() => {
-    console.log('🔄 Index currentPage changed to:', currentPage);
-  }, [currentPage]);
-
-  const handlePageChange = (newPage: string) => {
-    console.log('📄 Page change requested:', newPage);
-    setCurrentPage(newPage);
-  };
+  const [currentPage, setCurrentPage] = useState('welcome');
 
   const renderPage = () => {
-    console.log('🎨 Rendering page:', currentPage);
-    
     switch (currentPage) {
-      case 'dashboard':
+      case 'welcome':
         return <WelcomeScreen />;
-      
-      // Retornados
-      case 'retornado-form':
+      case 'retornados-registro':
         return <RetornadoForm />;
-      case 'retornado-grid':
+      case 'retornados-consulta':
         return <RetornadoGrid />;
-      case 'retornado-charts':
+      case 'retornados-graficos':
         return <RetornadoCharts />;
-      
-      // Garantias
-      case 'garantia-form':
-        return <GarantiaForm />;
-      case 'garantia-grid':
-        return <GarantiaGrid />;
-      case 'garantia-charts':
-        return <GarantiaGrid />; // Placeholder
-      case 'garantia-geral-charts':
-        return <GarantiaGeralCharts />;
-      case 'garantia-toner-consulta':
-        return <GarantiaTonerGrid />;
-      case 'garantia-toner-grid':
-        return <GarantiaTonerGrid />;
-      case 'garantia-toner-charts':
-        return <GarantiaTonerCharts />;
-      
-      // Toners
-      case 'toner-form':
-        return <TonerForm />;
-      case 'toner-grid':
-        return <TonerGrid />;
-      
-      // Não Conformidades
-      case 'nao-conformidade-form':
-        return <NaoConformidadeForm />;
-      case 'nao-conformidade-grid':
-        return <NaoConformidadeGrid />;
-      case 'nao-conformidade-charts':
-        return <NaoConformidadeCharts naoConformidades={[]} />;
-      
-      // Auditorias
-      case 'auditoria-form':
-        return <AuditoriaForm onSuccess={() => {}} />;
-      case 'auditoria-grid':
-        return <AuditoriaGrid />;
-      
-      // Certificados
-      case 'certificado-form':
-        return <CertificadoForm />;
-      case 'certificado-grid':
-        return <CertificadoGrid />;
-      
-      // Configurações
-      case 'filiais':
-        return <FilialGrid />;
-      case 'fornecedores':
+      case 'fornecedores-cadastro':
+        return <FornecedorForm />;
+      case 'fornecedores-consulta':
         return <FornecedorGrid />;
+      case 'garantias-registro':
+        return <GarantiaForm />;
+      case 'garantias-consulta':
+        return <GarantiaGrid />;
+      case 'garantias-graficos-gerais':
+        return <GarantiaGeralCharts />;
+      case 'garantias-toners':
+        return <GarantiaTonerGrid />;
+      case 'toners-consulta':
+        return <TonerGrid />;
+      case 'toners-graficos':
+        return <GarantiaTonerCharts />;
+      case 'toners-cadastro':
+        return <TonerForm />;
+      case 'toners-consulta-principal':
+        return <TonerGrid />;
+      case 'auditorias-registro':
+        return <AuditoriaForm onSuccess={() => {}} />;
+      case 'auditorias-consulta':
+        return <AuditoriaGrid />;
+      case 'nc-registro':
+        return <NaoConformidadeForm />;
+      case 'nc-consulta':
+        return <NaoConformidadeGrid />;
+      case 'nc-graficos':
+        return <NaoConformidadeCharts naoConformidades={[]} />;
+      case 'titulo-itpop-cadastro':
+        return <TituloItPopForm onSuccess={() => {}} />;
+      case 'titulo-itpop-consulta':
+        return <ConsultaTitulosItPop onSuccess={() => {}} />;
+      case 'registro-itpop':
+        return <RegistroItPopForm onSuccess={() => {}} />;
+      case 'registros-itpop-consulta':
+        return <ConsultaRegistrosItPop onSuccess={() => {}} />;
+      case 'visualizar-itpop':
+        return <VisualizadorItPop onSuccess={() => {}} />;
+      case 'titulo-bpmn-cadastro':
+        return <TituloBpmnForm onSuccess={() => {}} />;
+      case 'titulo-bpmn-consulta':
+        return <ConsultaTitulosBpmn onSuccess={() => {}} />;
+      case 'registro-bpmn':
+        return <RegistroBpmnForm onSuccess={() => {}} />;
+      case 'registros-bpmn-consulta':
+        return <ConsultaRegistrosBpmn onSuccess={() => {}} />;
+      case 'visualizar-bpmn':
+        return <VisualizadorBpmn onSuccess={() => {}} />;
+      case 'certificados-registro':
+        return <CertificadoForm />;
+      case 'certificados-consulta':
+        return <CertificadoGrid />;
+      case 'filiais-cadastro':
+        return <FilialForm onSuccess={() => {}} />;
+      case 'filiais-consulta':
+        return <FilialGrid />;
+      case 'config-retornado':
+        return <ConfiguracoesRetornado />;
+      case 'status-cadastro':
+        return <StatusCadastro />;
       case 'usuarios':
-        return <UserManagement />;
-      case 'consulta-usuarios':
         return <UserManagement />;
       case 'apis-integracoes':
         return <ApisIntegracoes />;
-      case 'configurar-retornados':
-        return <ConfiguracoesRetornado />;
-      
       default:
-        console.warn('❌ Página não encontrada:', currentPage);
         return <WelcomeScreen />;
     }
   };
 
   return (
-    <Layout currentPage={currentPage} onPageChange={handlePageChange}>
+    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
       {renderPage()}
     </Layout>
   );

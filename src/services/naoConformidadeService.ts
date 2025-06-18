@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { NaoConformidade } from '@/types/naoConformidade';
-import { auditLogger } from '@/utils/auditLogger';
 
 export const naoConformidadeService = {
   async getAll(): Promise<NaoConformidade[]> {
@@ -33,21 +32,10 @@ export const naoConformidadeService = {
     return data;
   },
 
-  async create(naoConformidade: Omit<NaoConformidade, 'id' | 'data_registro' | 'data_atualizacao' | 'user_id'>): Promise<NaoConformidade> {
-    // Get current user ID
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('Usuário não autenticado');
-    }
-
-    const naoConformidadeWithUser = {
-      ...naoConformidade,
-      user_id: user.id
-    };
-
+  async create(naoConformidade: Omit<NaoConformidade, 'id' | 'data_registro' | 'data_atualizacao'>): Promise<NaoConformidade> {
     const { data, error } = await supabase
       .from('nao_conformidades')
-      .insert([naoConformidadeWithUser])
+      .insert([naoConformidade])
       .select()
       .single();
 
@@ -56,13 +44,10 @@ export const naoConformidadeService = {
       throw error;
     }
 
-    // Log audit
-    await auditLogger.logCreate('nao_conformidades', data.id.toString(), data);
-
     return data;
   },
 
-  async update(id: number, naoConformidade: Omit<Partial<NaoConformidade>, 'user_id'>): Promise<NaoConformidade> {
+  async update(id: number, naoConformidade: Partial<NaoConformidade>): Promise<NaoConformidade> {
     const { data, error } = await supabase
       .from('nao_conformidades')
       .update(naoConformidade)
@@ -75,20 +60,10 @@ export const naoConformidadeService = {
       throw error;
     }
 
-    // Log audit
-    await auditLogger.logUpdate('nao_conformidades', id.toString(), {}, data);
-
     return data;
   },
 
   async delete(id: number): Promise<void> {
-    // Get record before deletion for audit
-    const { data: oldRecord } = await supabase
-      .from('nao_conformidades')
-      .select('*')
-      .eq('id', id)
-      .single();
-
     const { error } = await supabase
       .from('nao_conformidades')
       .delete()
@@ -97,11 +72,6 @@ export const naoConformidadeService = {
     if (error) {
       console.error('Erro ao excluir não conformidade:', error);
       throw error;
-    }
-
-    // Log audit
-    if (oldRecord) {
-      await auditLogger.logDelete('nao_conformidades', id.toString(), oldRecord);
     }
   }
 };

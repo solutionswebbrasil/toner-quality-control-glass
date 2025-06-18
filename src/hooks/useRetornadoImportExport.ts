@@ -56,18 +56,15 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
     try {
       console.log(`Iniciando importação de ${data.length} registros`);
       
-      // Simulate progress during import
-      const progressInterval = setInterval(() => {
-        setImportProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
-      
-      const { success, errors } = await processImportData(data, 'retornados');
-      
-      clearInterval(progressInterval);
-      setImportProgress(100);
-      
-      const errorCount = errors.length;
-      const importedCount = success;
+      const { importedCount, errorCount, errors } = await processImportData(
+        data,
+        (imported: number, errors: number) => {
+          const total = imported + errors;
+          const progress = Math.min((total / data.length) * 100, 100);
+          setImportProgress(progress);
+          console.log(`Progresso: ${imported} importados, ${errors} erros (${progress.toFixed(1)}%)`);
+        }
+      );
       
       console.log(`Importação concluída: ${importedCount} sucessos, ${errorCount} erros de ${data.length} registros`);
       

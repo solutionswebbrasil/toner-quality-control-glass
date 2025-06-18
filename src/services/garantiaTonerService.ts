@@ -1,5 +1,5 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { auditLogger } from '@/utils/auditLogger';
 
 export interface GarantiaToner {
   id?: number;
@@ -15,30 +15,20 @@ export interface GarantiaToner {
   observacoes?: string;
   ns?: string;
   lote?: string;
-  user_id: string;
 }
 
 export const garantiaTonerService = {
-  async create(garantiaToner: Omit<GarantiaToner, 'id' | 'ticket_numero' | 'data_registro' | 'user_id'>): Promise<GarantiaToner> {
-    // Get current user ID
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('Usuário não autenticado');
-    }
-
+  async create(garantiaToner: Omit<GarantiaToner, 'id' | 'ticket_numero' | 'data_registro'>): Promise<GarantiaToner> {
     // Gerar número do ticket
     const ticketNumero = `GT${Date.now().toString().slice(-8)}`;
     
-    const garantiaTonerWithUser = {
-      ...garantiaToner,
-      ticket_numero: ticketNumero,
-      data_registro: new Date().toISOString(),
-      user_id: user.id
-    };
-
     const { data, error } = await supabase
       .from('garantias_toners')
-      .insert([garantiaTonerWithUser])
+      .insert([{
+        ...garantiaToner,
+        ticket_numero: ticketNumero,
+        data_registro: new Date().toISOString()
+      }])
       .select()
       .single();
 
@@ -46,9 +36,6 @@ export const garantiaTonerService = {
       console.error('Error creating garantia toner:', error);
       throw error;
     }
-
-    // Log audit
-    await auditLogger.logCreate('garantias_toners', data.id!.toString(), data);
 
     return data as GarantiaToner;
   },
@@ -79,9 +66,6 @@ export const garantiaTonerService = {
       console.error('Error updating garantia toner status:', error);
       throw error;
     }
-
-    // Log audit
-    await auditLogger.logUpdate('garantias_toners', id.toString(), {}, data);
 
     return data as GarantiaToner;
   },
