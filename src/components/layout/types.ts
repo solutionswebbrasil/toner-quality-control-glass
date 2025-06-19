@@ -6,6 +6,11 @@ export interface MenuItem {
   label: string;
   icon: LucideIcon;
   page?: string;
+  permission?: {
+    modulo: string;
+    submenu: string;
+    acao: string;
+  };
   submenu?: SubMenuItem[];
 }
 
