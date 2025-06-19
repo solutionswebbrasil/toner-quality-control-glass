@@ -24,17 +24,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
-  const filteredMenuItems = menuItems.map(item => {
+  const filteredMenuItems = menuItems.filter(item => {
     if (item.id === 'configuracoes') {
-      // Para o menu de configurações, filtrar os submenus baseado no role
-      if (profile?.role !== 'admin') {
-        // Se não for admin, não mostrar o menu de configurações
-        return null;
-      }
-      return item;
+      return profile?.role === 'admin';
     }
-    return item;
-  }).filter(Boolean) as typeof menuItems;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex">

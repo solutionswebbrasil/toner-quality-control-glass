@@ -545,51 +545,6 @@ export type Database = {
           },
         ]
       }
-      smtp_configuracoes: {
-        Row: {
-          ativo: boolean
-          created_at: string
-          email_remetente: string
-          host_smtp: string
-          id: string
-          nome_remetente: string
-          porta_smtp: number
-          senha_email: string
-          servidor_tipo: string
-          updated_at: string
-          usar_tls: boolean
-          user_id: string
-        }
-        Insert: {
-          ativo?: boolean
-          created_at?: string
-          email_remetente: string
-          host_smtp: string
-          id?: string
-          nome_remetente: string
-          porta_smtp: number
-          senha_email: string
-          servidor_tipo: string
-          updated_at?: string
-          usar_tls?: boolean
-          user_id: string
-        }
-        Update: {
-          ativo?: boolean
-          created_at?: string
-          email_remetente?: string
-          host_smtp?: string
-          id?: string
-          nome_remetente?: string
-          porta_smtp?: number
-          senha_email?: string
-          servidor_tipo?: string
-          updated_at?: string
-          usar_tls?: boolean
-          user_id?: string
-        }
-        Relationships: []
-      }
       status_configuracoes: {
         Row: {
           ativo: boolean | null

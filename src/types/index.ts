@@ -1,3 +1,4 @@
+
 export interface Toner {
   id?: number;
   modelo: string;
@@ -116,4 +117,3 @@ export interface RegistroBpmn {
 export type { Filial } from './filial';
 export type { NaoConformidade } from './naoConformidade';
 export type { Certificado } from './certificado';
-export type { SmtpConfig } from './smtpConfig';

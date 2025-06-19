@@ -1,2 +1,0 @@
-
-export { SmtpConfigForm } from './SmtpConfigForm';

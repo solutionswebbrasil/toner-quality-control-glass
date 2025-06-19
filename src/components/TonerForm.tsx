@@ -3,212 +3,232 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
-import { tonerService } from '@/services/tonerService';
+import { Save, Calculator } from 'lucide-react';
 import { Toner } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
+import { tonerService } from '@/services/tonerService';
+import { useToast } from '@/hooks/use-toast';
 
 interface TonerFormProps {
   onSuccess?: () => void;
 }
 
 export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     modelo: '',
-    peso_cheio: 0,
-    peso_vazio: 0,
-    gramatura: 0,
-    preco_produto: 0,
-    capacidade_folhas: 0,
-    valor_por_folha: 0,
+    peso_cheio: '',
+    peso_vazio: '',
+    preco_produto: '',
+    capacidade_folhas: '',
     impressoras_compat: '',
-    cor: '',
-    registrado_por: 0
+    cor: 'Preto'
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cálculos automáticos
+  const gramatura = formData.peso_cheio && formData.peso_vazio 
+    ? (parseFloat(formData.peso_cheio) - parseFloat(formData.peso_vazio)).toFixed(2)
+    : '0';
+
+  const valorPorFolha = formData.preco_produto && formData.capacidade_folhas
+    ? (parseFloat(formData.preco_produto) / parseInt(formData.capacidade_folhas)).toFixed(4)
+    : '0';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id) {
-      setMessage({ type: 'error', text: 'Usuário não autenticado' });
-      return;
-    }
-
-    setLoading(true);
-    setMessage(null);
+    setIsSubmitting(true);
 
     try {
-      const tonerData: Omit<Toner, 'id' | 'data_registro'> = {
-        ...formData,
-        user_id: user.id
+      const toner: Omit<Toner, 'id'> = {
+        modelo: formData.modelo,
+        peso_cheio: parseFloat(formData.peso_cheio),
+        peso_vazio: parseFloat(formData.peso_vazio),
+        gramatura: parseFloat(gramatura),
+        preco_produto: parseFloat(formData.preco_produto),
+        capacidade_folhas: parseInt(formData.capacidade_folhas),
+        valor_por_folha: parseFloat(valorPorFolha),
+        impressoras_compat: formData.impressoras_compat,
+        cor: formData.cor,
+        registrado_por: 1, // Mock user ID
+        data_registro: new Date().toISOString()
       };
 
-      await tonerService.create(tonerData);
+      console.log('Criando toner:', toner);
+      const result = await tonerService.create(toner);
+      console.log('Toner criado:', result);
       
-      setMessage({ type: 'success', text: 'Toner cadastrado com sucesso!' });
+      toast({
+        title: "Sucesso!",
+        description: "Toner cadastrado com sucesso.",
+      });
+
+      // Reset form
       setFormData({
         modelo: '',
-        peso_cheio: 0,
-        peso_vazio: 0,
-        gramatura: 0,
-        preco_produto: 0,
-        capacidade_folhas: 0,
-        valor_por_folha: 0,
+        peso_cheio: '',
+        peso_vazio: '',
+        preco_produto: '',
+        capacidade_folhas: '',
         impressoras_compat: '',
-        cor: '',
-        registrado_por: 0
+        cor: 'Preto'
       });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
+
+      onSuccess?.();
     } catch (error) {
-      console.error('Erro ao salvar toner:', error);
-      setMessage({ type: 'error', text: 'Erro ao cadastrar toner' });
+      console.error('Erro ao cadastrar toner:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao cadastrar toner.",
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <Card>
+    <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
       <CardHeader>
-        <CardTitle>Novo Toner</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Save className="w-5 h-5" />
+          Cadastro de Toner
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="modelo">Modelo</Label>
+              <Label htmlFor="modelo">Modelo *</Label>
               <Input
                 id="modelo"
+                placeholder="Ex: HP 85A"
                 value={formData.modelo}
-                onChange={(e) => setFormData(prev => ({ ...prev, modelo: e.target.value }))}
-                placeholder="Modelo do toner"
+                onChange={(e) => handleInputChange('modelo', e.target.value)}
                 required
+                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="cor">Cor</Label>
-              <Input
-                id="cor"
-                value={formData.cor}
-                onChange={(e) => setFormData(prev => ({ ...prev, cor: e.target.value }))}
-                placeholder="Cor do toner"
-                required
-              />
+              <Select value={formData.cor} onValueChange={(value) => handleInputChange('cor', value)}>
+                <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Preto">Preto</SelectItem>
+                  <SelectItem value="Ciano">Ciano</SelectItem>
+                  <SelectItem value="Magenta">Magenta</SelectItem>
+                  <SelectItem value="Amarelo">Amarelo</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="peso_cheio">Peso Cheio (g)</Label>
+              <Label htmlFor="peso_cheio">Peso Cheio (g) *</Label>
               <Input
                 id="peso_cheio"
                 type="number"
                 step="0.01"
+                placeholder="850.5"
                 value={formData.peso_cheio}
-                onChange={(e) => setFormData(prev => ({ ...prev, peso_cheio: parseFloat(e.target.value) }))}
+                onChange={(e) => handleInputChange('peso_cheio', e.target.value)}
                 required
+                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="peso_vazio">Peso Vazio (g)</Label>
+              <Label htmlFor="peso_vazio">Peso Vazio (g) *</Label>
               <Input
                 id="peso_vazio"
                 type="number"
                 step="0.01"
+                placeholder="120.0"
                 value={formData.peso_vazio}
-                onChange={(e) => setFormData(prev => ({ ...prev, peso_vazio: parseFloat(e.target.value) }))}
+                onChange={(e) => handleInputChange('peso_vazio', e.target.value)}
                 required
+                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="gramatura">Gramatura (g)</Label>
-              <Input
-                id="gramatura"
-                type="number"
-                step="0.01"
-                value={formData.gramatura}
-                onChange={(e) => setFormData(prev => ({ ...prev, gramatura: parseFloat(e.target.value) }))}
-                required
-              />
+              <Label>Gramatura (calculado)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={`${gramatura} g`}
+                  readOnly
+                  className="bg-slate-100/50 dark:bg-slate-700/50"
+                />
+                <Calculator className="w-4 h-4 text-blue-500" />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preco_produto">Preço do Produto (R$)</Label>
+              <Label htmlFor="preco_produto">Preço (R$) *</Label>
               <Input
                 id="preco_produto"
                 type="number"
                 step="0.01"
+                placeholder="89.90"
                 value={formData.preco_produto}
-                onChange={(e) => setFormData(prev => ({ ...prev, preco_produto: parseFloat(e.target.value) }))}
+                onChange={(e) => handleInputChange('preco_produto', e.target.value)}
                 required
+                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="capacidade_folhas">Capacidade de Folhas</Label>
+              <Label htmlFor="capacidade_folhas">Capacidade (folhas) *</Label>
               <Input
                 id="capacidade_folhas"
                 type="number"
+                placeholder="1600"
                 value={formData.capacidade_folhas}
-                onChange={(e) => setFormData(prev => ({ ...prev, capacidade_folhas: parseInt(e.target.value) }))}
+                onChange={(e) => handleInputChange('capacidade_folhas', e.target.value)}
                 required
+                className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="valor_por_folha">Valor por Folha (R$)</Label>
-              <Input
-                id="valor_por_folha"
-                type="number"
-                step="0.0001"
-                value={formData.valor_por_folha}
-                onChange={(e) => setFormData(prev => ({ ...prev, valor_por_folha: parseFloat(e.target.value) }))}
-                required
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="impressoras_compat">Impressoras Compatíveis</Label>
-              <Input
-                id="impressoras_compat"
-                value={formData.impressoras_compat}
-                onChange={(e) => setFormData(prev => ({ ...prev, impressoras_compat: e.target.value }))}
-                placeholder="Lista de impressoras compatíveis"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="registrado_por">Registrado Por (ID)</Label>
-              <Input
-                id="registrado_por"
-                type="number"
-                value={formData.registrado_por}
-                onChange={(e) => setFormData(prev => ({ ...prev, registrado_por: parseInt(e.target.value) }))}
-                required
-              />
+              <Label>Valor por Folha (calculado)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={`R$ ${valorPorFolha}`}
+                  readOnly
+                  className="bg-slate-100/50 dark:bg-slate-700/50"
+                />
+                <Calculator className="w-4 h-4 text-blue-500" />
+              </div>
             </div>
           </div>
 
-          {message && (
-            <Alert className={message.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
-              {message.type === 'error' ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
-              <AlertDescription>{message.text}</AlertDescription>
-            </Alert>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="impressoras_compat">Impressoras Compatíveis</Label>
+            <Textarea
+              id="impressoras_compat"
+              placeholder="HP LaserJet P1102, P1102w, M1130..."
+              value={formData.impressoras_compat}
+              onChange={(e) => handleInputChange('impressoras_compat', e.target.value)}
+              className="bg-white/50 dark:bg-slate-800/50 backdrop-blur min-h-20"
+            />
+          </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Cadastrar Toner
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+          >
+            {isSubmitting ? 'Salvando...' : 'Salvar Toner'}
           </Button>
         </form>
       </CardContent>

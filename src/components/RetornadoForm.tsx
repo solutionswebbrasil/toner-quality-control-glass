@@ -1,199 +1,284 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
-import { retornadoService } from '@/services/retornadoService';
-import { tonerService } from '@/services/tonerService';
-import { Retornado, Toner } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
+import { Save, Recycle } from 'lucide-react';
+import { Toner, Retornado } from '@/types';
+import { tonerService, retornadoService, filialService } from '@/services/dataService';
+import { garantiaTonerService } from '@/services/garantiaTonerService';
+import { toast } from '@/hooks/use-toast';
+import { TonerSelector } from './retornado/TonerSelector';
+import { RetornadoFormFields } from './retornado/RetornadoFormFields';
+import { RetornadoInfoDisplay } from './retornado/RetornadoInfoDisplay';
+import { GarantiaTonerModal, GarantiaTonerData } from './retornado/GarantiaTonerModal';
+import type { Filial } from '@/types/filial';
 
 interface RetornadoFormProps {
   onSuccess?: () => void;
 }
 
 export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
   const [toners, setToners] = useState<Toner[]>([]);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+  const [filiais, setFiliais] = useState<Filial[]>([]);
   const [formData, setFormData] = useState({
-    id_modelo: 0,
-    id_cliente: 0,
-    peso: 0,
-    destino_final: 'Estoque',
-    filial: '',
-    valor_recuperado: ''
+    id_modelo: '',
+    id_cliente: '',
+    peso: '',
+    destino_final: '',
+    filial: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedToner, setSelectedToner] = useState<Toner | null>(null);
+  const [destinoSelecionado, setDestinoSelecionado] = useState(false);
+  const [isGarantiaModalOpen, setIsGarantiaModalOpen] = useState(false);
 
   useEffect(() => {
     loadToners();
+    loadFiliais();
   }, []);
+
+  // Atualizar toner selecionado quando o modelo mudar
+  useEffect(() => {
+    if (formData.id_modelo) {
+      const toner = toners.find(t => t.id?.toString() === formData.id_modelo);
+      setSelectedToner(toner || null);
+      // Reset destino quando mudar o toner
+      setFormData(prev => ({ ...prev, destino_final: '' }));
+      setDestinoSelecionado(false);
+    } else {
+      setSelectedToner(null);
+      setDestinoSelecionado(false);
+    }
+  }, [formData.id_modelo, toners]);
+
+  // Reset destino quando peso mudar
+  useEffect(() => {
+    if (formData.peso) {
+      setFormData(prev => ({ ...prev, destino_final: '' }));
+      setDestinoSelecionado(false);
+    }
+  }, [formData.peso]);
 
   const loadToners = async () => {
     try {
-      const tonersData = await tonerService.getAll();
-      setToners(tonersData);
+      const data = await tonerService.getAll();
+      setToners(data);
     } catch (error) {
       console.error('Erro ao carregar toners:', error);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user?.id) {
-      setMessage({ type: 'error', text: 'Usuário não autenticado' });
-      return;
-    }
-
-    setLoading(true);
-    setMessage(null);
-
+  const loadFiliais = async () => {
     try {
-      const retornadoData: Omit<Retornado, 'id' | 'modelo'> = {
-        id_modelo: formData.id_modelo,
-        id_cliente: formData.id_cliente,
-        peso: formData.peso,
-        destino_final: formData.destino_final,
-        filial: formData.filial,
-        valor_recuperado: parseFloat(formData.valor_recuperado) || 0,
-        user_id: user.id,
-        data_registro: new Date().toISOString()
-      };
-
-      await retornadoService.create(retornadoData);
-      
-      setMessage({ type: 'success', text: 'Retornado registrado com sucesso!' });
-      setFormData({
-        id_modelo: 0,
-        id_cliente: 0,
-        peso: 0,
-        destino_final: 'Estoque',
-        filial: '',
-        valor_recuperado: ''
-      });
-      
-      if (onSuccess) {
-        onSuccess();
+      const data = await filialService.getAll();
+      setFiliais(data);
+      if (data.length > 0 && !formData.filial) {
+        setFormData(prev => ({ ...prev, filial: data[0].nome }));
       }
     } catch (error) {
-      console.error('Erro ao salvar retornado:', error);
-      setMessage({ type: 'error', text: 'Erro ao registrar retornado' });
-    } finally {
-      setLoading(false);
+      console.error('Erro ao carregar filiais:', error);
     }
   };
 
+  const calculateValorRecuperado = () => {
+    if (!selectedToner || !formData.peso || formData.destino_final !== 'Estoque') {
+      return undefined;
+    }
+    
+    const pesoAtual = parseFloat(formData.peso);
+    const gramaturaRestante = Math.max(0, pesoAtual - selectedToner.peso_vazio);
+    const percentualGramatura = (gramaturaRestante / selectedToner.gramatura) * 100;
+    const folhasRestantes = (percentualGramatura / 100) * selectedToner.capacidade_folhas;
+    const valorRecuperado = folhasRestantes * selectedToner.valor_por_folha;
+    
+    return valorRecuperado;
+  };
+
+  const handleGarantiaConfirm = async (garantiaData: GarantiaTonerData) => {
+    try {
+      if (!selectedToner) return;
+
+      const garantiaToner = {
+        modelo_toner: selectedToner.modelo,
+        filial_origem: formData.filial,
+        fornecedor: garantiaData.fornecedor,
+        defeito: garantiaData.defeito,
+        responsavel_envio: garantiaData.responsavel_envio,
+        status: 'Pendente' as const,
+        data_envio: new Date().toISOString()
+      };
+
+      const result = await garantiaTonerService.create(garantiaToner);
+      
+      toast({
+        title: "Garantia Registrada!",
+        description: `Ticket ${result.ticket_numero} criado com sucesso. O toner foi enviado para o módulo de garantias.`,
+      });
+
+      // Reset form
+      setFormData({
+        id_modelo: '',
+        id_cliente: '',
+        peso: '',
+        destino_final: '',
+        filial: filiais.length > 0 ? filiais[0].nome : ''
+      });
+      setSelectedToner(null);
+      setDestinoSelecionado(false);
+      setIsGarantiaModalOpen(false);
+
+      onSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar garantia do toner.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Se o destino for garantia, abrir modal
+    if (formData.destino_final === 'Garantia') {
+      if (!destinoSelecionado) {
+        toast({
+          title: "Destino Necessário",
+          description: "Por favor, selecione o destino final antes de continuar.",
+          variant: "destructive"
+        });
+        return;
+      }
+      setIsGarantiaModalOpen(true);
+      return;
+    }
+    
+    if (!destinoSelecionado) {
+      toast({
+        title: "Destino Necessário",
+        description: "Por favor, selecione o destino final antes de registrar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const valorRecuperado = calculateValorRecuperado();
+
+      const retornado: Omit<Retornado, 'id' | 'modelo'> = {
+        id_modelo: parseInt(formData.id_modelo),
+        id_cliente: parseInt(formData.id_cliente),
+        peso: parseFloat(formData.peso),
+        destino_final: formData.destino_final,
+        filial: formData.filial,
+        valor_recuperado: valorRecuperado,
+        data_registro: new Date().toISOString()
+      };
+
+      await retornadoService.create(retornado);
+      
+      toast({
+        title: "Sucesso!",
+        description: "Retornado registrado com sucesso.",
+      });
+
+      // Reset form
+      setFormData({
+        id_modelo: '',
+        id_cliente: '',
+        peso: '',
+        destino_final: '',
+        filial: filiais.length > 0 ? filiais[0].nome : ''
+      });
+      setSelectedToner(null);
+      setDestinoSelecionado(false);
+
+      onSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar retornado.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'destino_final' && value) {
+      setDestinoSelecionado(true);
+    }
+  };
+
+  const handleDestinoChange = (destino: string) => {
+    handleInputChange('destino_final', destino);
+  };
+
+  const isFormValid = () => {
+    return formData.id_modelo && 
+           formData.id_cliente && 
+           formData.peso && 
+           formData.filial && 
+           destinoSelecionado;
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Novo Retornado</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="id_modelo">Modelo do Toner</Label>
-              <Select 
-                value={formData.id_modelo.toString()} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, id_modelo: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {toners.map((toner) => (
-                    <SelectItem key={toner.id} value={toner.id!.toString()}>
-                      {toner.modelo}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Recycle className="w-5 h-5" />
+            Registro de Retornados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TonerSelector
+                toners={toners}
+                selectedTonerId={formData.id_modelo}
+                onTonerChange={(tonerId) => handleInputChange('id_modelo', tonerId)}
+              />
 
-            <div className="space-y-2">
-              <Label htmlFor="id_cliente">ID Cliente</Label>
-              <Input
-                id="id_cliente"
-                type="number"
-                value={formData.id_cliente}
-                onChange={(e) => setFormData(prev => ({ ...prev, id_cliente: parseInt(e.target.value) }))}
-                required
+              <RetornadoFormFields
+                idCliente={formData.id_cliente}
+                peso={formData.peso}
+                filial={formData.filial}
+                filiais={filiais}
+                onFieldChange={handleInputChange}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="peso">Peso (g)</Label>
-              <Input
-                id="peso"
-                type="number"
-                step="0.01"
-                value={formData.peso}
-                onChange={(e) => setFormData(prev => ({ ...prev, peso: parseFloat(e.target.value) }))}
-                required
-              />
-            </div>
+            <RetornadoInfoDisplay
+              selectedToner={selectedToner}
+              peso={formData.peso}
+              destinoFinal={formData.destino_final}
+              onDestinoChange={handleDestinoChange}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="destino_final">Destino Final</Label>
-              <Select 
-                value={formData.destino_final} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, destino_final: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Descarte">Descarte</SelectItem>
-                  <SelectItem value="Garantia">Garantia</SelectItem>
-                  <SelectItem value="Estoque">Estoque</SelectItem>
-                  <SelectItem value="Uso Interno">Uso Interno</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !isFormValid()}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting ? 'Salvando...' : formData.destino_final === 'Garantia' ? 'Registrar Garantia' : 'Registrar Retornado'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="filial">Filial</Label>
-              <Input
-                id="filial"
-                value={formData.filial}
-                onChange={(e) => setFormData(prev => ({ ...prev, filial: e.target.value }))}
-                placeholder="Nome da filial"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="valor_recuperado">Valor Recuperado (R$)</Label>
-              <Input
-                id="valor_recuperado"
-                type="number"
-                step="0.01"
-                value={formData.valor_recuperado}
-                onChange={(e) => setFormData(prev => ({ ...prev, valor_recuperado: e.target.value }))}
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          {message && (
-            <Alert className={message.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
-              {message.type === 'error' ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
-              <AlertDescription>{message.text}</AlertDescription>
-            </Alert>
-          )}
-
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Registrar Retornado
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      <GarantiaTonerModal
+        isOpen={isGarantiaModalOpen}
+        onClose={() => setIsGarantiaModalOpen(false)}
+        onConfirm={handleGarantiaConfirm}
+        selectedToner={selectedToner}
+        filial={formData.filial}
+      />
+    </>
   );
 };
