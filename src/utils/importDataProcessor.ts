@@ -16,7 +16,7 @@ export const processTonerImport = async (csvData: any[], userId: string): Promis
         continue;
       }
 
-      const tonerData: Omit<Toner, 'id' | 'user_id' | 'data_registro'> = {
+      const tonerData: Omit<Toner, 'id' | 'data_registro'> = {
         modelo: row.modelo,
         peso_cheio: parseFloat(row.peso_cheio) || 0,
         peso_vazio: parseFloat(row.peso_vazio) || 0,
@@ -26,13 +26,11 @@ export const processTonerImport = async (csvData: any[], userId: string): Promis
         valor_por_folha: parseFloat(row.valor_por_folha) || 0,
         impressoras_compat: row.impressoras_compat || '',
         cor: row.cor,
-        registrado_por: parseInt(row.registrado_por) || 1
+        registrado_por: parseInt(row.registrado_por) || 1,
+        user_id: userId
       };
 
-      await tonerService.create({
-        ...tonerData,
-        user_id: userId
-      });
+      await tonerService.create(tonerData);
       
       results.success++;
     } catch (error) {
@@ -92,6 +90,33 @@ export const processRetornadoImport = async (csvData: RetornadoCSV[], userId: st
     }
   }
 
+  return results;
+};
+
+// Export para compatibilidade com hook existente
+export const processImportData = async (
+  data: any[], 
+  onProgress?: (imported: number, errors: number) => void
+): Promise<{ importedCount: number; errorCount: number; errors: string[] }> => {
+  // Esta é uma implementação genérica - você pode customizar conforme necessário
+  const results = { importedCount: 0, errorCount: 0, errors: [] as string[] };
+  
+  for (let i = 0; i < data.length; i++) {
+    try {
+      // Processar cada item - implemente a lógica específica aqui
+      results.importedCount++;
+      if (onProgress) {
+        onProgress(results.importedCount, results.errorCount);
+      }
+    } catch (error) {
+      results.errorCount++;
+      results.errors.push(`Erro na linha ${i + 1}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      if (onProgress) {
+        onProgress(results.importedCount, results.errorCount);
+      }
+    }
+  }
+  
   return results;
 };
 

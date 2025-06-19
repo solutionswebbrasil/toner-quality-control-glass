@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +47,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         data_inicio: formData.data_inicio,
         data_fim: formData.data_fim,
         unidade_auditada: formData.unidade_auditada,
-        formulario_pdf: formData.formulario_pdf,
+        formulario_pdf: formData.formulario_pdf ? formData.formulario_pdf.name : null,
         user_id: user.id
       };
 
