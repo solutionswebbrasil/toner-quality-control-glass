@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { garantiaService, fornecedorService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
 import { Garantia, Fornecedor } from '@/types';
-import { Upload, FileText, X, Trash2 } from 'lucide-react';
+import { Upload, FileText, X, Trash2, Mail } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +56,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
   const [nfCompra, setNfCompra] = useState<string>('');
   const [nfRemessa, setNfRemessa] = useState<string>('');
   const [nfDevolucao, setNfDevolucao] = useState<string>('');
+  const [emailNotificacao, setEmailNotificacao] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
@@ -71,6 +72,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         setNfCompra(garantia.nf_compra_pdf || '');
         setNfRemessa(garantia.nf_remessa_pdf || '');
         setNfDevolucao(garantia.nf_devolucao_pdf || '');
+        setEmailNotificacao(garantia.email_notificacao || '');
       }
     }
   }, [isOpen, garantia]);
@@ -259,32 +261,69 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
     </div>
   );
 
+  const sendNotificationEmail = async (garantiaData: Garantia) => {
+    if (!garantiaData.email_notificacao || status !== 'finalizada') {
+      return;
+    }
+
+    try {
+      const response = await fetch('/functions/v1/send-garantia-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: garantiaData.email_notificacao,
+          garantia: garantiaData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar email');
+      }
+
+      toast({
+        title: "Email enviado!",
+        description: "Notificação enviada para o email informado.",
+      });
+    } catch (error) {
+      console.error('Erro ao enviar email:', error);
+      toast({
+        title: "Aviso",
+        description: "Garantia atualizada, mas houve erro ao enviar o email de notificação.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!garantia || !item || !defeito || !fornecedorId) {
+    if (!garantia) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios.",
+        description: "Garantia não encontrada.",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
+    const previousStatus = garantia.status;
 
     try {
       const updateData: any = {
-        item,
-        quantidade,
-        defeito,
-        fornecedor_id: parseInt(fornecedorId),
+        item: item || 'Não informado',
+        quantidade: quantidade || 1,
+        defeito: defeito || 'Não informado',
+        fornecedor_id: parseInt(fornecedorId) || 1,
         status,
-        valor_unitario: valorUnitario,
-        valor_total: quantidade * valorUnitario,
+        valor_unitario: valorUnitario || 0,
+        valor_total: (quantidade || 1) * (valorUnitario || 0),
         nf_compra_pdf: nfCompra || null,
         nf_remessa_pdf: nfRemessa || null,
-        nf_devolucao_pdf: nfDevolucao || null
+        nf_devolucao_pdf: nfDevolucao || null,
+        email_notificacao: emailNotificacao || null
       };
 
       // Only include resultado if it's not the default "nao_definido"
@@ -292,7 +331,12 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         updateData.resultado = resultado;
       }
 
-      await garantiaService.update(garantia.id!, updateData);
+      const updatedGarantia = await garantiaService.update(garantia.id!, updateData);
+
+      // Enviar email apenas se o status mudou para "finalizada"
+      if (previousStatus !== 'finalizada' && status === 'finalizada') {
+        await sendNotificationEmail({ ...updatedGarantia, ...updateData });
+      }
 
       toast({
         title: "Sucesso!",
@@ -321,24 +365,22 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Item *</Label>
+            <Label>Item</Label>
             <Input
               value={item}
               onChange={(e) => setItem(e.target.value)}
               placeholder="Nome do item"
-              required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Quantidade *</Label>
+              <Label>Quantidade</Label>
               <Input
                 type="number"
                 value={quantidade}
                 onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
                 min="1"
-                required
               />
             </div>
 
@@ -355,19 +397,18 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
           </div>
 
           <div>
-            <Label>Defeito *</Label>
+            <Label>Defeito</Label>
             <Textarea
               value={defeito}
               onChange={(e) => setDefeito(e.target.value)}
               placeholder="Descreva o defeito..."
               className="min-h-[80px]"
-              required
             />
           </div>
 
           <div>
-            <Label>Fornecedor *</Label>
-            <Select value={fornecedorId} onValueChange={setFornecedorId} required>
+            <Label>Fornecedor</Label>
+            <Select value={fornecedorId} onValueChange={setFornecedorId}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o fornecedor" />
               </SelectTrigger>
@@ -382,6 +423,23 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="email_notificacao" className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email para Notificação
+            </Label>
+            <Input
+              id="email_notificacao"
+              type="email"
+              value={emailNotificacao}
+              onChange={(e) => setEmailNotificacao(e.target.value)}
+              placeholder="email@exemplo.com"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Email será enviado quando a garantia for finalizada
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

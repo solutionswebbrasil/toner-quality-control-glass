@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Upload } from 'lucide-react';
+import { Shield, Upload, Mail } from 'lucide-react';
 import { fornecedorService } from '@/services/fornecedorService';
 import { garantiaService } from '@/services/garantiaService';
 import { fileUploadService } from '@/services/fileUploadService';
@@ -23,7 +24,8 @@ export const GarantiaForm: React.FC = () => {
     fornecedor_id: '',
     valor_unitario: '',
     valor_total: '',
-    ns: ''
+    ns: '',
+    email_notificacao: ''
   });
 
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
@@ -83,31 +85,23 @@ export const GarantiaForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.item || !formData.quantidade || !formData.defeito || 
-        !formData.fornecedor_id || !formData.valor_unitario) {
-      toast({
-        title: "Erro",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    // Removendo validação obrigatória - todos os campos são opcionais agora
     setUploading(true);
     
     try {
       const uploadedFiles = await uploadFiles();
       
       const garantiaData: Omit<Garantia, 'id'> = {
-        item: formData.item,
-        quantidade: parseInt(formData.quantidade),
-        defeito: formData.defeito,
-        fornecedor_id: parseInt(formData.fornecedor_id),
-        valor_unitario: parseFloat(formData.valor_unitario),
-        valor_total: parseFloat(formData.valor_total),
+        item: formData.item || 'Não informado',
+        quantidade: parseInt(formData.quantidade) || 1,
+        defeito: formData.defeito || 'Não informado',
+        fornecedor_id: parseInt(formData.fornecedor_id) || 1,
+        valor_unitario: parseFloat(formData.valor_unitario) || 0,
+        valor_total: parseFloat(formData.valor_total) || 0,
         status: 'aberta',
         data_registro: new Date().toISOString(),
         ns: formData.ns || undefined,
+        email_notificacao: formData.email_notificacao || undefined,
         ...uploadedFiles
       };
 
@@ -126,7 +120,8 @@ export const GarantiaForm: React.FC = () => {
         fornecedor_id: '',
         valor_unitario: '',
         valor_total: '',
-        ns: ''
+        ns: '',
+        email_notificacao: ''
       });
       setFiles({
         nf_compra: null,
@@ -160,13 +155,12 @@ export const GarantiaForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="item">Item/Produto *</Label>
+              <Label htmlFor="item">Item/Produto</Label>
               <Input
                 id="item"
                 value={formData.item}
                 onChange={(e) => handleInputChange('item', e.target.value)}
                 placeholder="Ex: Placa principal HP LaserJet"
-                required
               />
             </div>
 
@@ -181,19 +175,18 @@ export const GarantiaForm: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="quantidade">Quantidade *</Label>
+              <Label htmlFor="quantidade">Quantidade</Label>
               <Input
                 id="quantidade"
                 type="number"
                 value={formData.quantidade}
                 onChange={(e) => handleInputChange('quantidade', e.target.value)}
                 placeholder="1"
-                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fornecedor">Fornecedor *</Label>
+              <Label htmlFor="fornecedor">Fornecedor</Label>
               <Select value={formData.fornecedor_id} onValueChange={(value) => handleInputChange('fornecedor_id', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um fornecedor" />
@@ -209,7 +202,7 @@ export const GarantiaForm: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="valor_unitario">Valor Unitário *</Label>
+              <Label htmlFor="valor_unitario">Valor Unitário (R$)</Label>
               <Input
                 id="valor_unitario"
                 type="number"
@@ -217,7 +210,6 @@ export const GarantiaForm: React.FC = () => {
                 value={formData.valor_unitario}
                 onChange={(e) => handleInputChange('valor_unitario', e.target.value)}
                 placeholder="0.00"
-                required
               />
             </div>
 
@@ -235,14 +227,30 @@ export const GarantiaForm: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="defeito">Descrição do Defeito *</Label>
+            <Label htmlFor="email_notificacao" className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email para Notificação (quando finalizada)
+            </Label>
+            <Input
+              id="email_notificacao"
+              type="email"
+              value={formData.email_notificacao}
+              onChange={(e) => handleInputChange('email_notificacao', e.target.value)}
+              placeholder="email@exemplo.com"
+            />
+            <p className="text-xs text-gray-500">
+              Um email será enviado para este endereço quando a garantia for finalizada
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="defeito">Descrição do Defeito</Label>
             <Textarea
               id="defeito"
               value={formData.defeito}
               onChange={(e) => handleInputChange('defeito', e.target.value)}
               placeholder="Descreva detalhadamente o defeito encontrado..."
               rows={3}
-              required
             />
           </div>
 

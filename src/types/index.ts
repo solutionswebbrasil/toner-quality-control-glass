@@ -1,4 +1,3 @@
-
 export interface Toner {
   id?: number;
   modelo: string;
@@ -63,6 +62,7 @@ export interface Garantia {
   valor_total: number;
   data_registro: string; // Changed from Date to string
   ns?: string; // Adicionado campo NS
+  email_notificacao?: string; // Campo para email de notificação
 }
 
 export interface Auditoria {
