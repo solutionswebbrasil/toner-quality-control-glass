@@ -15,7 +15,7 @@ export const smtpConfigService = {
       return null;
     }
 
-    return data;
+    return data as SmtpConfig;
   },
 
   async saveConfig(config: Omit<SmtpConfig, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<SmtpConfig> {
@@ -49,7 +49,7 @@ export const smtpConfigService = {
       throw error;
     }
 
-    return data;
+    return data as SmtpConfig;
   },
 
   async testEmail(config: Omit<SmtpConfig, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'ativo'>, testEmail: string): Promise<boolean> {

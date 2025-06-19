@@ -19,7 +19,8 @@ export const SmtpConfigForm: React.FC = () => {
     email_remetente: '',
     senha_email: '',
     nome_remetente: '',
-    usar_tls: true
+    usar_tls: true,
+    ativo: true
   });
 
   const [testEmail, setTestEmail] = useState('');
@@ -42,7 +43,8 @@ export const SmtpConfigForm: React.FC = () => {
           email_remetente: config.email_remetente,
           senha_email: '', // Não carregar senha por segurança
           nome_remetente: config.nome_remetente,
-          usar_tls: config.usar_tls
+          usar_tls: config.usar_tls,
+          ativo: config.ativo
         });
       }
     } catch (error) {
