@@ -38,10 +38,22 @@ export class GarantiaService {
     };
   }
 
-  async create(garantia: Omit<Garantia, 'id'>): Promise<Garantia> {
+  async create(garantia: Omit<Garantia, 'id' | 'user_id' | 'data_registro'>): Promise<Garantia> {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const garantiaData = {
+      ...garantia,
+      user_id: user.id,
+      data_registro: new Date().toISOString()
+    };
+
     const { data, error } = await supabase
       .from('garantias')
-      .insert(garantia)
+      .insert(garantiaData)
       .select()
       .single();
 

@@ -37,12 +37,24 @@ export const auditoriaService = {
     return data;
   },
 
-  create: async (auditoria: Omit<Auditoria, 'id'>): Promise<Auditoria> => {
+  create: async (auditoria: Omit<Auditoria, 'id' | 'data_registro'>): Promise<Auditoria> => {
     console.log('📝 Criando nova auditoria:', auditoria);
+    
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const auditoriaData = {
+      ...auditoria,
+      user_id: user.id,
+      data_registro: new Date().toISOString()
+    };
     
     const { data, error } = await supabase
       .from('auditorias')
-      .insert([auditoria])
+      .insert([auditoriaData])
       .select()
       .single();
     

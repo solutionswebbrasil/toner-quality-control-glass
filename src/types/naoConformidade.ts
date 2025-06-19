@@ -6,10 +6,10 @@ export interface NaoConformidade {
   data_ocorrencia: string;
   unidade_filial: string;
   setor_responsavel: string;
-  tipo_nc: string; // Changed from union type to string to match Supabase
+  tipo_nc: string;
   descricao: string;
-  evidencias?: Json; // Changed to Json type to match Supabase
-  classificacao: string; // Changed from union type to string to match Supabase
+  evidencias?: Json;
+  classificacao: string;
   identificado_por: string;
   responsavel_tratamento: string;
   data_limite_correcao: string;
@@ -17,7 +17,8 @@ export interface NaoConformidade {
   necessita_acao_corretiva?: boolean;
   acao_corretiva_proposta?: string;
   observacoes?: string;
-  status: string; // Changed from union type to string to match Supabase
+  status: string;
   data_registro: string;
   data_atualizacao?: string;
+  user_id: string; // Added user_id field
 }

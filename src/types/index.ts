@@ -1,3 +1,4 @@
+
 export interface Toner {
   id?: number;
   modelo: string;
@@ -10,7 +11,8 @@ export interface Toner {
   impressoras_compat: string;
   cor: string;
   registrado_por: number;
-  data_registro: string; // Changed from Date to string
+  data_registro: string;
+  user_id: string; // Added user_id field
 }
 
 export interface Retornado {
@@ -18,16 +20,16 @@ export interface Retornado {
   id_modelo: number;
   id_cliente: number;
   peso: number;
-  destino_final: string; // Changed from union type to string to match Supabase
+  destino_final: string;
   filial: string;
-  data_registro: string; // Changed from Date to string
+  data_registro: string;
   valor_recuperado?: number;
-  modelo?: string; // Para joins
-  // Campos adicionais para cálculos de valor recuperado
+  modelo?: string;
   peso_vazio?: number;
   gramatura?: number;
   capacidade_folhas?: number;
   valor_por_folha?: number;
+  user_id: string; // Added user_id field
 }
 
 export interface RetornadoCSV {
@@ -43,7 +45,8 @@ export interface Fornecedor {
   nome: string;
   telefone: string;
   link_rma: string;
-  data_cadastro: string; // Changed from Date to string
+  data_cadastro: string;
+  user_id?: string; // Added user_id field as optional
 }
 
 export interface Garantia {
@@ -52,43 +55,45 @@ export interface Garantia {
   quantidade: number;
   defeito: string;
   fornecedor_id: number;
-  fornecedor?: string; // Para joins
-  nf_compra_pdf?: string; // Changed from File | string to string
-  nf_remessa_pdf?: string; // Changed from File | string to string
-  nf_devolucao_pdf?: string; // Changed from File | string to string
-  status: string; // Changed from union type to string to match Supabase
-  resultado?: string; // Changed from union type to string to match Supabase
+  fornecedor?: string;
+  nf_compra_pdf?: string;
+  nf_remessa_pdf?: string;
+  nf_devolucao_pdf?: string;
+  status: string;
+  resultado?: string;
   valor_unitario: number;
   valor_total: number;
-  data_registro: string; // Changed from Date to string
-  ns?: string; // Adicionado campo NS
-  email_notificacao?: string; // Campo para email de notificação
+  data_registro: string;
+  ns?: string;
+  email_notificacao?: string;
+  user_id: string; // Added user_id field
 }
 
 export interface Auditoria {
   id?: number;
-  data_inicio: string; // Changed from Date to string
-  data_fim: string; // Changed from Date to string
+  data_inicio: string;
+  data_fim: string;
   unidade_auditada: string;
-  formulario_pdf?: string; // Changed from File | string to string
-  data_registro: string; // Changed from Date to string
+  formulario_pdf?: string;
+  data_registro: string;
+  user_id: string; // Added user_id field
 }
 
 export interface TituloItPop {
   id?: number;
   titulo: string;
   descricao?: string;
-  data_cadastro: string; // Changed from Date to string
+  data_cadastro: string;
 }
 
 export interface RegistroItPop {
   id?: number;
   titulo_id: number;
-  titulo?: string; // Para joins
+  titulo?: string;
   versao: number;
-  arquivo_pdf?: string; // Changed from File | string to string
-  arquivo_ppt?: string; // Changed from File | string to string
-  data_registro: string; // Changed from Date to string
+  arquivo_pdf?: string;
+  arquivo_ppt?: string;
+  data_registro: string;
   registrado_por?: string;
 }
 
@@ -96,16 +101,16 @@ export interface TituloBpmn {
   id?: number;
   titulo: string;
   descricao?: string;
-  data_cadastro: string; // Changed from Date to string
+  data_cadastro: string;
 }
 
 export interface RegistroBpmn {
   id?: number;
   titulo_id: number;
-  titulo?: string; // Para joins
+  titulo?: string;
   versao: number;
-  arquivo_png?: string; // Only PNG files allowed
-  data_registro: string; // Changed from Date to string
+  arquivo_png?: string;
+  data_registro: string;
   registrado_por?: string;
 }
 

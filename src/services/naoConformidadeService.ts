@@ -32,10 +32,23 @@ export const naoConformidadeService = {
     return data;
   },
 
-  async create(naoConformidade: Omit<NaoConformidade, 'id' | 'data_registro' | 'data_atualizacao'>): Promise<NaoConformidade> {
+  async create(naoConformidade: Omit<NaoConformidade, 'id' | 'data_registro' | 'data_atualizacao' | 'user_id'>): Promise<NaoConformidade> {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const naoConformidadeData = {
+      ...naoConformidade,
+      user_id: user.id,
+      data_registro: new Date().toISOString(),
+      data_atualizacao: new Date().toISOString()
+    };
+
     const { data, error } = await supabase
       .from('nao_conformidades')
-      .insert([naoConformidade])
+      .insert([naoConformidadeData])
       .select()
       .single();
 

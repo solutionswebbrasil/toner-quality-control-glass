@@ -91,7 +91,7 @@ export const GarantiaForm: React.FC = () => {
     try {
       const uploadedFiles = await uploadFiles();
       
-      const garantiaData: Omit<Garantia, 'id'> = {
+      const garantiaData: Omit<Garantia, 'id' | 'user_id' | 'data_registro'> = {
         item: formData.item || 'Não informado',
         quantidade: parseInt(formData.quantidade) || 1,
         defeito: formData.defeito || 'Não informado',
@@ -99,7 +99,6 @@ export const GarantiaForm: React.FC = () => {
         valor_unitario: parseFloat(formData.valor_unitario) || 0,
         valor_total: parseFloat(formData.valor_total) || 0,
         status: 'aberta',
-        data_registro: new Date().toISOString(),
         ns: formData.ns || undefined,
         email_notificacao: formData.email_notificacao || undefined,
         ...uploadedFiles

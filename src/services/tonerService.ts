@@ -36,10 +36,22 @@ export const tonerService = {
     return data;
   },
 
-  create: async (toner: Omit<Toner, 'id'>): Promise<Toner> => {
+  create: async (toner: Omit<Toner, 'id' | 'user_id' | 'data_registro'>): Promise<Toner> => {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const tonerData = {
+      ...toner,
+      user_id: user.id,
+      data_registro: new Date().toISOString()
+    };
+
     const { data, error } = await supabase
       .from('toners')
-      .insert([toner])
+      .insert([tonerData])
       .select()
       .single();
     

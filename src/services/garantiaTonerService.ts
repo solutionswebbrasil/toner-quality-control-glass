@@ -15,20 +15,30 @@ export interface GarantiaToner {
   observacoes?: string;
   ns?: string;
   lote?: string;
+  user_id: string;
 }
 
 export const garantiaTonerService = {
-  async create(garantiaToner: Omit<GarantiaToner, 'id' | 'ticket_numero' | 'data_registro'>): Promise<GarantiaToner> {
+  async create(garantiaToner: Omit<GarantiaToner, 'id' | 'ticket_numero' | 'data_registro' | 'user_id'>): Promise<GarantiaToner> {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
     // Gerar número do ticket
     const ticketNumero = `GT${Date.now().toString().slice(-8)}`;
     
+    const garantiaData = {
+      ...garantiaToner,
+      ticket_numero: ticketNumero,
+      data_registro: new Date().toISOString(),
+      user_id: user.id
+    };
+
     const { data, error } = await supabase
       .from('garantias_toners')
-      .insert([{
-        ...garantiaToner,
-        ticket_numero: ticketNumero,
-        data_registro: new Date().toISOString()
-      }])
+      .insert([garantiaData])
       .select()
       .single();
 
