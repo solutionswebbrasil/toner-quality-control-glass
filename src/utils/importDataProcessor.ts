@@ -1,4 +1,3 @@
-
 import { retornadoService } from '@/services/retornadoService';
 import { tonerService } from '@/services/tonerService';
 import { normalizeDate } from './dateNormalizer';
@@ -155,4 +154,62 @@ export const processImportData = async (
   
   console.log(`Importação finalizada: ${importedCount} sucessos, ${errorCount} erros`);
   return { importedCount, errorCount, errors };
+};
+
+export const processTonerData = (data: any[]): Omit<Toner, 'id' | 'user_id' | 'data_registro'>[] => {
+  return data.map(row => {
+    const valorPorFolha = parseFloat(row['Preço produto']) / parseInt(row['Capacidade de folhas']);
+    
+    return {
+      modelo: row['Modelo'] || '',
+      peso_cheio: parseFloat(row['Peso cheio']) || 0,
+      peso_vazio: parseFloat(row['Peso vazio']) || 0,
+      gramatura: parseFloat(row['Gramatura']) || 0,
+      preco_produto: parseFloat(row['Preço produto']) || 0,
+      capacidade_folhas: parseInt(row['Capacidade de folhas']) || 0,
+      valor_por_folha: isNaN(valorPorFolha) ? 0 : valorPorFolha,
+      impressoras_compat: row['Impressoras compatíveis'] || '',
+      cor: row['Cor'] || '',
+      registrado_por: parseInt(row['Registrado por']) || 1,
+    };
+  });
+};
+
+export const importTonerData = async (data: any[]): Promise<{ success: number; errors: string[] }> => {
+  const processedData = processTonerData(data);
+  const errors: string[] = [];
+  let success = 0;
+
+  for (const toner of processedData) {
+    try {
+      const validationErrors = validateTonerData(toner);
+      if (validationErrors.length > 0) {
+        errors.push(`Modelo ${toner.modelo}: ${validationErrors.join(', ')}`);
+        continue;
+      }
+
+      await tonerService.create(toner);
+      success++;
+    } catch (error) {
+      console.error('Erro ao importar toner:', error);
+      errors.push(`Modelo ${toner.modelo}: Erro ao salvar no banco de dados`);
+    }
+  }
+
+  return { success, errors };
+};
+
+export const processRetornadoData = (data: any[]): Omit<Retornado, 'id' | 'modelo'>[] => {
+  return data.map(row => {
+    const valorRecuperado = parseFloat(row['Valor recuperado']) || 0;
+    
+    return {
+      id_cliente: parseInt(row['ID Cliente']) || 0,
+      id_modelo: findTonerIdByModel(row['Modelo']),
+      peso: parseFloat(row['Peso']) || 0,
+      destino_final: row['Destino final'] || '',
+      filial: row['Filial'] || '',
+      valor_recuperado: valorRecuperado,
+    };
+  });
 };
