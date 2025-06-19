@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { garantiaService, fornecedorService } from '@/services/dataService';
 import { useToast } from '@/hooks/use-toast';
 import { Garantia, Fornecedor } from '@/types';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X, Trash2 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +43,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
   const [resultadoConfigs, setResultadoConfigs] = useState<ResultadoConfig[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploading, setUploading] = useState<{[key: string]: boolean}>({});
+  const [deleting, setDeleting] = useState<{[key: string]: boolean}>({});
 
   // Form states
   const [item, setItem] = useState('');
@@ -158,6 +158,8 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
     const fileUrl = type === 'compra' ? nfCompra : type === 'remessa' ? nfRemessa : nfDevolucao;
     
     if (fileUrl) {
+      setDeleting(prev => ({ ...prev, [type]: true }));
+      
       try {
         await garantiaService.deleteFile(fileUrl);
         
@@ -183,6 +185,8 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
           description: "Erro ao remover arquivo.",
           variant: "destructive",
         });
+      } finally {
+        setDeleting(prev => ({ ...prev, [type]: false }));
       }
     }
   };
@@ -200,18 +204,33 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
       <Label>{label}</Label>
       <div className="flex items-center gap-2">
         {currentFile ? (
-          <div className="flex items-center gap-2 p-2 border rounded">
+          <div className="flex items-center gap-2 p-2 border rounded bg-slate-50 dark:bg-slate-800/50">
             <FileText className="w-4 h-4 text-blue-600" />
-            <span className="text-sm truncate max-w-[200px]">
+            <span className="text-sm truncate max-w-[150px]">
               {currentFile.split('/').pop()}
             </span>
             <Button
               size="sm"
               variant="outline"
+              onClick={() => window.open(currentFile, '_blank')}
+              className="p-1 h-6 w-6"
+              title="Visualizar arquivo"
+            >
+              <FileText className="w-3 h-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
               onClick={() => handleRemoveFile(type)}
               className="p-1 h-6 w-6"
+              disabled={deleting[type]}
+              title="Excluir arquivo"
             >
-              <X className="w-3 h-3" />
+              {deleting[type] ? (
+                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Trash2 className="w-3 h-3" />
+              )}
             </Button>
           </div>
         ) : (
@@ -225,6 +244,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
               }}
               className="hidden"
               id={`file-${type}`}
+              disabled={uploading[type]}
             />
             <Label 
               htmlFor={`file-${type}`}
