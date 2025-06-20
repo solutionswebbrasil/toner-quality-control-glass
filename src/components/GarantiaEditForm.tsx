@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,18 @@ interface GarantiaEditFormProps {
   onClose: () => void;
   onSuccess: () => void;
 }
+
+// Função para normalizar valores removendo acentos e caracteres especiais
+const normalizeValue = (value: string): string => {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^\w\s]/g, '') // Remove caracteres especiais exceto espaços
+    .replace(/\s+/g, '_') // Substitui espaços por underscore
+    .replace(/\t/g, '') // Remove tabs
+    .trim();
+};
 
 export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
   garantia,
@@ -84,10 +97,6 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         garantiaService.getStatusConfiguracoes('Garantias'),
         garantiaService.getResultadoConfiguracoes('Garantias')
       ]);
-      
-      console.log('Status configs loaded:', statusData);
-      console.log('Resultado configs loaded:', resultadoData);
-      console.log('Fornecedores loaded:', fornecedoresData);
       
       setFornecedores(fornecedoresData);
       setStatusConfigs(statusData);
@@ -451,12 +460,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {statusConfigs.map((config) => {
-                    const statusValue = config.status_nome?.trim() 
-                      ? config.status_nome.toLowerCase().replace(/\s+/g, '_')
-                      : `status_${config.id}`;
-                    
-                    console.log('Status config:', config, 'Generated value:', statusValue);
-                    
+                    const statusValue = normalizeValue(config.status_nome || '');
                     return (
                       <SelectItem 
                         key={config.id} 
@@ -481,12 +485,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                     Não definido
                   </SelectItem>
                   {resultadoConfigs.map((config) => {
-                    const resultadoValue = config.resultado_nome?.trim()
-                      ? config.resultado_nome.toLowerCase().replace(/\s+/g, '_')
-                      : `resultado_${config.id}`;
-                    
-                    console.log('Resultado config:', config, 'Generated value:', resultadoValue);
-                    
+                    const resultadoValue = normalizeValue(config.resultado_nome || '');
                     return (
                       <SelectItem 
                         key={config.id} 

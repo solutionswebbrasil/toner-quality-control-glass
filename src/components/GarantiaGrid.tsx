@@ -14,6 +14,18 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 
+// Função para normalizar valores removendo acentos e caracteres especiais
+const normalizeValue = (value: string): string => {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^\w\s]/g, '') // Remove caracteres especiais exceto espaços
+    .replace(/\s+/g, '_') // Substitui espaços por underscore
+    .replace(/\t/g, '') // Remove tabs
+    .trim();
+};
+
 export const GarantiaGrid: React.FC = () => {
   const { toast } = useToast();
   const [garantias, setGarantias] = useState<Garantia[]>([]);
@@ -293,14 +305,17 @@ export const GarantiaGrid: React.FC = () => {
       'em_analise': 'Em Análise',
       'concluida': 'Concluída',
       'recusada': 'Recusada',
-      'aguardando_fornecedor': 'Aguardando Fornecedor'
+      'aguardando_fornecedor': 'Aguardando Fornecedor',
+      'aguardando_chegar_em_laboratorio': 'Aguardando Chegar em Laboratório',
+      'aguardando_envio_para_fornecedor': 'Aguardando Envio para Fornecedor'
     };
     return labels[status as keyof typeof labels] || status;
   };
 
   const getResultadoLabel = (resultado: string) => {
     const labels = {
-      'devolucao_credito': 'Devolução em Crédito',
+      'nao_definido': 'Não definido',
+      'devolucao_em_credito': 'Devolução em Crédito',
       'trocado': 'Trocado',
       'consertado': 'Consertado'
     };
@@ -454,6 +469,8 @@ export const GarantiaGrid: React.FC = () => {
                             <SelectItem value="concluida">Concluída</SelectItem>
                             <SelectItem value="recusada">Recusada</SelectItem>
                             <SelectItem value="aguardando_fornecedor">Aguardando Fornecedor</SelectItem>
+                            <SelectItem value="aguardando_chegar_em_laboratorio">Aguardando Chegar em Laboratório</SelectItem>
+                            <SelectItem value="aguardando_envio_para_fornecedor">Aguardando Envio para Fornecedor</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -471,7 +488,7 @@ export const GarantiaGrid: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="nao_definido">Não definido</SelectItem>
-                            <SelectItem value="devolucao_credito">Devolução em Crédito</SelectItem>
+                            <SelectItem value="devolucao_em_credito">Devolução em Crédito</SelectItem>
                             <SelectItem value="trocado">Trocado</SelectItem>
                             <SelectItem value="consertado">Consertado</SelectItem>
                           </SelectContent>
