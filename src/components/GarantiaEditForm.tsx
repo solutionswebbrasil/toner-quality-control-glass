@@ -331,8 +331,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         valor_total: (quantidade || 1) * (valorUnitario || 0),
         nf_compra_pdf: nfCompra || null,
         nf_remessa_pdf: nfRemessa || null,
-        nf_devolucao_pdf: nfDevolucao || null,
-        email_notificacao: emailNotificacao || null
+        nf_devolucao_pdf: nfDevolucao || null
       };
 
       // Only include resultado if it's not the default "nao_definido"
@@ -340,11 +339,13 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
         updateData.resultado = resultado;
       }
 
+      console.log('Dados para atualização:', updateData);
+
       const updatedGarantia = await garantiaService.update(garantia.id!, updateData);
 
-      // Enviar email apenas se o status mudou para "finalizada"
-      if (previousStatus !== 'finalizada' && status === 'finalizada') {
-        await sendNotificationEmail({ ...updatedGarantia, ...updateData });
+      // Enviar email apenas se o status mudou para "finalizada" e há email
+      if (previousStatus !== 'finalizada' && status === 'finalizada' && emailNotificacao) {
+        await sendNotificationEmail({ ...updatedGarantia, email_notificacao: emailNotificacao });
       }
 
       toast({
@@ -355,6 +356,7 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
       onSuccess();
       onClose();
     } catch (error) {
+      console.error('Erro ao atualizar garantia:', error);
       toast({
         title: "Erro",
         description: "Erro ao atualizar garantia.",
