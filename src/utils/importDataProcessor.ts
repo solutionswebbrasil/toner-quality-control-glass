@@ -2,12 +2,19 @@
 import { retornadoService } from '@/services/retornadoService';
 import { tonerService } from '@/services/tonerService';
 import { normalizeDate } from './dateNormalizer';
+import { supabase } from '@/integrations/supabase/client';
 
 export const processImportData = async (
   data: any[], 
   onProgress?: (imported: number, errors: number) => void
 ) => {
   console.log('Iniciando importação com dados:', data.length, 'registros');
+  
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Usuário não autenticado');
+  }
   
   let importedCount = 0;
   let errorCount = 0;
@@ -31,8 +38,7 @@ export const processImportData = async (
         capacidade_folhas: 0,
         preco_produto: 0,
         valor_por_folha: 0,
-        registrado_por: 0,
-        data_registro: new Date().toISOString()
+        registrado_por: 0
       });
       idTonerPadrao = tonerPadrao.id;
       console.log(`Toner padrão criado com ID ${idTonerPadrao}`);
@@ -76,8 +82,7 @@ export const processImportData = async (
               capacidade_folhas: 0,
               preco_produto: 0,
               valor_por_folha: 0,
-              registrado_por: 0,
-              data_registro: new Date().toISOString()
+              registrado_por: 0
             });
             id_modelo = novoToner.id;
             console.log(`Novo toner criado para modelo ${item.modelo} com ID: ${id_modelo}`);
@@ -122,7 +127,8 @@ export const processImportData = async (
         destino_final: String(item.destino_final || 'Estoque').trim(),
         filial: String(item.filial || 'Matriz').trim(),
         valor_recuperado: valorRecuperado,
-        data_registro: normalizeDate(item.data_registro)
+        data_registro: normalizeDate(item.data_registro),
+        user_id: user.id
       };
 
       console.log(`Dados preparados para importação item ${index + 1}:`, retornadoData);

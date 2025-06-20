@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { auditoriaService } from '@/services/auditoriaService';
 import { fileUploadService } from '@/services/fileUploadService';
 import { filialService } from '@/services/filialService';
+import { supabase } from '@/integrations/supabase/client';
 import type { Filial } from '@/types/filial';
 
 const auditoriaSchema = z.object({
@@ -100,6 +101,17 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         temPDF: !!pdfFile 
       });
       
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Erro',
+          description: 'Usuário não autenticado.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       let formulario_pdf_url = null;
       
       // Upload do arquivo PDF se existir
@@ -129,7 +141,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         data_fim: data.data_fim.toISOString().split('T')[0], // YYYY-MM-DD format
         unidade_auditada: data.unidade_auditada,
         formulario_pdf: formulario_pdf_url,
-        data_registro: new Date().toISOString(),
+        user_id: user.id
       };
 
       console.log('💾 Salvando auditoria no banco:', auditoriaData);

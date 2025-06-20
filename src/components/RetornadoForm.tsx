@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { TonerSelector } from './retornado/TonerSelector';
 import { RetornadoFormFields } from './retornado/RetornadoFormFields';
 import { RetornadoInfoDisplay } from './retornado/RetornadoInfoDisplay';
 import { GarantiaTonerModal, GarantiaTonerData } from './retornado/GarantiaTonerModal';
+import { supabase } from '@/integrations/supabase/client';
 import type { Filial } from '@/types/filial';
 
 interface RetornadoFormProps {
@@ -165,6 +167,17 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const valorRecuperado = calculateValorRecuperado();
 
       const retornado: Omit<Retornado, 'id' | 'modelo'> = {
@@ -174,7 +187,8 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         destino_final: formData.destino_final,
         filial: formData.filial,
         valor_recuperado: valorRecuperado,
-        data_registro: new Date().toISOString()
+        data_registro: new Date().toISOString(),
+        user_id: user.id
       };
 
       await retornadoService.create(retornado);

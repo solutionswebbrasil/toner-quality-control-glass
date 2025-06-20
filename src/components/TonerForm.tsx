@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Save, Calculator } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/tonerService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TonerFormProps {
   onSuccess?: () => void;
@@ -43,6 +43,17 @@ export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const toner: Omit<Toner, 'id'> = {
         modelo: formData.modelo,
         peso_cheio: parseFloat(formData.peso_cheio),
@@ -54,7 +65,8 @@ export const TonerForm: React.FC<TonerFormProps> = ({ onSuccess }) => {
         impressoras_compat: formData.impressoras_compat,
         cor: formData.cor,
         registrado_por: 1, // Mock user ID
-        data_registro: new Date().toISOString()
+        data_registro: new Date().toISOString(),
+        user_id: user.id
       };
 
       console.log('Criando toner:', toner);
