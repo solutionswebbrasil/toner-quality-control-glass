@@ -1,4 +1,3 @@
-
 import {
   FileText,
   BarChart3,
@@ -53,9 +52,7 @@ export const menuItems = [
     icon: Package,
     submenu: [
       { id: 'toners-cadastro', label: 'Cadastro', page: 'toners-cadastro' },
-      { id: 'toners-consulta-principal', label: 'Consulta', page: 'toners-consulta-principal' },
-      { id: 'toners-consulta', label: 'Toners Consulta', page: 'toners-consulta' },
-      { id: 'toners-graficos', label: 'Toners Gráficos', page: 'toners-graficos' }
+      { id: 'toners-consulta-principal', label: 'Consulta', page: 'toners-consulta-principal' }
     ]
   },
   {
