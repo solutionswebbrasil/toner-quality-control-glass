@@ -28,18 +28,23 @@ export const menuItems = [
     ]
   },
   {
+    id: 'fornecedores',
+    label: 'Fornecedores',
+    icon: Building2,
+    submenu: [
+      { id: 'fornecedores-cadastro', label: 'Cadastro', page: 'fornecedores-cadastro' },
+      { id: 'fornecedores-consulta', label: 'Consulta', page: 'fornecedores-consulta' }
+    ]
+  },
+  {
     id: 'garantias',
     label: 'Garantias',
     icon: Shield,
     submenu: [
-      { id: 'fornecedores-cadastro', label: 'Fornecedores Cadastro', page: 'fornecedores-cadastro' },
-      { id: 'fornecedores-consulta', label: 'Fornecedores Consulta', page: 'fornecedores-consulta' },
       { id: 'garantias-registro', label: 'Registro', page: 'garantias-registro' },
       { id: 'garantias-consulta', label: 'Consulta', page: 'garantias-consulta' },
       { id: 'garantias-graficos-gerais', label: 'Gráficos Gerais', page: 'garantias-graficos-gerais' },
-      { id: 'garantias-toners', label: 'Garantias Toners', page: 'garantias-toners' },
-      { id: 'toners-consulta', label: 'Toners Consulta', page: 'toners-consulta' },
-      { id: 'toners-graficos', label: 'Toners Gráficos', page: 'toners-graficos' }
+      { id: 'garantias-toners', label: 'Garantias Toners', page: 'garantias-toners' }
     ]
   },
   {
@@ -48,7 +53,9 @@ export const menuItems = [
     icon: Package,
     submenu: [
       { id: 'toners-cadastro', label: 'Cadastro', page: 'toners-cadastro' },
-      { id: 'toners-consulta-principal', label: 'Consulta', page: 'toners-consulta-principal' }
+      { id: 'toners-consulta-principal', label: 'Consulta', page: 'toners-consulta-principal' },
+      { id: 'toners-consulta', label: 'Toners Consulta', page: 'toners-consulta' },
+      { id: 'toners-graficos', label: 'Toners Gráficos', page: 'toners-graficos' }
     ]
   },
   {
