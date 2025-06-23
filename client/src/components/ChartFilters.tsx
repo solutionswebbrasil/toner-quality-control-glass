@@ -1,12 +1,11 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 export interface DateFilter {
@@ -24,167 +23,159 @@ interface ChartFiltersProps {
 }
 
 export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChange }) => {
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
-  const months = [
-    { value: 0, label: 'Janeiro' },
-    { value: 1, label: 'Fevereiro' },
-    { value: 2, label: 'Março' },
-    { value: 3, label: 'Abril' },
-    { value: 4, label: 'Maio' },
-    { value: 5, label: 'Junho' },
-    { value: 6, label: 'Julho' },
-    { value: 7, label: 'Agosto' },
-    { value: 8, label: 'Setembro' },
-    { value: 9, label: 'Outubro' },
-    { value: 10, label: 'Novembro' },
-    { value: 11, label: 'Dezembro' }
-  ];
+  const [open, setOpen] = useState(false);
 
   return (
-    <Card className="mb-6">
-      <CardContent className="pt-6">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Período:</label>
-            <Select value={filter.type} onValueChange={(value: 'day' | 'month' | 'year') => 
+    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Período:
+          </label>
+          <Select
+            value={filter.type}
+            onValueChange={(value: 'range' | 'month' | 'year') => 
               onFilterChange({ ...filter, type: value })
-            }>
-              <SelectTrigger className="w-32">
-                <SelectValue />
+            }
+          >
+            <SelectTrigger className="w-44 bg-white dark:bg-slate-800">
+              <SelectValue placeholder="Selecione o período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="range">Período Personalizado</SelectItem>
+              <SelectItem value="month">Por Mês</SelectItem>
+              <SelectItem value="year">Por Ano</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {filter.type === 'range' && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Data:
+            </label>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-64 justify-start text-left font-normal bg-white dark:bg-slate-800",
+                    !filter.startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filter.startDate ? (
+                    filter.endDate ? (
+                      <>
+                        {format(filter.startDate, "dd/MM/yyyy")} até{" "}
+                        {format(filter.endDate, "dd/MM/yyyy")}
+                      </>
+                    ) : (
+                      format(filter.startDate, "dd/MM/yyyy")
+                    )
+                  ) : (
+                    <span>Selecione o período</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={filter.startDate}
+                  selected={{
+                    from: filter.startDate,
+                    to: filter.endDate,
+                  }}
+                  onSelect={(range) => {
+                    onFilterChange({
+                      ...filter,
+                      startDate: range?.from,
+                      endDate: range?.to,
+                    });
+                    setOpen(false);
+                  }}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+
+        {filter.type === 'month' && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Mês:
+            </label>
+            <Select
+              value={filter.month?.toString()}
+              onValueChange={(value) => 
+                onFilterChange({ ...filter, month: parseInt(value) })
+              }
+            >
+              <SelectTrigger className="w-32 bg-white dark:bg-slate-800">
+                <SelectValue placeholder="Mês" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="day">Dia</SelectItem>
-                <SelectItem value="month">Mês</SelectItem>
-                <SelectItem value="year">Ano</SelectItem>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {format(new Date(2024, i), 'MMMM', { locale: ptBR })}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+        )}
 
-          {filter.type === 'day' && (
-            <>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Data Inicial:</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-40 justify-start text-left font-normal",
-                        !filter.startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filter.startDate ? format(filter.startDate, "dd/MM/yyyy") : "Selecionar"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filter.startDate}
-                      onSelect={(date) => onFilterChange({ ...filter, startDate: date })}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Data Final:</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-40 justify-start text-left font-normal",
-                        !filter.endDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filter.endDate ? format(filter.endDate, "dd/MM/yyyy") : "Selecionar"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filter.endDate}
-                      onSelect={(date) => onFilterChange({ ...filter, endDate: date })}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </>
-          )}
-
-          {filter.type === 'month' && (
-            <>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Mês:</label>
-                <Select value={filter.month?.toString()} onValueChange={(value) => 
-                  onFilterChange({ ...filter, month: parseInt(value) })
-                }>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Selecionar mês" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map(month => (
-                      <SelectItem key={month.value} value={month.value.toString()}>
-                        {month.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Ano:</label>
-                <Select value={filter.year?.toString()} onValueChange={(value) => 
-                  onFilterChange({ ...filter, year: parseInt(value) })
-                }>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Selecionar ano" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map(year => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
-
-          {filter.type === 'year' && (
-            <div>
-              <label className="text-sm font-medium mb-2 block">Ano:</label>
-              <Select value={filter.year?.toString()} onValueChange={(value) => 
+        {(filter.type === 'month' || filter.type === 'year') && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Ano:
+            </label>
+            <Select
+              value={filter.year?.toString()}
+              onValueChange={(value) => 
                 onFilterChange({ ...filter, year: parseInt(value) })
-              }>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Selecionar ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(year => (
+              }
+            >
+              <SelectTrigger className="w-24 bg-white dark:bg-slate-800">
+                <SelectValue placeholder="Ano" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
                     <SelectItem key={year} value={year.toString()}>
                       {year}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-          <Button 
-            variant="outline" 
-            onClick={() => onFilterChange({ type: 'month', month: new Date().getMonth(), year: new Date().getFullYear() })}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Filial:
+          </label>
+          <Select
+            value={filter.filial || ''}
+            onValueChange={(value) => 
+              onFilterChange({ ...filter, filial: value || undefined })
+            }
           >
-            Limpar Filtros
-          </Button>
+            <SelectTrigger className="w-36 bg-white dark:bg-slate-800">
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todas as Filiais</SelectItem>
+              <SelectItem value="Jundiaí">Jundiaí</SelectItem>
+              <SelectItem value="Franca">Franca</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

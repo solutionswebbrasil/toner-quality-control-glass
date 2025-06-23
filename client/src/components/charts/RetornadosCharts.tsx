@@ -187,97 +187,179 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
   const destinationData = getDestinationData();
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Volumetry Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Volumetria de Toners Retornados por Mês</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Volumetria de Toners
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Quantidade de retornos por mês
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('volumetry')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={volumetryData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="quantidade" fill="#0088FE" />
+            <BarChart data={volumetryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="mes" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Bar dataKey="quantidade" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {/* Value Recovered Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Valor Recuperado por Mês (R$)</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Valor Recuperado
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Receita obtida com retornos (R$)
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('value')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={valueRecoveredData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor']} />
-              <Bar dataKey="valor" fill="#00C49F" />
+            <BarChart data={valueRecoveredData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="mes" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <Tooltip 
+                formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor']}
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Bar dataKey="valor" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {/* Year Comparison Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Comparação Ano Atual vs Ano Anterior</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Comparação Anual
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Ano atual vs ano anterior
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('comparison')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={yearComparisonData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip />
+            <BarChart data={yearComparisonData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="mes" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
               <Legend />
-              <Bar dataKey="anoAtual" fill="#0088FE" name="Ano Atual" />
-              <Bar dataKey="anoAnterior" fill="#FF8042" name="Ano Anterior" />
+              <Bar dataKey="anoAtual" fill="#3b82f6" name="Ano Atual" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="anoAnterior" fill="#6b7280" name="Ano Anterior" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {/* Destination Pie Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Quantidade por Destino Final</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Destino Final
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Distribuição por destino
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('destination')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -286,15 +368,24 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
+                stroke="#ffffff"
+                strokeWidth={2}
               >
                 {destinationData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -377,5 +468,6 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
         </ResponsiveContainer>
       </ChartModal>
     </div>
+    </>
   );
 };

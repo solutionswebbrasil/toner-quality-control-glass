@@ -44,32 +44,53 @@ const mockData = generateMockData();
 
 // Data APIs with mock data fallback
 export const fornecedoresApi = {
-  getAll: () => Promise.resolve(mockData.fornecedores),
+  getAll: () => apiRequest('/fornecedores'),
   create: (data: any) => apiRequest('/fornecedores', {
     method: 'POST',
     body: JSON.stringify(data),
   }),
+  update: (id: number, data: any) => apiRequest(`/fornecedores/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: number) => apiRequest(`/fornecedores/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 export const tonersApi = {
-  getAll: () => Promise.resolve(mockData.toners),
+  getAll: () => apiRequest('/toners'),
   create: (data: any) => apiRequest('/toners', {
     method: 'POST',
     body: JSON.stringify(data),
   }),
+  update: (id: number, data: any) => apiRequest(`/toners/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: number) => apiRequest(`/toners/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 export const retornadosApi = {
-  getAll: () => Promise.resolve(mockData.retornados),
+  getAll: () => apiRequest('/retornados'),
   create: (data: any) => apiRequest('/retornados', {
     method: 'POST',
     body: JSON.stringify(data),
+  }),
+  update: (id: number, data: any) => apiRequest(`/retornados/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: number) => apiRequest(`/retornados/${id}`, {
+    method: 'DELETE',
   }),
   getPowerBiData: () => apiRequest('/retornados-powerbi'),
 };
 
 export const garantiasApi = {
-  getAll: () => Promise.resolve(mockData.garantias),
+  getAll: () => apiRequest('/garantias'),
   create: (data: any) => apiRequest('/garantias', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -77,6 +98,9 @@ export const garantiasApi = {
   update: (id: number, data: any) => apiRequest(`/garantias/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
+  }),
+  delete: (id: number) => apiRequest(`/garantias/${id}`, {
+    method: 'DELETE',
   }),
 };
 

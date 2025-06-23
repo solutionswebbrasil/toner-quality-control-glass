@@ -160,25 +160,49 @@ export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Monthly Warranties Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Garantias Realizadas por Mês</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Garantias Mensais
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Acionamentos por mês
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('monthly')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyWarrantiesData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="quantidade" fill="#0088FE" />
+            <BarChart data={monthlyWarrantiesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="mes" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Bar dataKey="quantidade" fill="#f59e0b" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

@@ -123,8 +123,16 @@ The system manages multiple entities:
 - **Database migrations** through Drizzle push commands
 
 ## Changelog
-- June 23, 2025. Initial setup
+- June 23, 2025: Initial system setup with comprehensive database and authentication
+- June 23, 2025: Enhanced KPIs module with professional chart styling and full-screen expansion
+- June 23, 2025: Improved filter system with fixed positioning and better UX
+- June 23, 2025: Created Ishikawa and Pareto analysis modules with interactive diagrams
+- June 23, 2025: Implemented complete database storage layer with proper CRUD operations
+- June 23, 2025: Added custom favicon with "Q" logo for quality management branding
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Chart styling: Professional, sober design suitable for business presentations.
+Filter preferences: Fixed positioning with clean, organized layout.
+Database: Real data integration preferred over mock data for production use.

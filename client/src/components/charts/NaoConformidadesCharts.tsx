@@ -127,43 +127,75 @@ export const NaoConformidadesCharts: React.FC<NaoConformidadesChartsProps> = ({ 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Monthly Non-Conformities Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Não Conformidades por Mês</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Não Conformidades
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Ocorrências mensais
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('monthly')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="quantidade" fill="#FF8042" />
+            <BarChart data={monthlyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="mes" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Bar dataKey="quantidade" fill="#ef4444" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {/* Non-Conformities by Category Pie Chart */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Não Conformidades por Categoria</CardTitle>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              Por Categoria
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Distribuição por tipo
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalChart('category')}
+            className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -172,15 +204,24 @@ export const NaoConformidadesCharts: React.FC<NaoConformidadesChartsProps> = ({ 
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
+                stroke="#ffffff"
+                strokeWidth={2}
               >
                 {categoryData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

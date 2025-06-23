@@ -21,43 +21,70 @@ export interface IStorage {
   // Fornecedores
   getFornecedores(): Promise<typeof schema.fornecedores.$inferSelect[]>;
   createFornecedor(data: typeof schema.fornecedores.$inferInsert): Promise<typeof schema.fornecedores.$inferSelect>;
+  updateFornecedor(id: number, data: Partial<typeof schema.fornecedores.$inferInsert>): Promise<void>;
+  deleteFornecedor(id: number): Promise<void>;
   
   // Toners
   getToners(): Promise<typeof schema.toners.$inferSelect[]>;
   createToner(data: typeof schema.toners.$inferInsert): Promise<typeof schema.toners.$inferSelect>;
+  updateToner(id: number, data: Partial<typeof schema.toners.$inferInsert>): Promise<void>;
+  deleteToner(id: number): Promise<void>;
   
   // Retornados
   getRetornados(): Promise<any[]>;
   createRetornado(data: typeof schema.retornados.$inferInsert): Promise<typeof schema.retornados.$inferSelect>;
+  updateRetornado(id: number, data: Partial<typeof schema.retornados.$inferInsert>): Promise<void>;
+  deleteRetornado(id: number): Promise<void>;
   
   // Garantias
   getGarantias(): Promise<any[]>;
   createGarantia(data: typeof schema.garantias.$inferInsert): Promise<typeof schema.garantias.$inferSelect>;
   updateGarantia(id: number, data: Partial<typeof schema.garantias.$inferInsert>): Promise<void>;
+  deleteGarantia(id: number): Promise<void>;
   
   // Filiais
   getFiliais(): Promise<typeof schema.filiais.$inferSelect[]>;
   createFilial(data: typeof schema.filiais.$inferInsert): Promise<typeof schema.filiais.$inferSelect>;
+  updateFilial(id: number, data: Partial<typeof schema.filiais.$inferInsert>): Promise<void>;
+  deleteFilial(id: number): Promise<void>;
   
   // Certificados
   getCertificados(): Promise<typeof schema.certificados.$inferSelect[]>;
   createCertificado(data: typeof schema.certificados.$inferInsert): Promise<typeof schema.certificados.$inferSelect>;
+  updateCertificado(id: number, data: Partial<typeof schema.certificados.$inferInsert>): Promise<void>;
+  deleteCertificado(id: number): Promise<void>;
   
   // Auditorias
   getAuditorias(): Promise<typeof schema.auditorias.$inferSelect[]>;
   createAuditoria(data: typeof schema.auditorias.$inferInsert): Promise<typeof schema.auditorias.$inferSelect>;
+  updateAuditoria(id: number, data: Partial<typeof schema.auditorias.$inferInsert>): Promise<void>;
+  deleteAuditoria(id: number): Promise<void>;
   
   // Não Conformidades
   getNaoConformidades(): Promise<typeof schema.nao_conformidades.$inferSelect[]>;
   createNaoConformidade(data: typeof schema.nao_conformidades.$inferInsert): Promise<typeof schema.nao_conformidades.$inferSelect>;
+  updateNaoConformidade(id: number, data: Partial<typeof schema.nao_conformidades.$inferInsert>): Promise<void>;
+  deleteNaoConformidade(id: number): Promise<void>;
   
   // IT/POP
   getTitulosItPop(): Promise<typeof schema.titulos_itpop.$inferSelect[]>;
+  createTituloItPop(data: typeof schema.titulos_itpop.$inferInsert): Promise<typeof schema.titulos_itpop.$inferSelect>;
+  updateTituloItPop(id: number, data: Partial<typeof schema.titulos_itpop.$inferInsert>): Promise<void>;
+  deleteTituloItPop(id: number): Promise<void>;
   getRegistrosItPop(): Promise<any[]>;
+  createRegistroItPop(data: typeof schema.registros_itpop.$inferInsert): Promise<typeof schema.registros_itpop.$inferSelect>;
+  updateRegistroItPop(id: number, data: Partial<typeof schema.registros_itpop.$inferInsert>): Promise<void>;
+  deleteRegistroItPop(id: number): Promise<void>;
   
   // BPMN
   getTitulosBpmn(): Promise<typeof schema.titulos_bpmn.$inferSelect[]>;
+  createTituloBpmn(data: typeof schema.titulos_bpmn.$inferInsert): Promise<typeof schema.titulos_bpmn.$inferSelect>;
+  updateTituloBpmn(id: number, data: Partial<typeof schema.titulos_bpmn.$inferInsert>): Promise<void>;
+  deleteTituloBpmn(id: number): Promise<void>;
   getRegistrosBpmn(): Promise<any[]>;
+  createRegistroBpmn(data: typeof schema.registros_bpmn.$inferInsert): Promise<typeof schema.registros_bpmn.$inferSelect>;
+  updateRegistroBpmn(id: number, data: Partial<typeof schema.registros_bpmn.$inferInsert>): Promise<void>;
+  deleteRegistroBpmn(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -99,6 +126,14 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async updateFornecedor(id: number, data: Partial<typeof schema.fornecedores.$inferInsert>): Promise<void> {
+    await db.update(schema.fornecedores).set(data).where(eq(schema.fornecedores.id, id));
+  }
+
+  async deleteFornecedor(id: number): Promise<void> {
+    await db.delete(schema.fornecedores).where(eq(schema.fornecedores.id, id));
+  }
+
   async getToners(): Promise<typeof schema.toners.$inferSelect[]> {
     return await db.select().from(schema.toners);
   }
@@ -106,6 +141,14 @@ export class DatabaseStorage implements IStorage {
   async createToner(data: typeof schema.toners.$inferInsert): Promise<typeof schema.toners.$inferSelect> {
     const result = await db.insert(schema.toners).values(data).returning();
     return result[0];
+  }
+
+  async updateToner(id: number, data: Partial<typeof schema.toners.$inferInsert>): Promise<void> {
+    await db.update(schema.toners).set(data).where(eq(schema.toners.id, id));
+  }
+
+  async deleteToner(id: number): Promise<void> {
+    await db.delete(schema.toners).where(eq(schema.toners.id, id));
   }
 
   async getRetornados(): Promise<any[]> {
@@ -135,6 +178,14 @@ export class DatabaseStorage implements IStorage {
   async createRetornado(data: typeof schema.retornados.$inferInsert): Promise<typeof schema.retornados.$inferSelect> {
     const result = await db.insert(schema.retornados).values(data).returning();
     return result[0];
+  }
+
+  async updateRetornado(id: number, data: Partial<typeof schema.retornados.$inferInsert>): Promise<void> {
+    await db.update(schema.retornados).set(data).where(eq(schema.retornados.id, id));
+  }
+
+  async deleteRetornado(id: number): Promise<void> {
+    await db.delete(schema.retornados).where(eq(schema.retornados.id, id));
   }
 
   async getGarantias(): Promise<any[]> {
@@ -173,6 +224,10 @@ export class DatabaseStorage implements IStorage {
     await db.update(schema.garantias).set(data).where(eq(schema.garantias.id, id));
   }
 
+  async deleteGarantia(id: number): Promise<void> {
+    await db.delete(schema.garantias).where(eq(schema.garantias.id, id));
+  }
+
   async getFiliais(): Promise<typeof schema.filiais.$inferSelect[]> {
     return await db.select().from(schema.filiais);
   }
@@ -180,6 +235,14 @@ export class DatabaseStorage implements IStorage {
   async createFilial(data: typeof schema.filiais.$inferInsert): Promise<typeof schema.filiais.$inferSelect> {
     const result = await db.insert(schema.filiais).values(data).returning();
     return result[0];
+  }
+
+  async updateFilial(id: number, data: Partial<typeof schema.filiais.$inferInsert>): Promise<void> {
+    await db.update(schema.filiais).set(data).where(eq(schema.filiais.id, id));
+  }
+
+  async deleteFilial(id: number): Promise<void> {
+    await db.delete(schema.filiais).where(eq(schema.filiais.id, id));
   }
 
   async getCertificados(): Promise<typeof schema.certificados.$inferSelect[]> {
@@ -191,6 +254,14 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async updateCertificado(id: number, data: Partial<typeof schema.certificados.$inferInsert>): Promise<void> {
+    await db.update(schema.certificados).set(data).where(eq(schema.certificados.id, id));
+  }
+
+  async deleteCertificado(id: number): Promise<void> {
+    await db.delete(schema.certificados).where(eq(schema.certificados.id, id));
+  }
+
   async getAuditorias(): Promise<typeof schema.auditorias.$inferSelect[]> {
     return await db.select().from(schema.auditorias);
   }
@@ -198,6 +269,14 @@ export class DatabaseStorage implements IStorage {
   async createAuditoria(data: typeof schema.auditorias.$inferInsert): Promise<typeof schema.auditorias.$inferSelect> {
     const result = await db.insert(schema.auditorias).values(data).returning();
     return result[0];
+  }
+
+  async updateAuditoria(id: number, data: Partial<typeof schema.auditorias.$inferInsert>): Promise<void> {
+    await db.update(schema.auditorias).set(data).where(eq(schema.auditorias.id, id));
+  }
+
+  async deleteAuditoria(id: number): Promise<void> {
+    await db.delete(schema.auditorias).where(eq(schema.auditorias.id, id));
   }
 
   async getNaoConformidades(): Promise<typeof schema.nao_conformidades.$inferSelect[]> {
@@ -209,8 +288,29 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async updateNaoConformidade(id: number, data: Partial<typeof schema.nao_conformidades.$inferInsert>): Promise<void> {
+    await db.update(schema.nao_conformidades).set(data).where(eq(schema.nao_conformidades.id, id));
+  }
+
+  async deleteNaoConformidade(id: number): Promise<void> {
+    await db.delete(schema.nao_conformidades).where(eq(schema.nao_conformidades.id, id));
+  }
+
   async getTitulosItPop(): Promise<typeof schema.titulos_itpop.$inferSelect[]> {
     return await db.select().from(schema.titulos_itpop);
+  }
+
+  async createTituloItPop(data: typeof schema.titulos_itpop.$inferInsert): Promise<typeof schema.titulos_itpop.$inferSelect> {
+    const result = await db.insert(schema.titulos_itpop).values(data).returning();
+    return result[0];
+  }
+
+  async updateTituloItPop(id: number, data: Partial<typeof schema.titulos_itpop.$inferInsert>): Promise<void> {
+    await db.update(schema.titulos_itpop).set(data).where(eq(schema.titulos_itpop.id, id));
+  }
+
+  async deleteTituloItPop(id: number): Promise<void> {
+    await db.delete(schema.titulos_itpop).where(eq(schema.titulos_itpop.id, id));
   }
 
   async getRegistrosItPop(): Promise<any[]> {
@@ -232,8 +332,34 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(schema.titulos_itpop, eq(schema.registros_itpop.titulo_id, schema.titulos_itpop.id));
   }
 
+  async createRegistroItPop(data: typeof schema.registros_itpop.$inferInsert): Promise<typeof schema.registros_itpop.$inferSelect> {
+    const result = await db.insert(schema.registros_itpop).values(data).returning();
+    return result[0];
+  }
+
+  async updateRegistroItPop(id: number, data: Partial<typeof schema.registros_itpop.$inferInsert>): Promise<void> {
+    await db.update(schema.registros_itpop).set(data).where(eq(schema.registros_itpop.id, id));
+  }
+
+  async deleteRegistroItPop(id: number): Promise<void> {
+    await db.delete(schema.registros_itpop).where(eq(schema.registros_itpop.id, id));
+  }
+
   async getTitulosBpmn(): Promise<typeof schema.titulos_bpmn.$inferSelect[]> {
     return await db.select().from(schema.titulos_bpmn);
+  }
+
+  async createTituloBpmn(data: typeof schema.titulos_bpmn.$inferInsert): Promise<typeof schema.titulos_bpmn.$inferSelect> {
+    const result = await db.insert(schema.titulos_bpmn).values(data).returning();
+    return result[0];
+  }
+
+  async updateTituloBpmn(id: number, data: Partial<typeof schema.titulos_bpmn.$inferInsert>): Promise<void> {
+    await db.update(schema.titulos_bpmn).set(data).where(eq(schema.titulos_bpmn.id, id));
+  }
+
+  async deleteTituloBpmn(id: number): Promise<void> {
+    await db.delete(schema.titulos_bpmn).where(eq(schema.titulos_bpmn.id, id));
   }
 
   async getRegistrosBpmn(): Promise<any[]> {
@@ -252,6 +378,19 @@ export class DatabaseStorage implements IStorage {
       })
       .from(schema.registros_bpmn)
       .leftJoin(schema.titulos_bpmn, eq(schema.registros_bpmn.titulo_id, schema.titulos_bpmn.id));
+  }
+
+  async createRegistroBpmn(data: typeof schema.registros_bpmn.$inferInsert): Promise<typeof schema.registros_bpmn.$inferSelect> {
+    const result = await db.insert(schema.registros_bpmn).values(data).returning();
+    return result[0];
+  }
+
+  async updateRegistroBpmn(id: number, data: Partial<typeof schema.registros_bpmn.$inferInsert>): Promise<void> {
+    await db.update(schema.registros_bpmn).set(data).where(eq(schema.registros_bpmn.id, id));
+  }
+
+  async deleteRegistroBpmn(id: number): Promise<void> {
+    await db.delete(schema.registros_bpmn).where(eq(schema.registros_bpmn.id, id));
   }
 }
 

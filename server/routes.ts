@@ -142,6 +142,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/garantias/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteGarantia(parseInt(id));
+      res.json({ message: "Garantia excluída com sucesso" });
+    } catch (error) {
+      console.error("Error deleting garantia:", error);
+      res.status(500).json({ error: "Erro ao excluir garantia" });
+    }
+  });
+
+  // Additional CRUD routes for other entities
+  app.put("/api/fornecedores/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateFornecedor(parseInt(id), req.body);
+      res.json({ message: "Fornecedor atualizado com sucesso" });
+    } catch (error) {
+      console.error("Error updating fornecedor:", error);
+      res.status(500).json({ error: "Erro ao atualizar fornecedor" });
+    }
+  });
+
+  app.delete("/api/fornecedores/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteFornecedor(parseInt(id));
+      res.json({ message: "Fornecedor excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting fornecedor:", error);
+      res.status(500).json({ error: "Erro ao excluir fornecedor" });
+    }
+  });
+
+  app.put("/api/toners/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateToner(parseInt(id), req.body);
+      res.json({ message: "Toner atualizado com sucesso" });
+    } catch (error) {
+      console.error("Error updating toner:", error);
+      res.status(500).json({ error: "Erro ao atualizar toner" });
+    }
+  });
+
+  app.delete("/api/toners/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteToner(parseInt(id));
+      res.json({ message: "Toner excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting toner:", error);
+      res.status(500).json({ error: "Erro ao excluir toner" });
+    }
+  });
+
+  app.put("/api/retornados/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateRetornado(parseInt(id), req.body);
+      res.json({ message: "Retornado atualizado com sucesso" });
+    } catch (error) {
+      console.error("Error updating retornado:", error);
+      res.status(500).json({ error: "Erro ao atualizar retornado" });
+    }
+  });
+
+  app.delete("/api/retornados/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteRetornado(parseInt(id));
+      res.json({ message: "Retornado excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting retornado:", error);
+      res.status(500).json({ error: "Erro ao excluir retornado" });
+    }
+  });
+
   app.get("/api/filiais", async (req, res) => {
     try {
       const filiais = await storage.getFiliais();
