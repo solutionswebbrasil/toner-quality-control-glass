@@ -85,6 +85,22 @@ export interface IStorage {
   createRegistroBpmn(data: typeof schema.registros_bpmn.$inferInsert): Promise<typeof schema.registros_bpmn.$inferSelect>;
   updateRegistroBpmn(id: number, data: Partial<typeof schema.registros_bpmn.$inferInsert>): Promise<void>;
   deleteRegistroBpmn(id: number): Promise<void>;
+  
+  // Análises Ishikawa
+  getAnalesesIshikawa(): Promise<typeof schema.analises_ishikawa.$inferSelect[]>;
+  createAnaliseIshikawa(data: typeof schema.analises_ishikawa.$inferInsert): Promise<typeof schema.analises_ishikawa.$inferSelect>;
+  updateAnaliseIshikawa(id: number, data: Partial<typeof schema.analises_ishikawa.$inferInsert>): Promise<void>;
+  deleteAnaliseIshikawa(id: number): Promise<void>;
+  getCategoriasIshikawa(analiseId: number): Promise<typeof schema.categorias_ishikawa.$inferSelect[]>;
+  createCategoriaIshikawa(data: typeof schema.categorias_ishikawa.$inferInsert): Promise<typeof schema.categorias_ishikawa.$inferSelect>;
+  
+  // Análises Pareto
+  getAnalesesPareto(): Promise<typeof schema.analises_pareto.$inferSelect[]>;
+  createAnalisePareto(data: typeof schema.analises_pareto.$inferInsert): Promise<typeof schema.analises_pareto.$inferSelect>;
+  updateAnalisePareto(id: number, data: Partial<typeof schema.analises_pareto.$inferInsert>): Promise<void>;
+  deleteAnalisePareto(id: number): Promise<void>;
+  getItensPareto(analiseId: number): Promise<typeof schema.itens_pareto.$inferSelect[]>;
+  createItemPareto(data: typeof schema.itens_pareto.$inferInsert): Promise<typeof schema.itens_pareto.$inferSelect>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -391,6 +407,60 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRegistroBpmn(id: number): Promise<void> {
     await db.delete(schema.registros_bpmn).where(eq(schema.registros_bpmn.id, id));
+  }
+
+  // Análises Ishikawa
+  async getAnalesesIshikawa(): Promise<typeof schema.analises_ishikawa.$inferSelect[]> {
+    return await db.select().from(schema.analises_ishikawa);
+  }
+
+  async createAnaliseIshikawa(data: typeof schema.analises_ishikawa.$inferInsert): Promise<typeof schema.analises_ishikawa.$inferSelect> {
+    const result = await db.insert(schema.analises_ishikawa).values(data).returning();
+    return result[0];
+  }
+
+  async updateAnaliseIshikawa(id: number, data: Partial<typeof schema.analises_ishikawa.$inferInsert>): Promise<void> {
+    await db.update(schema.analises_ishikawa).set(data).where(eq(schema.analises_ishikawa.id, id));
+  }
+
+  async deleteAnaliseIshikawa(id: number): Promise<void> {
+    await db.delete(schema.analises_ishikawa).where(eq(schema.analises_ishikawa.id, id));
+  }
+
+  async getCategoriasIshikawa(analiseId: number): Promise<typeof schema.categorias_ishikawa.$inferSelect[]> {
+    return await db.select().from(schema.categorias_ishikawa).where(eq(schema.categorias_ishikawa.analise_id, analiseId));
+  }
+
+  async createCategoriaIshikawa(data: typeof schema.categorias_ishikawa.$inferInsert): Promise<typeof schema.categorias_ishikawa.$inferSelect> {
+    const result = await db.insert(schema.categorias_ishikawa).values(data).returning();
+    return result[0];
+  }
+
+  // Análises Pareto
+  async getAnalesesPareto(): Promise<typeof schema.analises_pareto.$inferSelect[]> {
+    return await db.select().from(schema.analises_pareto);
+  }
+
+  async createAnalisePareto(data: typeof schema.analises_pareto.$inferInsert): Promise<typeof schema.analises_pareto.$inferSelect> {
+    const result = await db.insert(schema.analises_pareto).values(data).returning();
+    return result[0];
+  }
+
+  async updateAnalisePareto(id: number, data: Partial<typeof schema.analises_pareto.$inferInsert>): Promise<void> {
+    await db.update(schema.analises_pareto).set(data).where(eq(schema.analises_pareto.id, id));
+  }
+
+  async deleteAnalisePareto(id: number): Promise<void> {
+    await db.delete(schema.analises_pareto).where(eq(schema.analises_pareto.id, id));
+  }
+
+  async getItensPareto(analiseId: number): Promise<typeof schema.itens_pareto.$inferSelect[]> {
+    return await db.select().from(schema.itens_pareto).where(eq(schema.itens_pareto.analise_id, analiseId));
+  }
+
+  async createItemPareto(data: typeof schema.itens_pareto.$inferInsert): Promise<typeof schema.itens_pareto.$inferSelect> {
+    const result = await db.insert(schema.itens_pareto).values(data).returning();
+    return result[0];
   }
 }
 

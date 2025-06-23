@@ -220,6 +220,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Análises Ishikawa routes
+  app.get("/api/analises-ishikawa", async (req, res) => {
+    try {
+      const analises = await storage.getAnalesesIshikawa();
+      res.json(analises);
+    } catch (error) {
+      console.error("Error fetching ishikawa analyses:", error);
+      res.status(500).json({ error: "Erro ao buscar análises Ishikawa" });
+    }
+  });
+
+  app.post("/api/analises-ishikawa", async (req, res) => {
+    try {
+      const analise = await storage.createAnaliseIshikawa(req.body);
+      res.json(analise);
+    } catch (error) {
+      console.error("Error creating ishikawa analysis:", error);
+      res.status(500).json({ error: "Erro ao criar análise Ishikawa" });
+    }
+  });
+
+  app.get("/api/analises-ishikawa/:id/categorias", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const categorias = await storage.getCategoriasIshikawa(parseInt(id));
+      res.json(categorias);
+    } catch (error) {
+      console.error("Error fetching ishikawa categories:", error);
+      res.status(500).json({ error: "Erro ao buscar categorias Ishikawa" });
+    }
+  });
+
+  app.post("/api/categorias-ishikawa", async (req, res) => {
+    try {
+      const categoria = await storage.createCategoriaIshikawa(req.body);
+      res.json(categoria);
+    } catch (error) {
+      console.error("Error creating ishikawa category:", error);
+      res.status(500).json({ error: "Erro ao criar categoria Ishikawa" });
+    }
+  });
+
+  // Análises Pareto routes
+  app.get("/api/analises-pareto", async (req, res) => {
+    try {
+      const analises = await storage.getAnalesesPareto();
+      res.json(analises);
+    } catch (error) {
+      console.error("Error fetching pareto analyses:", error);
+      res.status(500).json({ error: "Erro ao buscar análises Pareto" });
+    }
+  });
+
+  app.post("/api/analises-pareto", async (req, res) => {
+    try {
+      const analise = await storage.createAnalisePareto(req.body);
+      res.json(analise);
+    } catch (error) {
+      console.error("Error creating pareto analysis:", error);
+      res.status(500).json({ error: "Erro ao criar análise Pareto" });
+    }
+  });
+
+  app.get("/api/analises-pareto/:id/itens", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const itens = await storage.getItensPareto(parseInt(id));
+      res.json(itens);
+    } catch (error) {
+      console.error("Error fetching pareto items:", error);
+      res.status(500).json({ error: "Erro ao buscar itens Pareto" });
+    }
+  });
+
+  app.post("/api/itens-pareto", async (req, res) => {
+    try {
+      const item = await storage.createItemPareto(req.body);
+      res.json(item);
+    } catch (error) {
+      console.error("Error creating pareto item:", error);
+      res.status(500).json({ error: "Erro ao criar item Pareto" });
+    }
+  });
+
   app.get("/api/filiais", async (req, res) => {
     try {
       const filiais = await storage.getFiliais();

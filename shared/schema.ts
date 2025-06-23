@@ -207,6 +207,41 @@ export const permissoes = pgTable("permissoes", {
   pode_excluir: boolean("pode_excluir").notNull().default(false),
 });
 
+// Análises Ishikawa
+export const analises_ishikawa = pgTable("analises_ishikawa", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  problema: text("problema").notNull(),
+  data_criacao: timestamp("data_criacao").defaultNow(),
+  criado_por: text("criado_por").notNull(),
+});
+
+export const categorias_ishikawa = pgTable("categorias_ishikawa", {
+  id: serial("id").primaryKey(),
+  analise_id: integer("analise_id").references(() => analises_ishikawa.id).notNull(),
+  nome: text("nome").notNull(),
+  causas: text("causas").array(), // Array de causas
+});
+
+// Análises Pareto
+export const analises_pareto = pgTable("analises_pareto", {
+  id: serial("id").primaryKey(),
+  nome: text("nome").notNull(),
+  descricao: text("descricao"),
+  data_criacao: timestamp("data_criacao").defaultNow(),
+  criado_por: text("criado_por").notNull(),
+});
+
+export const itens_pareto = pgTable("itens_pareto", {
+  id: serial("id").primaryKey(),
+  analise_id: integer("analise_id").references(() => analises_pareto.id).notNull(),
+  categoria: text("categoria").notNull(),
+  quantidade: integer("quantidade").notNull(),
+  custo: decimal("custo", { precision: 10, scale: 2 }),
+  percentual: decimal("percentual", { precision: 5, scale: 2 }),
+  acumulado: decimal("acumulado", { precision: 5, scale: 2 }),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,

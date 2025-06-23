@@ -1,72 +1,95 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartModal } from './ChartModal';
-import { Maximize2 } from 'lucide-react';
+import { ishikawaApi } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { Maximize2, Plus, X } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 export const IshikawaPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedAnalise, setSelectedAnalise] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
+  const [categorias, setCategorias] = useState([
+    { nome: 'Máquina/Equipamento', causas: [''] },
+    { nome: 'Material', causas: [''] },
+    { nome: 'Método', causas: [''] },
+    { nome: 'Mão de Obra', causas: [''] },
+    { nome: 'Meio Ambiente', causas: [''] },
+    { nome: 'Medida', causas: [''] }
+  ]);
 
-  // Dados do diagrama de Ishikawa (Espinha de Peixe)
-  const ishikawaData = {
-    problema: "Defeitos em Toners",
-    categorias: [
-      {
-        nome: "Máquina/Equipamento",
-        causas: [
-          "Desgaste de peças",
-          "Calibragem inadequada",
-          "Manutenção insuficiente",
-          "Equipamentos obsoletos"
+  // Fetch análises
+  const { data: analises = [] } = useQuery({
+    queryKey: ['analises-ishikawa'],
+    queryFn: ishikawaApi.getAnalises
+  });
+
+  // Fetch categorias da análise selecionada
+  const { data: categoriasData = [] } = useQuery({
+    queryKey: ['categorias-ishikawa', selectedAnalise],
+    queryFn: () => selectedAnalise ? ishikawaApi.getCategorias(selectedAnalise) : Promise.resolve([]),
+    enabled: !!selectedAnalise
+  });
+
+  // Mutation para criar análise
+  const createAnaliseMutation = useMutation({
+    mutationFn: ishikawaApi.createAnalise,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analises-ishikawa'] });
+      toast({ title: "Análise criada com sucesso!" });
+      setFormOpen(false);
+      reset();
+    }
+  });
+
+  // Mutation para criar categoria
+  const createCategoriaMutation = useMutation({
+    mutationFn: ishikawaApi.createCategoria,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categorias-ishikawa', selectedAnalise] });
+    }
+  });
+
+  // Dados do diagrama
+  const getIshikawaData = () => {
+    if (!selectedAnalise || categoriasData.length === 0) {
+      // Dados de exemplo se nenhuma análise for selecionada
+      return {
+        problema: "Defeitos em Toners (Exemplo)",
+        categorias: [
+          { nome: "Máquina/Equipamento", causas: ["Desgaste de peças", "Calibragem inadequada"] },
+          { nome: "Material", causas: ["Qualidade da matéria-prima", "Fornecedores inadequados"] },
+          { nome: "Método", causas: ["Procedimentos inadequados", "Falta de padronização"] },
+          { nome: "Mão de Obra", causas: ["Falta de treinamento", "Experiência insuficiente"] },
+          { nome: "Meio Ambiente", causas: ["Temperatura inadequada", "Umidade excessiva"] },
+          { nome: "Medida", causas: ["Instrumentos descalibrados", "Frequência inadequada"] }
         ]
-      },
-      {
-        nome: "Material",
-        causas: [
-          "Qualidade da matéria-prima",
-          "Fornecedores inadequados",
-          "Armazenamento incorreto",
-          "Especificações não atendidas"
-        ]
-      },
-      {
-        nome: "Método",
-        causas: [
-          "Procedimentos inadequados",
-          "Falta de padronização",
-          "Treinamento insuficiente",
-          "Instruções não claras"
-        ]
-      },
-      {
-        nome: "Mão de Obra",
-        causas: [
-          "Falta de treinamento",
-          "Experiência insuficiente",
-          "Sobrecarga de trabalho",
-          "Motivação baixa"
-        ]
-      },
-      {
-        nome: "Meio Ambiente",
-        causas: [
-          "Temperatura inadequada",
-          "Umidade excessiva",
-          "Contaminação",
-          "Espaço insuficiente"
-        ]
-      },
-      {
-        nome: "Medida",
-        causas: [
-          "Instrumentos descalibrados",
-          "Frequência inadequada",
-          "Critérios mal definidos",
-          "Dados insuficientes"
-        ]
-      }
-    ]
+      };
+    }
+
+    const analise = analises.find(a => a.id === selectedAnalise);
+    return {
+      problema: analise?.problema || "Problema não definido",
+      categorias: categoriasData.map(cat => ({
+        nome: cat.nome,
+        causas: cat.causas || []
+      }))
+    };
   };
+
+  const ishikawaData = getIshikawaData();
 
   const IshikawaDiagram = ({ isModal = false }) => {
     const containerHeight = isModal ? "80vh" : "600px";
@@ -168,12 +191,144 @@ export const IshikawaPage: React.FC = () => {
     );
   };
 
+  const onSubmit = async (data: any) => {
+    try {
+      const analiseData = {
+        nome: data.nome,
+        problema: data.problema,
+        criado_por: 'usuário_atual' // Aqui você pegaria do contexto de autenticação
+      };
+
+      const analise = await createAnaliseMutation.mutateAsync(analiseData);
+
+      // Criar as categorias
+      for (const categoria of categorias) {
+        if (categoria.causas.some(c => c.trim())) {
+          await createCategoriaMutation.mutateAsync({
+            analise_id: analise.id,
+            nome: categoria.nome,
+            causas: categoria.causas.filter(c => c.trim())
+          });
+        }
+      }
+    } catch (error) {
+      toast({ title: "Erro ao criar análise", variant: "destructive" });
+    }
+  };
+
+  const addCausa = (categoriaIndex: number) => {
+    const newCategorias = [...categorias];
+    newCategorias[categoriaIndex].causas.push('');
+    setCategorias(newCategorias);
+  };
+
+  const removeCausa = (categoriaIndex: number, causaIndex: number) => {
+    const newCategorias = [...categorias];
+    newCategorias[categoriaIndex].causas.splice(causaIndex, 1);
+    setCategorias(newCategorias);
+  };
+
+  const updateCausa = (categoriaIndex: number, causaIndex: number, value: string) => {
+    const newCategorias = [...categorias];
+    newCategorias[categoriaIndex].causas[causaIndex] = value;
+    setCategorias(newCategorias);
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200">
           Análise de Ishikawa (Diagrama Espinha de Peixe)
         </h1>
+        <div className="flex gap-3">
+          <Select value={selectedAnalise?.toString() || ''} onValueChange={(value) => setSelectedAnalise(value ? parseInt(value) : null)}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Selecione uma análise" />
+            </SelectTrigger>
+            <SelectContent>
+              {analises.map((analise: any) => (
+                <SelectItem key={analise.id} value={analise.id.toString()}>
+                  {analise.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Dialog open={formOpen} onOpenChange={setFormOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Análise
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Análise Ishikawa</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nome">Nome da Análise</Label>
+                    <Input {...register('nome', { required: true })} placeholder="Ex: Análise de Defeitos em Produção" />
+                  </div>
+                  <div>
+                    <Label htmlFor="problema">Problema Central</Label>
+                    <Input {...register('problema', { required: true })} placeholder="Ex: Alto índice de defeitos" />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Categorias e Causas (6M)</h3>
+                  {categorias.map((categoria, catIndex) => (
+                    <Card key={catIndex}>
+                      <CardHeader>
+                        <CardTitle className="text-md">{categoria.nome}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {categoria.causas.map((causa, causaIndex) => (
+                            <div key={causaIndex} className="flex gap-2">
+                              <Input
+                                value={causa}
+                                onChange={(e) => updateCausa(catIndex, causaIndex, e.target.value)}
+                                placeholder="Descreva uma causa..."
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeCausa(catIndex, causaIndex)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addCausa(catIndex)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar Causa
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={createAnaliseMutation.isPending}>
+                    {createAnaliseMutation.isPending ? 'Salvando...' : 'Salvar Análise'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>

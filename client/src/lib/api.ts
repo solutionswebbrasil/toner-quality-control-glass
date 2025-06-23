@@ -145,3 +145,29 @@ export const bpmnApi = {
   getTitulos: () => apiRequest('/titulos-bpmn'),
   getRegistros: () => apiRequest('/registros-bpmn'),
 };
+
+export const ishikawaApi = {
+  getAnalises: () => apiRequest('/analises-ishikawa'),
+  createAnalise: (data: any) => apiRequest('/analises-ishikawa', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  getCategorias: (analiseId: number) => apiRequest(`/analises-ishikawa/${analiseId}/categorias`),
+  createCategoria: (data: any) => apiRequest('/categorias-ishikawa', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+};
+
+export const paretoApi = {
+  getAnalises: () => apiRequest('/analises-pareto'),
+  createAnalise: (data: any) => apiRequest('/analises-pareto', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  getItens: (analiseId: number) => apiRequest(`/analises-pareto/${analiseId}/itens`),
+  createItem: (data: any) => apiRequest('/itens-pareto', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+};

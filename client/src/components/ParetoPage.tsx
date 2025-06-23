@@ -1,97 +1,168 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartModal } from './ChartModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
-import { Maximize2 } from 'lucide-react';
+import { paretoApi } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { Maximize2, Plus, X } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 export const ParetoPage: React.FC = () => {
   const [modalChart, setModalChart] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedAnalise, setSelectedAnalise] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const { register, handleSubmit, reset } = useForm();
+  const [itens, setItens] = useState([
+    { categoria: '', quantidade: 0, custo: 0 }
+  ]);
 
-  // Dados de exemplo para análise de Pareto
-  const paretoData = [
-    { 
-      categoria: 'Vazamento de Toner', 
-      quantidade: 45, 
-      percentual: 32.14,
-      acumulado: 32.14,
-      custo: 15750
-    },
-    { 
-      categoria: 'Qualidade de Impressão', 
-      quantidade: 38, 
-      percentual: 27.14,
-      acumulado: 59.28,
-      custo: 13300
-    },
-    { 
-      categoria: 'Desgaste Prematuro', 
-      quantidade: 25, 
-      percentual: 17.86,
-      acumulado: 77.14,
-      custo: 8750
-    },
-    { 
-      categoria: 'Falha no Cartucho', 
-      quantidade: 18, 
-      percentual: 12.86,
-      acumulado: 90.00,
-      custo: 6300
-    },
-    { 
-      categoria: 'Incompatibilidade', 
-      quantidade: 8, 
-      percentual: 5.71,
-      acumulado: 95.71,
-      custo: 2800
-    },
-    { 
-      categoria: 'Outros', 
-      quantidade: 6, 
-      percentual: 4.29,
-      acumulado: 100.00,
-      custo: 2100
-    }
-  ];
+  // Fetch análises
+  const { data: analises = [] } = useQuery({
+    queryKey: ['analises-pareto'],
+    queryFn: paretoApi.getAnalises
+  });
 
-  const custosParetoData = [
-    { 
-      categoria: 'Vazamento de Toner', 
-      custo: 15750, 
-      percentual: 31.5,
-      acumulado: 31.5
-    },
-    { 
-      categoria: 'Qualidade de Impressão', 
-      custo: 13300, 
-      percentual: 26.6,
-      acumulado: 58.1
-    },
-    { 
-      categoria: 'Desgaste Prematuro', 
-      custo: 8750, 
-      percentual: 17.5,
-      acumulado: 75.6
-    },
-    { 
-      categoria: 'Falha no Cartucho', 
-      custo: 6300, 
-      percentual: 12.6,
-      acumulado: 88.2
-    },
-    { 
-      categoria: 'Incompatibilidade', 
-      custo: 2800, 
-      percentual: 5.6,
-      acumulado: 93.8
-    },
-    { 
-      categoria: 'Outros', 
-      custo: 2100, 
-      percentual: 4.2,
-      acumulado: 98.0
+  // Fetch itens da análise selecionada
+  const { data: itensData = [] } = useQuery({
+    queryKey: ['itens-pareto', selectedAnalise],
+    queryFn: () => selectedAnalise ? paretoApi.getItens(selectedAnalise) : Promise.resolve([]),
+    enabled: !!selectedAnalise
+  });
+
+  // Mutation para criar análise
+  const createAnaliseMutation = useMutation({
+    mutationFn: paretoApi.createAnalise,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analises-pareto'] });
+      toast({ title: "Análise criada com sucesso!" });
+      setFormOpen(false);
+      reset();
     }
-  ];
+  });
+
+  // Mutation para criar item
+  const createItemMutation = useMutation({
+    mutationFn: paretoApi.createItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['itens-pareto', selectedAnalise] });
+    }
+  });
+
+  // Calcular dados do Pareto
+  const getParetoData = () => {
+    if (!selectedAnalise || itensData.length === 0) {
+      // Dados de exemplo
+      return [
+        { categoria: 'Vazamento de Toner', quantidade: 45, percentual: 32.14, acumulado: 32.14, custo: 15750 },
+        { categoria: 'Qualidade de Impressão', quantidade: 38, percentual: 27.14, acumulado: 59.28, custo: 13300 },
+        { categoria: 'Desgaste Prematuro', quantidade: 25, percentual: 17.86, acumulado: 77.14, custo: 8750 },
+        { categoria: 'Falha no Cartucho', quantidade: 18, percentual: 12.86, acumulado: 90.00, custo: 6300 },
+        { categoria: 'Incompatibilidade', quantidade: 8, percentual: 5.71, acumulado: 95.71, custo: 2800 },
+        { categoria: 'Outros', quantidade: 6, percentual: 4.29, acumulado: 100.00, custo: 2100 }
+      ];
+    }
+
+    // Ordenar por quantidade decrescente
+    const sorted = [...itensData].sort((a, b) => b.quantidade - a.quantidade);
+    const total = sorted.reduce((sum, item) => sum + item.quantidade, 0);
+    
+    let acumulado = 0;
+    return sorted.map(item => {
+      const percentual = (item.quantidade / total) * 100;
+      acumulado += percentual;
+      return {
+        ...item,
+        percentual,
+        acumulado
+      };
+    });
+  };
+
+  const paretoData = getParetoData();
+
+  const getCustosParetoData = () => {
+    if (!selectedAnalise || itensData.length === 0) {
+      return [
+        { categoria: 'Vazamento de Toner', custo: 15750, percentual: 31.5, acumulado: 31.5 },
+        { categoria: 'Qualidade de Impressão', custo: 13300, percentual: 26.6, acumulado: 58.1 },
+        { categoria: 'Desgaste Prematuro', custo: 8750, percentual: 17.5, acumulado: 75.6 },
+        { categoria: 'Falha no Cartucho', custo: 6300, percentual: 12.6, acumulado: 88.2 },
+        { categoria: 'Incompatibilidade', custo: 2800, percentual: 5.6, acumulado: 93.8 },
+        { categoria: 'Outros', custo: 2100, percentual: 4.2, acumulado: 98.0 }
+      ];
+    }
+
+    const sorted = [...itensData].sort((a, b) => (b.custo || 0) - (a.custo || 0));
+    const total = sorted.reduce((sum, item) => sum + (item.custo || 0), 0);
+    
+    let acumulado = 0;
+    return sorted.map(item => {
+      const percentual = ((item.custo || 0) / total) * 100;
+      acumulado += percentual;
+      return {
+        ...item,
+        percentual,
+        acumulado
+      };
+    });
+  };
+
+  const custosParetoData = getCustosParetoData();
+
+  const onSubmit = async (data: any) => {
+    try {
+      const analiseData = {
+        nome: data.nome,
+        descricao: data.descricao,
+        criado_por: 'usuário_atual'
+      };
+
+      const analise = await createAnaliseMutation.mutateAsync(analiseData);
+
+      // Criar os itens
+      for (const item of itens) {
+        if (item.categoria && item.quantidade > 0) {
+          const total = itens.reduce((sum, i) => sum + i.quantidade, 0);
+          const percentual = (item.quantidade / total) * 100;
+          
+          await createItemMutation.mutateAsync({
+            analise_id: analise.id,
+            categoria: item.categoria,
+            quantidade: item.quantidade,
+            custo: item.custo || 0,
+            percentual,
+            acumulado: 0 // Será calculado depois
+          });
+        }
+      }
+    } catch (error) {
+      toast({ title: "Erro ao criar análise", variant: "destructive" });
+    }
+  };
+
+  const addItem = () => {
+    setItens([...itens, { categoria: '', quantidade: 0, custo: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    setItens(itens.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItens = [...itens];
+    newItens[index] = { ...newItens[index], [field]: value };
+    setItens(newItens);
+  };
 
   const ParetoChart = ({ data, dataKey, title, yAxisLabel, isModal = false }: any) => {
     const height = isModal ? "100%" : 400;
@@ -143,6 +214,111 @@ export const ParetoPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200">
           Análise de Pareto
         </h1>
+        <div className="flex gap-3">
+          <Select value={selectedAnalise?.toString() || ''} onValueChange={(value) => setSelectedAnalise(value ? parseInt(value) : null)}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Selecione uma análise" />
+            </SelectTrigger>
+            <SelectContent>
+              {analises.map((analise: any) => (
+                <SelectItem key={analise.id} value={analise.id.toString()}>
+                  {analise.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Dialog open={formOpen} onOpenChange={setFormOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Análise
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Análise Pareto</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nome">Nome da Análise</Label>
+                    <Input {...register('nome', { required: true })} placeholder="Ex: Análise de Defeitos por Categoria" />
+                  </div>
+                  <div>
+                    <Label htmlFor="descricao">Descrição</Label>
+                    <Textarea {...register('descricao')} placeholder="Descrição da análise..." />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Itens da Análise</h3>
+                  {itens.map((item, index) => (
+                    <Card key={index}>
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div>
+                            <Label>Categoria</Label>
+                            <Input
+                              value={item.categoria}
+                              onChange={(e) => updateItem(index, 'categoria', e.target.value)}
+                              placeholder="Nome da categoria..."
+                            />
+                          </div>
+                          <div>
+                            <Label>Quantidade</Label>
+                            <Input
+                              type="number"
+                              value={item.quantidade}
+                              onChange={(e) => updateItem(index, 'quantidade', parseInt(e.target.value) || 0)}
+                              placeholder="0"
+                            />
+                          </div>
+                          <div>
+                            <Label>Custo (R$)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.custo}
+                              onChange={(e) => updateItem(index, 'custo', parseFloat(e.target.value) || 0)}
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeItem(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addItem}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Item
+                  </Button>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={createAnaliseMutation.isPending}>
+                    {createAnaliseMutation.isPending ? 'Salvando...' : 'Salvar Análise'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
