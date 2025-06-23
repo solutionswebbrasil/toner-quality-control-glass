@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -38,72 +39,6 @@ export const UserManagementImproved: React.FC = () => {
     loadProfiles();
   }, []);
 
-  const syncAllUsers = async () => {
-    try {
-      console.log('Executando sincronização completa de usuários...');
-      
-      // Tentar buscar usuários do auth usando a API admin
-      try {
-        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-        
-        if (!authError && authUsers?.users) {
-          console.log(`Encontrados ${authUsers.users.length} usuários no auth`);
-          
-          for (const authUser of authUsers.users) {
-            if (authUser.email) {
-              const { data: existingProfile } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('id', authUser.id)
-                .single();
-
-              if (!existingProfile) {
-                console.log(`Criando profile para usuário: ${authUser.email}`);
-                const { error: insertError } = await supabase
-                  .from('profiles')
-                  .insert({
-                    id: authUser.id,
-                    email: authUser.email,
-                    nome_completo: authUser.user_metadata?.nome_completo || 
-                                  authUser.user_metadata?.full_name || 
-                                  authUser.email.split('@')[0],
-                    role: authUser.email === 'admin@sgqpro.com' ? 'admin' : 'user'
-                  });
-
-                if (insertError) {
-                  console.error('Erro ao criar profile:', insertError);
-                } else {
-                  console.log(`Profile criado para: ${authUser.email}`);
-                }
-              } else {
-                // Atualizar dados do profile existente se necessário
-                const { error: updateError } = await supabase
-                  .from('profiles')
-                  .update({
-                    email: authUser.email,
-                    nome_completo: authUser.user_metadata?.nome_completo || 
-                                  authUser.user_metadata?.full_name || 
-                                  authUser.email.split('@')[0]
-                  })
-                  .eq('id', authUser.id);
-
-                if (updateError) {
-                  console.error('Erro ao atualizar profile:', updateError);
-                }
-              }
-            }
-          }
-        } else {
-          console.log('Admin API não disponível ou sem usuários encontrados');
-        }
-      } catch (authError) {
-        console.log('Admin API não disponível, usando método alternativo...');
-      }
-    } catch (error) {
-      console.error('Erro na sincronização:', error);
-    }
-  };
-
   const loadProfiles = async () => {
     try {
       setLoading(true);
@@ -111,27 +46,98 @@ export const UserManagementImproved: React.FC = () => {
       
       console.log('Carregando profiles...');
       
-      // Primeira sincronização
-      await syncAllUsers();
-      
-      // Buscar todos os profiles
-      const { data, error, count } = await supabase
+      // Buscar todos os profiles diretamente da tabela
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact' })
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        setError('Erro ao carregar usuários: ' + error.message);
-        console.error('Erro ao carregar profiles:', error);
-      } else {
-        setProfiles(data || []);
-        console.log(`Profiles carregados: ${data?.length || 0} (total no banco: ${count})`);
+      if (profilesError) {
+        console.error('Erro ao carregar profiles:', profilesError);
+        setError('Erro ao carregar usuários: ' + profilesError.message);
+        return;
       }
+
+      console.log('Profiles encontrados:', profilesData?.length || 0);
+      
+      // Se não há profiles, vamos tentar sincronizar
+      if (!profilesData || profilesData.length === 0) {
+        console.log('Nenhum profile encontrado, tentando sincronizar...');
+        await syncAllUsers();
+        
+        // Tentar buscar novamente após sincronização
+        const { data: newProfilesData, error: newProfilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (newProfilesError) {
+          console.error('Erro após sincronização:', newProfilesError);
+          setError('Erro ao carregar usuários após sincronização: ' + newProfilesError.message);
+          return;
+        }
+
+        setProfiles(newProfilesData || []);
+        console.log('Profiles após sincronização:', newProfilesData?.length || 0);
+      } else {
+        setProfiles(profilesData);
+      }
+
     } catch (error) {
+      console.error('Erro interno ao carregar profiles:', error);
       setError('Erro interno ao carregar usuários');
-      console.error('Erro interno:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncAllUsers = async () => {
+    try {
+      console.log('Iniciando sincronização de usuários...');
+      
+      // Buscar usuário atual (como exemplo)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Erro ao buscar usuário atual:', userError);
+        return;
+      }
+
+      if (user) {
+        console.log('Usuário atual encontrado:', user.email);
+        
+        // Verificar se o profile já existe
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!existingProfile) {
+          console.log('Criando profile para usuário atual:', user.email);
+          
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              nome_completo: user.user_metadata?.nome_completo || 
+                            user.user_metadata?.full_name || 
+                            user.email.split('@')[0],
+              role: user.email === 'admin@sgqpro.com' ? 'admin' : 'user'
+            });
+
+          if (insertError) {
+            console.error('Erro ao criar profile:', insertError);
+          } else {
+            console.log('Profile criado com sucesso para:', user.email);
+          }
+        } else {
+          console.log('Profile já existe para usuário:', user.email);
+        }
+      }
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
     }
   };
 
@@ -157,7 +163,7 @@ export const UserManagementImproved: React.FC = () => {
     }
 
     try {
-      // Primeiro deletar o profile
+      // Deletar o profile
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -165,24 +171,15 @@ export const UserManagementImproved: React.FC = () => {
 
       if (profileError) {
         console.error('Erro ao deletar perfil:', profileError);
-        setError('Erro ao excluir usuário do perfil');
+        setError('Erro ao excluir usuário do perfil: ' + profileError.message);
         return;
       }
 
-      // Tentar deletar do auth (pode falhar se não for admin)
-      try {
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-        if (authError) {
-          console.log('Não foi possível deletar do auth (normal para usuários não-admin):', authError);
-        }
-      } catch (authErr) {
-        console.log('Erro esperado ao tentar deletar do auth:', authErr);
-      }
-
       setSuccess('Usuário excluído com sucesso!');
+      setTimeout(() => setSuccess(''), 3000);
       refreshProfiles();
     } catch (error) {
-      setError('Erro interno');
+      setError('Erro interno ao excluir usuário');
       console.error('Erro:', error);
     }
   };
@@ -195,6 +192,7 @@ export const UserManagementImproved: React.FC = () => {
   const handleSuccess = (message: string) => {
     setSuccess(message);
     setTimeout(() => setSuccess(''), 3000);
+    refreshProfiles(); // Atualizar lista após sucesso
   };
 
   const handleError = (message: string) => {

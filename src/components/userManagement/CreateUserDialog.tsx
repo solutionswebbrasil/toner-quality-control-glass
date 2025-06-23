@@ -23,6 +23,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   onRefresh
 }) => {
   const [newUser, setNewUser] = useState({ email: '', password: '', nome_completo: '', role: 'user' });
+  const [creating, setCreating] = useState(false);
 
   const createUser = async () => {
     if (!newUser.email || !newUser.password || !newUser.nome_completo) {
@@ -34,6 +35,8 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
       onError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
+
+    setCreating(true);
 
     try {
       console.log('Criando usuário:', newUser.email);
@@ -57,41 +60,39 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
       }
 
       if (data.user) {
-        console.log('Usuário criado:', data.user.email);
+        console.log('Usuário criado no Auth:', data.user.email);
         
-        setTimeout(async () => {
-          try {
-            const { data: existingProfile } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('id', data.user!.id)
-              .single();
+        // Criar profile diretamente (não esperar pelo trigger)
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: newUser.email,
+            nome_completo: newUser.nome_completo,
+            role: newUser.role
+          });
 
-            if (!existingProfile) {
-              console.log('Criando profile manualmente...');
-              await supabase
-                .from('profiles')
-                .insert({
-                  id: data.user!.id,
-                  email: newUser.email,
-                  nome_completo: newUser.nome_completo,
-                  role: newUser.role
-                });
-            }
+        if (profileError) {
+          console.error('Erro ao criar profile:', profileError);
+          // Não falhar aqui, pois o usuário foi criado
+        } else {
+          console.log('Profile criado diretamente');
+        }
 
-            await onRefresh();
-          } catch (syncError) {
-            console.error('Erro na sincronização manual:', syncError);
-          }
-        }, 2000);
-
-        onSuccess('Usuário criado com sucesso! O usuário receberá um email de confirmação.');
+        onSuccess('Usuário criado com sucesso!');
         setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
         onOpenChange(false);
+        
+        // Atualizar lista após um pequeno delay
+        setTimeout(() => {
+          onRefresh();
+        }, 1000);
       }
     } catch (error) {
       console.error('Erro interno ao criar usuário:', error);
       onError('Erro interno ao criar usuário');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -109,6 +110,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               value={newUser.nome_completo}
               onChange={(e) => setNewUser(prev => ({ ...prev, nome_completo: e.target.value }))}
               placeholder="Digite o nome completo"
+              disabled={creating}
             />
           </div>
           <div>
@@ -119,6 +121,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               value={newUser.email}
               onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
               placeholder="Digite o email"
+              disabled={creating}
             />
           </div>
           <div>
@@ -129,11 +132,16 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               value={newUser.password}
               onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
               placeholder="Mínimo 6 caracteres"
+              disabled={creating}
             />
           </div>
           <div>
             <Label htmlFor="role">Role</Label>
-            <Select value={newUser.role} onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value }))}>
+            <Select 
+              value={newUser.role} 
+              onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value }))}
+              disabled={creating}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -144,8 +152,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             </Select>
           </div>
           <div className="flex gap-2">
-            <Button onClick={createUser}>Criar Usuário</Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button onClick={createUser} disabled={creating}>
+              {creating ? 'Criando...' : 'Criar Usuário'}
+            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={creating}>
               Cancelar
             </Button>
           </div>
