@@ -160,16 +160,16 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
             Filial:
           </label>
           <Select
-            value={filter.filial || ''}
+            value={filter.filial || 'todas'}
             onValueChange={(value) => 
-              onFilterChange({ ...filter, filial: value || undefined })
+              onFilterChange({ ...filter, filial: value === 'todas' ? undefined : value })
             }
           >
             <SelectTrigger className="w-36 bg-white dark:bg-slate-800">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as Filiais</SelectItem>
+              <SelectItem value="todas">Todas as Filiais</SelectItem>
               <SelectItem value="Jundiaí">Jundiaí</SelectItem>
               <SelectItem value="Franca">Franca</SelectItem>
             </SelectContent>

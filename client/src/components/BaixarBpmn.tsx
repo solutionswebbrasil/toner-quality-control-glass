@@ -48,10 +48,10 @@ const registrosBpmn = [
 ];
 
 export const BaixarBpmn: React.FC<BaixarBpmnProps> = ({ onSuccess }) => {
-  const [tituloSelecionado, setTituloSelecionado] = useState<string>('');
+  const [tituloSelecionado, setTituloSelecionado] = useState<string>('placeholder');
 
   const registrosFiltrados = registrosBpmn.filter(
-    registro => tituloSelecionado ? registro.titulo_id.toString() === tituloSelecionado : false
+    registro => tituloSelecionado && tituloSelecionado !== 'placeholder' ? registro.titulo_id.toString() === tituloSelecionado : false
   ).sort((a, b) => b.versao - a.versao); // Ordenar por versão decrescente
 
   const handleDownload = (arquivo: string, tipo: string, versao: number) => {
@@ -95,11 +95,12 @@ export const BaixarBpmn: React.FC<BaixarBpmnProps> = ({ onSuccess }) => {
         <CardContent className="space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Título BPMN</label>
-            <Select onValueChange={setTituloSelecionado} value={tituloSelecionado}>
+            <Select onValueChange={setTituloSelecionado} value={tituloSelecionado || ""}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o título" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="placeholder">Selecione um título</SelectItem>
                 {titulosDisponiveis.map((titulo) => (
                   <SelectItem key={titulo.id} value={titulo.id.toString()}>
                     {titulo.titulo}

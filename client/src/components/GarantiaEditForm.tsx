@@ -462,11 +462,11 @@ export const GarantiaEditForm: React.FC<GarantiaEditFormProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {statusConfigs.map((config) => {
-                    const statusValue = normalizeValue(config.status_nome || '');
+                    const statusValue = normalizeValue(config.status_nome || 'sem-nome');
                     return (
                       <SelectItem 
                         key={config.id} 
-                        value={statusValue}
+                        value={statusValue || 'sem-nome'}
                       >
                         {config.status_nome || 'Status sem nome'}
                       </SelectItem>
