@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -137,7 +136,7 @@ export const UserManagementImproved: React.FC = () => {
   };
 
   const refreshProfiles = async () => {
-    setRefresher(true);
+    setRefreshing(true);
     setError('');
     setSuccess('');
     
