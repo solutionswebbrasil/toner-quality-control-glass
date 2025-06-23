@@ -9,7 +9,7 @@ import { Loader2, LogIn, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
   const { signIn, loading } = useAuth();
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
+  const [loginData, setLoginData] = useState({ usuario: '', senha: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -38,8 +38,8 @@ export const AuthPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    console.log('Tentativa de login:', loginData.email);
-    const result = await signIn(loginData.email, loginData.password);
+    console.log('Tentativa de login:', loginData.usuario);
+    const result = await signIn(loginData.usuario, loginData.senha);
     
     if (result.error) {
       setError(result.error);
@@ -188,27 +188,27 @@ export const AuthPage: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="login-email" className="text-white">Email</Label>
+              <Label htmlFor="login-usuario" className="text-white">Usuário</Label>
               <Input
-                id="login-email"
-                type="email"
-                placeholder="Digite seu email"
-                value={loginData.email}
-                onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                id="login-usuario"
+                type="text"
+                placeholder="Digite seu usuário"
+                value={loginData.usuario}
+                onChange={(e) => setLoginData(prev => ({ ...prev, usuario: e.target.value }))}
                 className="h-12 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="login-password" className="text-white">Senha</Label>
+              <Label htmlFor="login-senha" className="text-white">Senha</Label>
               <div className="relative">
                 <Input
-                  id="login-password"
+                  id="login-senha"
                   type={showPassword ? "text" : "password"}
                   placeholder="Digite sua senha"
-                  value={loginData.password}
-                  onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                  value={loginData.senha}
+                  onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
                   className="h-12 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 pr-12"
                   required
                 />
@@ -226,7 +226,7 @@ export const AuthPage: React.FC = () => {
             
             <Button
               type="submit"
-              disabled={loading}
+              disabled={!loginData.usuario || !loginData.senha || loading}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white"
             >
               {loading ? (
@@ -242,6 +242,21 @@ export const AuthPage: React.FC = () => {
               )}
             </Button>
           </form>
+          
+          {/* Credenciais de demonstração */}
+          <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg">
+            <p className="text-xs text-slate-300 mb-2 font-medium">Credenciais de acesso:</p>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Usuário:</span>
+                <span className="text-white font-mono">admin.admin</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Senha:</span>
+                <span className="text-white font-mono">admin123</span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
