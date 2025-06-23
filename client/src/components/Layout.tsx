@@ -10,7 +10,7 @@ import { LayoutProps } from './layout/types';
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const { profile } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -24,12 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
-  const filteredMenuItems = menuItems.filter(item => {
-    if (item.id === 'configuracoes') {
-      return profile?.role === 'admin';
-    }
-    return true;
-  });
+  const filteredMenuItems = menuItems;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex">
