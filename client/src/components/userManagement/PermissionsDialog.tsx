@@ -38,16 +38,28 @@ export const PermissionsDialog: React.FC<PermissionsDialogProps> = ({
 
   const loadPermissions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('permissions')
-        .select('*')
-        .order('modulo', { ascending: true });
-
-      if (error) {
-        console.error('Erro ao carregar permissões:', error);
-      } else {
-        setPermissions(data || []);
-      }
+      // Simular carregamento de permissões
+      const mockPermissions: Permission[] = [
+        {
+          id: '1',
+          role: 'user',
+          modulo: 'Retornados',
+          submenu: 'Consulta',
+          pode_visualizar: true,
+          pode_editar: false,
+          pode_excluir: false
+        },
+        {
+          id: '2',
+          role: 'admin',
+          modulo: 'Retornados',
+          submenu: 'Consulta',
+          pode_visualizar: true,
+          pode_editar: true,
+          pode_excluir: true
+        }
+      ];
+      setPermissions(mockPermissions);
     } catch (error) {
       console.error('Erro ao carregar permissões:', error);
     }
@@ -55,17 +67,7 @@ export const PermissionsDialog: React.FC<PermissionsDialogProps> = ({
 
   const updatePermission = async (permissionId: string, field: keyof Permission, value: boolean) => {
     try {
-      const { error } = await supabase
-        .from('permissions')
-        .update({ [field]: value })
-        .eq('id', permissionId);
-
-      if (error) {
-        onError('Erro ao atualizar permissão');
-        console.error('Erro:', error);
-        return;
-      }
-
+      // Simular atualização de permissão
       setPermissions(prev => prev.map(p => 
         p.id === permissionId ? { ...p, [field]: value } : p
       ));
