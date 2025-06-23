@@ -136,5 +136,5 @@ The system manages multiple entities:
 
 Preferred communication style: Simple, everyday language.
 Chart styling: Professional, sober design suitable for business presentations.
-Filter preferences: Fixed positioning with clean, organized layout.
+Filter preferences: Compact, minimal design to reduce visual clutter and avoid overwhelming the interface.
 Database: Real data integration preferred over mock data for production use.

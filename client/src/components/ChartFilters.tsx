@@ -26,10 +26,10 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 border border-slate-200 dark:border-slate-600">
+      <div className="flex flex-wrap gap-2 items-center text-sm">
+        <div className="flex items-center gap-1">
+          <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
             Período:
           </label>
           <Select
@@ -38,11 +38,11 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
               onFilterChange({ ...filter, type: value })
             }
           >
-            <SelectTrigger className="w-44 bg-white dark:bg-slate-800">
-              <SelectValue placeholder="Selecione o período" />
+            <SelectTrigger className="w-36 h-8 text-xs bg-white dark:bg-slate-800">
+              <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="range">Período Personalizado</SelectItem>
+              <SelectItem value="range">Personalizado</SelectItem>
               <SelectItem value="month">Por Mês</SelectItem>
               <SelectItem value="year">Por Ano</SelectItem>
             </SelectContent>
@@ -50,8 +50,8 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
         </div>
 
         {filter.type === 'range' && (
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <div className="flex items-center gap-1">
+            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Data:
             </label>
             <Popover open={open} onOpenChange={setOpen}>
@@ -59,22 +59,22 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-64 justify-start text-left font-normal bg-white dark:bg-slate-800",
+                    "w-48 h-8 justify-start text-left font-normal text-xs bg-white dark:bg-slate-800",
                     !filter.startDate && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-1 h-3 w-3" />
                   {filter.startDate ? (
                     filter.endDate ? (
                       <>
-                        {format(filter.startDate, "dd/MM/yyyy")} até{" "}
-                        {format(filter.endDate, "dd/MM/yyyy")}
+                        {format(filter.startDate, "dd/MM/yy")} até{" "}
+                        {format(filter.endDate, "dd/MM/yy")}
                       </>
                     ) : (
-                      format(filter.startDate, "dd/MM/yyyy")
+                      format(filter.startDate, "dd/MM/yy")
                     )
                   ) : (
-                    <span>Selecione o período</span>
+                    <span>Período</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -103,8 +103,8 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
         )}
 
         {filter.type === 'month' && (
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <div className="flex items-center gap-1">
+            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Mês:
             </label>
             <Select
@@ -113,13 +113,13 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
                 onFilterChange({ ...filter, month: parseInt(value) })
               }
             >
-              <SelectTrigger className="w-32 bg-white dark:bg-slate-800">
+              <SelectTrigger className="w-24 h-8 text-xs bg-white dark:bg-slate-800">
                 <SelectValue placeholder="Mês" />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 12 }, (_, i) => (
                   <SelectItem key={i + 1} value={(i + 1).toString()}>
-                    {format(new Date(2024, i), 'MMMM', { locale: ptBR })}
+                    {format(new Date(2024, i), 'MMM', { locale: ptBR })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -128,8 +128,8 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
         )}
 
         {(filter.type === 'month' || filter.type === 'year') && (
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <div className="flex items-center gap-1">
+            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Ano:
             </label>
             <Select
@@ -138,7 +138,7 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
                 onFilterChange({ ...filter, year: parseInt(value) })
               }
             >
-              <SelectTrigger className="w-24 bg-white dark:bg-slate-800">
+              <SelectTrigger className="w-20 h-8 text-xs bg-white dark:bg-slate-800">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
               <SelectContent>
@@ -155,8 +155,8 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        <div className="flex items-center gap-1">
+          <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
             Filial:
           </label>
           <Select
@@ -165,11 +165,11 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({ filter, onFilterChan
               onFilterChange({ ...filter, filial: value === 'todas' ? undefined : value })
             }
           >
-            <SelectTrigger className="w-36 bg-white dark:bg-slate-800">
+            <SelectTrigger className="w-28 h-8 text-xs bg-white dark:bg-slate-800">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todas">Todas as Filiais</SelectItem>
+              <SelectItem value="todas">Todas</SelectItem>
               <SelectItem value="Jundiaí">Jundiaí</SelectItem>
               <SelectItem value="Franca">Franca</SelectItem>
             </SelectContent>
