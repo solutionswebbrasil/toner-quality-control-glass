@@ -31,6 +31,18 @@ export const menuItems = [
     page: 'kpis'
   },
   {
+    id: 'ishikawa',
+    label: 'Análise Ishikawa',
+    icon: BarChart3,
+    page: 'ishikawa'
+  },
+  {
+    id: 'pareto',
+    label: 'Análise Pareto',
+    icon: TrendingUp,
+    page: 'pareto'
+  },
+  {
     id: 'retornados',
     label: 'Retornados',
     icon: Package,

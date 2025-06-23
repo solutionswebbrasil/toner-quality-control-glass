@@ -5,6 +5,8 @@ import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { Dashboard } from '@/components/Dashboard';
 import { KpisPage } from '@/components/KpisPage';
 import { ConfiguracoesPage } from '@/components/ConfiguracoesPage';
+import { IshikawaPage } from '@/components/IshikawaPage';
+import { ParetoPage } from '@/components/ParetoPage';
 import { RetornadoForm } from '@/components/RetornadoForm';
 import { RetornadoGrid } from '@/components/RetornadoGrid';
 import { FornecedorForm } from '@/components/FornecedorForm';
@@ -48,6 +50,10 @@ export default function Index() {
         return <Dashboard />;
       case 'kpis':
         return <KpisPage />;
+      case 'ishikawa':
+        return <IshikawaPage />;
+      case 'pareto':
+        return <ParetoPage />;
       case 'configuracoes':
         return <ConfiguracoesPage />;
       case 'retornados-registro':

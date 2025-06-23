@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Maximize2, X } from 'lucide-react';
 
 interface ChartModalProps {
   isOpen: boolean;
@@ -19,15 +18,22 @@ export const ChartModal: React.FC<ChartModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle>{title}</DialogTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-4 h-4" />
+          <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
-        <div className="mt-6">
-          {children}
+        <div className="flex-1 overflow-auto">
+          <div className="h-[80vh]">
+            {children}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

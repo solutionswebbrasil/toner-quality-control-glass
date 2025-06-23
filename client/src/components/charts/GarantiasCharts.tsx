@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ComposedChart } from 'recharts';
 import { DateFilter } from '../ChartFilters';
+import { ChartModal } from '../ChartModal';
 import { garantiasApi } from '@/lib/api';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Maximize2 } from 'lucide-react';
 
 interface GarantiasChartsProps {
   filter: DateFilter;
@@ -14,6 +17,7 @@ interface GarantiasChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
 
 export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
+  const [modalChart, setModalChart] = useState<string | null>(null);
   // Enhanced mock data for demonstration - comprehensive dataset for presentation
   const generateMockGarantias = () => {
     const fornecedores = ['HP Inc.', 'Samsung', 'Canon', 'Brother', 'Xerox', 'Ricoh', 'Kyocera'];
@@ -107,24 +111,25 @@ export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
     const currentYearData: { [key: string]: number } = {};
     const previousYearData: { [key: string]: number } = {};
 
-    garantias.forEach((item: any) => {
+    // Process all data without filters for year comparison
+    allGarantias.forEach((item: any) => {
       const date = new Date(item.data_registro);
       const year = date.getFullYear();
-      const month = format(date, 'MMM', { locale: ptBR });
+      const monthIndex = date.getMonth();
 
       if (year === currentYear) {
-        currentYearData[month] = (currentYearData[month] || 0) + 1;
+        currentYearData[monthIndex] = (currentYearData[monthIndex] || 0) + 1;
       } else if (year === previousYear) {
-        previousYearData[month] = (previousYearData[month] || 0) + 1;
+        previousYearData[monthIndex] = (previousYearData[monthIndex] || 0) + 1;
       }
     });
 
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     
-    return months.map(month => ({
+    return months.map((month, index) => ({
       mes: month,
-      anoAtual: currentYearData[month] || 0,
-      anoAnterior: previousYearData[month] || 0
+      anoAtual: currentYearData[index] || 0,
+      anoAnterior: previousYearData[index] || 0
     }));
   };
 
@@ -156,8 +161,15 @@ export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Monthly Warranties Chart */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Garantias Realizadas por Mês</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setModalChart('monthly')}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -237,6 +249,23 @@ export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Chart Modals */}
+      <ChartModal
+        isOpen={modalChart === 'monthly'}
+        onClose={() => setModalChart(null)}
+        title="Garantias Realizadas por Mês"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={monthlyWarrantiesData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="mes" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="quantidade" fill="#0088FE" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartModal>
     </div>
   );
 };

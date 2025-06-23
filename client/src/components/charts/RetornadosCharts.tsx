@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { DateFilter } from '../ChartFilters';
+import { ChartModal } from '../ChartModal';
 import { retornadosApi } from '@/lib/api';
 import { format, parse, subYears, isSameMonth, isSameYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Maximize2 } from 'lucide-react';
 
 interface RetornadosChartsProps {
   filter: DateFilter;
@@ -14,6 +17,7 @@ interface RetornadosChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) => {
+  const [modalChart, setModalChart] = useState<string | null>(null);
   // Enhanced mock data for demonstration - comprehensive dataset for presentation
   const generateMockRetornados = () => {
     const filiais = ['Jundiaí', 'Franca'];
@@ -140,24 +144,25 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
     const currentYearData: { [key: string]: number } = {};
     const previousYearData: { [key: string]: number } = {};
 
-    retornados.forEach((item: any) => {
+    // Process all data without filters for year comparison
+    allRetornados.forEach((item: any) => {
       const date = new Date(item.data_registro);
       const year = date.getFullYear();
-      const month = format(date, 'MMM', { locale: ptBR });
+      const monthIndex = date.getMonth();
 
       if (year === currentYear) {
-        currentYearData[month] = (currentYearData[month] || 0) + 1;
+        currentYearData[monthIndex] = (currentYearData[monthIndex] || 0) + 1;
       } else if (year === previousYear) {
-        previousYearData[month] = (previousYearData[month] || 0) + 1;
+        previousYearData[monthIndex] = (previousYearData[monthIndex] || 0) + 1;
       }
     });
 
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     
-    return months.map(month => ({
+    return months.map((month, index) => ({
       mes: month,
-      anoAtual: currentYearData[month] || 0,
-      anoAnterior: previousYearData[month] || 0
+      anoAtual: currentYearData[index] || 0,
+      anoAnterior: previousYearData[index] || 0
     }));
   };
 
@@ -185,8 +190,15 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Volumetry Chart */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Volumetria de Toners Retornados por Mês</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setModalChart('volumetry')}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -203,8 +215,15 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
 
       {/* Value Recovered Chart */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Valor Recuperado por Mês (R$)</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setModalChart('value')}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -221,8 +240,15 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
 
       {/* Year Comparison Chart */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Comparação Ano Atual vs Ano Anterior</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setModalChart('comparison')}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -233,7 +259,7 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
               <Tooltip />
               <Legend />
               <Bar dataKey="anoAtual" fill="#0088FE" name="Ano Atual" />
-              <Line dataKey="anoAnterior" stroke="#FF8042" name="Ano Anterior" type="monotone" />
+              <Bar dataKey="anoAnterior" fill="#FF8042" name="Ano Anterior" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -241,8 +267,15 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
 
       {/* Destination Pie Chart */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Quantidade por Destino Final</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setModalChart('destination')}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -266,6 +299,83 @@ export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) =>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Chart Modals */}
+      <ChartModal
+        isOpen={modalChart === 'volumetry'}
+        onClose={() => setModalChart(null)}
+        title="Volumetria de Toners Retornados por Mês"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={volumetryData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="mes" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="quantidade" fill="#0088FE" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartModal>
+
+      <ChartModal
+        isOpen={modalChart === 'value'}
+        onClose={() => setModalChart(null)}
+        title="Valor Recuperado por Mês (R$)"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={valueRecoveredData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="mes" />
+            <YAxis />
+            <Tooltip formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor']} />
+            <Bar dataKey="valor" fill="#00C49F" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartModal>
+
+      <ChartModal
+        isOpen={modalChart === 'comparison'}
+        onClose={() => setModalChart(null)}
+        title="Comparação Ano Atual vs Ano Anterior"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={yearComparisonData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="mes" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="anoAtual" fill="#0088FE" name="Ano Atual" />
+            <Bar dataKey="anoAnterior" fill="#FF8042" name="Ano Anterior" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartModal>
+
+      <ChartModal
+        isOpen={modalChart === 'destination'}
+        onClose={() => setModalChart(null)}
+        title="Quantidade por Destino Final"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={destinationData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              outerRadius={200}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {destinationData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </ChartModal>
     </div>
   );
 };
