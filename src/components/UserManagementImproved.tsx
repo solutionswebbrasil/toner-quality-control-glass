@@ -46,7 +46,38 @@ export const UserManagementImproved: React.FC = () => {
       
       console.log('Carregando profiles...');
       
-      // Buscar todos os profiles diretamente da tabela
+      // Primeiro, verificar o usuário atual e suas permissões
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Erro ao verificar usuário:', userError);
+        setError('Erro ao verificar usuário atual');
+        return;
+      }
+
+      if (!user) {
+        setError('Usuário não autenticado');
+        return;
+      }
+
+      console.log('Usuário atual:', user.email);
+
+      // Buscar profile do usuário atual para verificar role
+      const { data: currentProfile, error: currentProfileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (currentProfileError) {
+        console.error('Erro ao buscar profile atual:', currentProfileError);
+        setError('Erro ao verificar permissões');
+        return;
+      }
+
+      console.log('Profile atual:', currentProfile);
+
+      // Buscar todos os profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -59,10 +90,11 @@ export const UserManagementImproved: React.FC = () => {
       }
 
       console.log('Profiles encontrados:', profilesData?.length || 0);
+      console.log('Dados dos profiles:', profilesData);
       
-      // Se não há profiles, vamos tentar sincronizar
-      if (!profilesData || profilesData.length === 0) {
-        console.log('Nenhum profile encontrado, tentando sincronizar...');
+      // Se admin não conseguir ver outros profiles, pode ser problema de RLS
+      if (currentProfile.role === 'admin' && (!profilesData || profilesData.length <= 1)) {
+        console.log('Admin não está vendo outros profiles, tentando sincronização...');
         await syncAllUsers();
         
         // Tentar buscar novamente após sincronização
@@ -80,7 +112,7 @@ export const UserManagementImproved: React.FC = () => {
         setProfiles(newProfilesData || []);
         console.log('Profiles após sincronização:', newProfilesData?.length || 0);
       } else {
-        setProfiles(profilesData);
+        setProfiles(profilesData || []);
       }
 
     } catch (error) {
@@ -95,45 +127,39 @@ export const UserManagementImproved: React.FC = () => {
     try {
       console.log('Iniciando sincronização de usuários...');
       
-      // Buscar usuário atual (como exemplo)
+      // Verificar se há usuários no auth que não estão na tabela profiles
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (userError) {
-        console.error('Erro ao buscar usuário atual:', userError);
+      if (userError || !user) {
+        console.error('Erro ao buscar usuário para sincronização:', userError);
         return;
       }
 
-      if (user) {
-        console.log('Usuário atual encontrado:', user.email);
+      // Criar profile para o usuário atual se não existir
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!existingProfile) {
+        console.log('Criando profile para usuário atual:', user.email);
         
-        // Verificar se o profile já existe
-        const { data: existingProfile } = await supabase
+        const { error: insertError } = await supabase
           .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
+          .insert({
+            id: user.id,
+            email: user.email,
+            nome_completo: user.user_metadata?.nome_completo || 
+                          user.user_metadata?.full_name || 
+                          user.email.split('@')[0],
+            role: user.email === 'admin@sgqpro.com' ? 'admin' : 'user'
+          });
 
-        if (!existingProfile) {
-          console.log('Criando profile para usuário atual:', user.email);
-          
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email,
-              nome_completo: user.user_metadata?.nome_completo || 
-                            user.user_metadata?.full_name || 
-                            user.email.split('@')[0],
-              role: user.email === 'admin@sgqpro.com' ? 'admin' : 'user'
-            });
-
-          if (insertError) {
-            console.error('Erro ao criar profile:', insertError);
-          } else {
-            console.log('Profile criado com sucesso para:', user.email);
-          }
+        if (insertError) {
+          console.error('Erro ao criar profile:', insertError);
         } else {
-          console.log('Profile já existe para usuário:', user.email);
+          console.log('Profile criado com sucesso para:', user.email);
         }
       }
     } catch (error) {

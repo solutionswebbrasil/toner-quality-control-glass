@@ -41,6 +41,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     try {
       console.log('Criando usuário:', newUser.email);
       
+      // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -55,38 +56,66 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
       if (error) {
         console.error('Erro ao criar usuário:', error);
-        onError('Erro ao criar usuário: ' + error.message);
+        
+        // Tratar erros específicos
+        if (error.message.includes('User already registered')) {
+          onError('Este email já está cadastrado no sistema');
+        } else if (error.message.includes('Invalid email')) {
+          onError('Email inválido');
+        } else {
+          onError('Erro ao criar usuário: ' + error.message);
+        }
         return;
       }
 
       if (data.user) {
         console.log('Usuário criado no Auth:', data.user.email);
+        console.log('ID do usuário:', data.user.id);
         
-        // Criar profile diretamente (não esperar pelo trigger)
-        const { error: profileError } = await supabase
+        // Aguardar um momento para o trigger funcionar (se existir)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verificar se o profile foi criado automaticamente
+        const { data: existingProfile } = await supabase
           .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: newUser.email,
-            nome_completo: newUser.nome_completo,
-            role: newUser.role
-          });
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
 
-        if (profileError) {
-          console.error('Erro ao criar profile:', profileError);
-          // Não falhar aqui, pois o usuário foi criado
+        if (!existingProfile) {
+          console.log('Profile não encontrado, criando manualmente...');
+          
+          // Criar profile diretamente na tabela
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: newUser.email,
+              nome_completo: newUser.nome_completo,
+              role: newUser.role
+            });
+
+          if (profileError) {
+            console.error('Erro ao criar profile:', profileError);
+            onError('Usuário criado, mas houve erro ao criar o perfil: ' + profileError.message);
+            return;
+          } else {
+            console.log('Profile criado manualmente com sucesso');
+          }
         } else {
-          console.log('Profile criado diretamente');
+          console.log('Profile já existe:', existingProfile);
         }
 
-        onSuccess('Usuário criado com sucesso!');
+        onSuccess(`Usuário ${newUser.email} criado com sucesso!`);
+        
+        // Limpar formulário
         setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
         onOpenChange(false);
         
         // Atualizar lista após um pequeno delay
         setTimeout(() => {
           onRefresh();
-        }, 1000);
+        }, 1500);
       }
     } catch (error) {
       console.error('Erro interno ao criar usuário:', error);
@@ -96,8 +125,15 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     }
   };
 
+  const handleClose = () => {
+    if (!creating) {
+      setNewUser({ email: '', password: '', nome_completo: '', role: 'user' });
+      onOpenChange(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Criar Novo Usuário</DialogTitle>
@@ -136,7 +172,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             />
           </div>
           <div>
-            <Label htmlFor="role">Role</Label>
+            <Label htmlFor="role">Função</Label>
             <Select 
               value={newUser.role} 
               onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value }))}
@@ -155,7 +191,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             <Button onClick={createUser} disabled={creating}>
               {creating ? 'Criando...' : 'Criar Usuário'}
             </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={creating}>
+            <Button variant="outline" onClick={handleClose} disabled={creating}>
               Cancelar
             </Button>
           </div>
