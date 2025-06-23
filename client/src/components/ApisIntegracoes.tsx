@@ -19,7 +19,7 @@ export const ApisIntegracoes: React.FC = () => {
   const { toast } = useToast();
   const [showUrl, setShowUrl] = useState(false);
   
-  const apiUrl = 'https://olyozgenxsccrodcfetf.supabase.co/functions/v1/api-retornados';
+  const apiUrl = '/api/retornados-powerbi';
   const apiKey = 'powerbi-access-2024';
   
   const { isTestingApi, apiTestResult, testApi } = useApiTest(apiUrl);

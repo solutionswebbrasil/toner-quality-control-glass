@@ -9,7 +9,7 @@ import { Save, Calculator } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/tonerService';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { tonersApi } from '@/lib/api';
 
 interface TonerFormProps {
   onSuccess?: () => void;

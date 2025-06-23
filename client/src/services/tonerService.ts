@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import type { Toner } from '@/types';
 
 // Função para adicionar parâmetros anti-cache

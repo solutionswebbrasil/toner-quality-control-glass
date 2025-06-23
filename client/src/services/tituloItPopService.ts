@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import type { TituloItPop } from '@/types';
 
 export const tituloItPopService = {

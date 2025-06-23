@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import type { RegistroBpmn } from '@/types';
 
 export const registroBpmnService = {

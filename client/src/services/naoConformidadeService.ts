@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import { NaoConformidade } from '@/types/naoConformidade';
 
 export const naoConformidadeService = {

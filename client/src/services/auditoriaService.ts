@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import type { Auditoria } from '@/types';
 
 export const auditoriaService = {

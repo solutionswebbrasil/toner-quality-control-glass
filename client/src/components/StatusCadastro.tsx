@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+
 
 interface StatusConfig {
   id: number;

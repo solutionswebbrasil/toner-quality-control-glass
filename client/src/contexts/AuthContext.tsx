@@ -1,22 +1,28 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useState } from 'react';
+import { authApi } from '@/lib/api';
+import { toast } from 'sonner';
 
-interface Profile {
+interface User {
   id: string;
   nome_completo: string;
-  email: string;
-  role: string;
-  created_at: string;
+  usuario: string;
+}
+
+interface Permission {
+  id: string;
+  modulo: string;
+  submenu: string;
+  pode_visualizar: boolean;
+  pode_editar: boolean;
+  pode_excluir: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  profile: Profile | null;
+  permissions: Permission[];
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (usuario: string, senha: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   hasPermission: (modulo: string, submenu: string, acao: string) => boolean;
 }
@@ -37,106 +43,45 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const loadProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Erro ao carregar perfil:', error);
-        return;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.error('Erro inesperado ao carregar perfil:', error);
+  const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
+    if (!user || !permissions.length) return false;
+    
+    // Find permission for the module/submenu
+    const permission = permissions.find(p => 
+      p.modulo === modulo && p.submenu === submenu
+    );
+    
+    if (!permission) return false;
+    
+    switch (acao) {
+      case 'visualizar':
+        return permission.pode_visualizar;
+      case 'editar':
+        return permission.pode_editar;
+      case 'excluir':
+        return permission.pode_excluir;
+      default:
+        return false;
     }
   };
 
-  const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
-    if (!profile) return false;
-    
-    // Admin tem todas as permissões
-    if (profile.role === 'admin') return true;
-    
-    // Aqui você pode implementar a lógica de permissões baseada na tabela permissions
-    // Por enquanto, usuários comuns têm permissão básica
-    return profile.role === 'user' && acao === 'visualizar';
-  };
-
-  useEffect(() => {
-    // Configurar listener de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Usar setTimeout para evitar problemas de deadlock
-          setTimeout(() => {
-            loadProfile(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        loadProfile(session.user.id);
-      }
-      
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (usuario: string, senha: string) => {
     try {
       setLoading(true);
-      console.log('Tentando fazer login com:', email);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password,
-      });
-
-      if (error) {
-        console.error('Erro no login:', error);
-        let errorMessage = 'Erro no login';
-        
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Email ou senha incorretos';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
-        } else if (error.message.includes('Too many requests')) {
-          errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos.';
-        }
-        
-        return { error: errorMessage };
-      }
-
-      console.log('Login realizado com sucesso:', data.user?.email);
+      const response = await authApi.login(usuario, senha);
+      
+      setUser(response.user);
+      setPermissions(response.permissions || []);
+      
+      toast.success('Login realizado com sucesso!');
       return { error: null };
-    } catch (error) {
-      console.error('Erro inesperado no login:', error);
-      return { error: 'Erro inesperado. Tente novamente.' };
+    } catch (error: any) {
+      console.error('Error during login:', error);
+      return { error: error.message || 'Erro durante o login' };
     } finally {
       setLoading(false);
     }
@@ -144,29 +89,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      console.log('Fazendo logout...');
-      
-      // Limpar dados do localStorage antes do logout
+      setUser(null);
+      setPermissions([]);
       localStorage.clear();
       sessionStorage.clear();
-      
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Erro no logout:', error);
-      } else {
-        console.log('Logout realizado com sucesso');
-        // Forçar reload da página para limpar qualquer estado restante
-        window.location.reload();
-      }
+      toast.success('Logout realizado com sucesso!');
     } catch (error) {
-      console.error('Erro inesperado no logout:', error);
+      console.error('Unexpected error during logout:', error);
     }
   };
 
   const value = {
     user,
-    session,
-    profile,
+    permissions,
     loading,
     signIn,
     signOut,

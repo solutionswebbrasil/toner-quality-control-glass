@@ -11,7 +11,7 @@ import { TonerSelector } from './retornado/TonerSelector';
 import { RetornadoFormFields } from './retornado/RetornadoFormFields';
 import { RetornadoInfoDisplay } from './retornado/RetornadoInfoDisplay';
 import { GarantiaTonerModal, GarantiaTonerData } from './retornado/GarantiaTonerModal';
-import { supabase } from '@/integrations/supabase/client';
+import { retornadosApi } from '@/lib/api';
 import type { Filial } from '@/types/filial';
 
 interface RetornadoFormProps {

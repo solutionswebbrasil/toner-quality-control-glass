@@ -2,7 +2,7 @@
 import { retornadoService } from '@/services/retornadoService';
 import { tonerService } from '@/services/tonerService';
 import { normalizeDate } from './dateNormalizer';
-import { supabase } from '@/integrations/supabase/client';
+
 
 export const processImportData = async (
   data: any[], 

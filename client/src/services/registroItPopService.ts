@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import type { RegistroItPop } from '@/types';
 
 export const registroItPopService = {

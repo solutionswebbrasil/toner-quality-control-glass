@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+
 import { Garantia } from '@/types';
 
 export class GarantiaService {

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+
 import type { Retornado } from '@/types';
 import { tonerService } from './tonerService';
 

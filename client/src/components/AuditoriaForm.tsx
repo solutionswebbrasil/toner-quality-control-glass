@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { auditoriaService } from '@/services/auditoriaService';
 import { fileUploadService } from '@/services/fileUploadService';
 import { filialService } from '@/services/filialService';
-import { supabase } from '@/integrations/supabase/client';
+import { auditoriasApi } from '@/lib/api';
 import type { Filial } from '@/types/filial';
 
 const auditoriaSchema = z.object({
