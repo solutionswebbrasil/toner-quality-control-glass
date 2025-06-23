@@ -37,9 +37,14 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   return response.json();
 };
 
-// Data APIs
+// Import mock data for demonstration
+import { generateMockData } from './mockData';
+
+const mockData = generateMockData();
+
+// Data APIs with mock data fallback
 export const fornecedoresApi = {
-  getAll: () => apiRequest('/fornecedores'),
+  getAll: () => Promise.resolve(mockData.fornecedores),
   create: (data: any) => apiRequest('/fornecedores', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -47,7 +52,7 @@ export const fornecedoresApi = {
 };
 
 export const tonersApi = {
-  getAll: () => apiRequest('/toners'),
+  getAll: () => Promise.resolve(mockData.toners),
   create: (data: any) => apiRequest('/toners', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -55,7 +60,7 @@ export const tonersApi = {
 };
 
 export const retornadosApi = {
-  getAll: () => apiRequest('/retornados'),
+  getAll: () => Promise.resolve(mockData.retornados),
   create: (data: any) => apiRequest('/retornados', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -64,7 +69,7 @@ export const retornadosApi = {
 };
 
 export const garantiasApi = {
-  getAll: () => apiRequest('/garantias'),
+  getAll: () => Promise.resolve(mockData.garantias),
   create: (data: any) => apiRequest('/garantias', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -76,7 +81,7 @@ export const garantiasApi = {
 };
 
 export const filiaisApi = {
-  getAll: () => apiRequest('/filiais'),
+  getAll: () => Promise.resolve(mockData.filiais),
   create: (data: any) => apiRequest('/filiais', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -84,7 +89,7 @@ export const filiaisApi = {
 };
 
 export const certificadosApi = {
-  getAll: () => apiRequest('/certificados'),
+  getAll: () => Promise.resolve(mockData.certificados),
   create: (data: any) => apiRequest('/certificados', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -92,7 +97,7 @@ export const certificadosApi = {
 };
 
 export const auditoriasApi = {
-  getAll: () => apiRequest('/auditorias'),
+  getAll: () => Promise.resolve(mockData.auditorias),
   create: (data: any) => apiRequest('/auditorias', {
     method: 'POST',
     body: JSON.stringify(data),

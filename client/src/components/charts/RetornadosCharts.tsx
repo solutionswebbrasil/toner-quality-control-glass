@@ -14,49 +14,77 @@ interface RetornadosChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) => {
-  // Mock data for demonstration - will be replaced with real API data
-  const retornados = [
-    {
-      id: 1,
-      data_registro: '2024-01-15',
-      peso: '500',
-      destino_final: 'Estoque',
-      valor_recuperado: 150.50,
-      toner: { modelo: 'HP CF280A', peso_vazio: '50', gramatura: '450', capacidade_folhas: 2700, valor_por_folha: 0.05, cor: 'Preto' }
-    },
-    {
-      id: 2,
-      data_registro: '2024-02-20',
-      peso: '600',
-      destino_final: 'Garantia',
-      valor_recuperado: 200.00,
-      toner: { modelo: 'Samsung MLT-D111S', peso_vazio: '60', gramatura: '540', capacidade_folhas: 1000, valor_por_folha: 0.08, cor: 'Preto' }
-    },
-    {
-      id: 3,
-      data_registro: '2024-03-10',
-      peso: '400',
-      destino_final: 'Descarte',
-      valor_recuperado: 0,
-      toner: { modelo: 'Canon 725', peso_vazio: '45', gramatura: '355', capacidade_folhas: 1600, valor_por_folha: 0.06, cor: 'Preto' }
-    },
-    {
-      id: 4,
-      data_registro: '2023-01-15',
-      peso: '450',
-      destino_final: 'Estoque Semi Novo',
-      valor_recuperado: 180.00,
-      toner: { modelo: 'HP CF280A', peso_vazio: '50', gramatura: '400', capacidade_folhas: 2700, valor_por_folha: 0.05, cor: 'Preto' }
-    },
-    {
-      id: 5,
-      data_registro: '2024-04-25',
-      peso: '520',
-      destino_final: 'Uso Interno',
-      valor_recuperado: 0,
-      toner: { modelo: 'Brother TN-2340', peso_vazio: '55', gramatura: '465', capacidade_folhas: 2600, valor_por_folha: 0.04, cor: 'Preto' }
+  // Enhanced mock data for demonstration - comprehensive dataset for presentation
+  const generateMockRetornados = () => {
+    const filiais = ['Jundiaí', 'Franca'];
+    const destinos = ['Estoque', 'Garantia', 'Descarte', 'Estoque Semi Novo', 'Uso Interno'];
+    const toners = [
+      { modelo: 'HP CF280A', peso_vazio: '50', gramatura: '450', capacidade_folhas: 2700, valor_por_folha: 0.05, cor: 'Preto' },
+      { modelo: 'Samsung MLT-D111S', peso_vazio: '60', gramatura: '540', capacidade_folhas: 1000, valor_por_folha: 0.08, cor: 'Preto' },
+      { modelo: 'Canon 725', peso_vazio: '45', gramatura: '355', capacidade_folhas: 1600, valor_por_folha: 0.06, cor: 'Preto' },
+      { modelo: 'Brother TN-2340', peso_vazio: '55', gramatura: '465', capacidade_folhas: 2600, valor_por_folha: 0.04, cor: 'Preto' },
+      { modelo: 'Xerox 106R03623', peso_vazio: '52', gramatura: '480', capacidade_folhas: 3000, valor_por_folha: 0.07, cor: 'Preto' }
+    ];
+    
+    const mockData = [];
+    let id = 1;
+    
+    // Gerar dados dos últimos 24 meses
+    for (let monthsBack = 23; monthsBack >= 0; monthsBack--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - monthsBack);
+      
+      // 5-15 registros por mês
+      const recordsThisMonth = Math.floor(Math.random() * 11) + 5;
+      
+      for (let i = 0; i < recordsThisMonth; i++) {
+        const randomDay = Math.floor(Math.random() * 28) + 1;
+        const recordDate = new Date(date.getFullYear(), date.getMonth(), randomDay);
+        const toner = toners[Math.floor(Math.random() * toners.length)];
+        const filial = filiais[Math.floor(Math.random() * filiais.length)];
+        const destino = destinos[Math.floor(Math.random() * destinos.length)];
+        const peso = (Math.random() * 400 + 200).toFixed(0); // 200-600g
+        
+        let valor_recuperado = 0;
+        if (destino === 'Estoque' || destino === 'Estoque Semi Novo') {
+          const gramaturaRestante = parseFloat(peso) - parseFloat(toner.peso_vazio);
+          const percentualGramatura = (gramaturaRestante / parseFloat(toner.gramatura)) * 100;
+          const folhasRestantes = (percentualGramatura / 100) * toner.capacidade_folhas;
+          valor_recuperado = folhasRestantes * toner.valor_por_folha;
+        } else if (destino === 'Garantia') {
+          valor_recuperado = Math.random() * 300 + 100; // R$ 100-400
+        }
+        
+        mockData.push({
+          id: id++,
+          data_registro: recordDate.toISOString().split('T')[0],
+          peso,
+          destino_final: destino,
+          filial,
+          valor_recuperado,
+          toner
+        });
+      }
     }
-  ];
+    
+    return mockData;
+  };
+
+  const allRetornados = generateMockRetornados();
+  
+  // Apply filters
+  const retornados = allRetornados.filter(item => {
+    const itemDate = new Date(item.data_registro);
+    
+    // Filter by date range
+    if (filter.startDate && itemDate < filter.startDate) return false;
+    if (filter.endDate && itemDate > filter.endDate) return false;
+    
+    // Filter by filial
+    if (filter.filial && item.filial !== filter.filial) return false;
+    
+    return true;
+  });
 
   // Process data for volumetry chart (monthly count)
   const getVolumetryData = () => {

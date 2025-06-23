@@ -8,8 +8,9 @@ import { NaoConformidadesCharts } from './charts/NaoConformidadesCharts';
 
 export const KpisPage: React.FC = () => {
   const [filter, setFilter] = useState<DateFilter>({
-    type: 'year',
-    year: new Date().getFullYear()
+    type: 'range',
+    startDate: new Date(new Date().getFullYear(), 0, 1), // Início do ano
+    endDate: new Date() // Data atual
   });
 
   return (

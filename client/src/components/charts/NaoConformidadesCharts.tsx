@@ -14,29 +14,62 @@ interface NaoConformidadesChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export const NaoConformidadesCharts: React.FC<NaoConformidadesChartsProps> = ({ filter }) => {
-  // Mock data for demonstration - will be replaced with real API data
-  const naoConformidades = [
-    {
-      id: 1,
-      data_criacao: '2024-01-12',
-      descricao: 'Falha no processo de impressão'
-    },
-    {
-      id: 2,
-      data_criacao: '2024-02-18',
-      descricao: 'Peça defeituosa no equipamento'
-    },
-    {
-      id: 3,
-      data_criacao: '2024-03-05',
-      descricao: 'Toner com vazamento'
-    },
-    {
-      id: 4,
-      data_criacao: '2024-04-10',
-      descricao: 'Máquina apresentando ruído excessivo'
+  // Enhanced mock data for demonstration - comprehensive dataset for presentation
+  const generateMockNaoConformidades = () => {
+    const tipos = [
+      { categoria: 'Processo', descricoes: ['Falha no processo de impressão', 'Processo de limpeza inadequado', 'Falha na calibração do processo'] },
+      { categoria: 'Peças', descricoes: ['Peça defeituosa no equipamento', 'Desgaste prematuro de peças', 'Peça fora de especificação'] },
+      { categoria: 'Toners', descricoes: ['Toner com vazamento', 'Qualidade de impressão ruim', 'Toner ressecado'] },
+      { categoria: 'Máquinas', descricoes: ['Máquina apresentando ruído excessivo', 'Falha no sistema de alimentação', 'Superaquecimento do equipamento'] }
+    ];
+    const filiais = ['Jundiaí', 'Franca'];
+    
+    const mockData = [];
+    let id = 1;
+    
+    // Gerar dados dos últimos 24 meses
+    for (let monthsBack = 23; monthsBack >= 0; monthsBack--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - monthsBack);
+      
+      // 2-6 não conformidades por mês
+      const recordsThisMonth = Math.floor(Math.random() * 5) + 2;
+      
+      for (let i = 0; i < recordsThisMonth; i++) {
+        const randomDay = Math.floor(Math.random() * 28) + 1;
+        const recordDate = new Date(date.getFullYear(), date.getMonth(), randomDay);
+        const tipo = tipos[Math.floor(Math.random() * tipos.length)];
+        const descricao = tipo.descricoes[Math.floor(Math.random() * tipo.descricoes.length)];
+        const filial = filiais[Math.floor(Math.random() * filiais.length)];
+        
+        mockData.push({
+          id: id++,
+          data_criacao: recordDate.toISOString().split('T')[0],
+          descricao,
+          categoria: tipo.categoria,
+          filial
+        });
+      }
     }
-  ];
+    
+    return mockData;
+  };
+
+  const allNaoConformidades = generateMockNaoConformidades();
+  
+  // Apply filters
+  const naoConformidades = allNaoConformidades.filter(item => {
+    const itemDate = new Date(item.data_criacao);
+    
+    // Filter by date range
+    if (filter.startDate && itemDate < filter.startDate) return false;
+    if (filter.endDate && itemDate > filter.endDate) return false;
+    
+    // Filter by filial
+    if (filter.filial && item.filial !== filter.filial) return false;
+    
+    return true;
+  });
 
   // Process data for monthly non-conformities chart
   const getMonthlyNaoConformidadesData = () => {

@@ -14,39 +14,57 @@ interface GarantiasChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
 
 export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
-  // Mock data for demonstration - will be replaced with real API data
-  const garantias = [
-    {
-      id: 1,
-      data_registro: '2024-01-10',
-      valor_total: 350.00,
-      fornecedor: { nome: 'HP Inc.' }
-    },
-    {
-      id: 2,
-      data_registro: '2024-02-15',
-      valor_total: 280.00,
-      fornecedor: { nome: 'Samsung' }
-    },
-    {
-      id: 3,
-      data_registro: '2024-03-08',
-      valor_total: 420.00,
-      fornecedor: { nome: 'Canon' }
-    },
-    {
-      id: 4,
-      data_registro: '2023-01-10',
-      valor_total: 300.00,
-      fornecedor: { nome: 'HP Inc.' }
-    },
-    {
-      id: 5,
-      data_registro: '2024-04-20',
-      valor_total: 500.00,
-      fornecedor: { nome: 'Brother' }
+  // Enhanced mock data for demonstration - comprehensive dataset for presentation
+  const generateMockGarantias = () => {
+    const fornecedores = ['HP Inc.', 'Samsung', 'Canon', 'Brother', 'Xerox', 'Ricoh', 'Kyocera'];
+    const filiais = ['Jundiaí', 'Franca'];
+    
+    const mockData = [];
+    let id = 1;
+    
+    // Gerar dados dos últimos 24 meses
+    for (let monthsBack = 23; monthsBack >= 0; monthsBack--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - monthsBack);
+      
+      // 3-8 garantias por mês
+      const recordsThisMonth = Math.floor(Math.random() * 6) + 3;
+      
+      for (let i = 0; i < recordsThisMonth; i++) {
+        const randomDay = Math.floor(Math.random() * 28) + 1;
+        const recordDate = new Date(date.getFullYear(), date.getMonth(), randomDay);
+        const fornecedor = fornecedores[Math.floor(Math.random() * fornecedores.length)];
+        const filial = filiais[Math.floor(Math.random() * filiais.length)];
+        const valor_total = Math.random() * 800 + 150; // R$ 150-950
+        
+        mockData.push({
+          id: id++,
+          data_registro: recordDate.toISOString().split('T')[0],
+          valor_total,
+          filial,
+          fornecedor: { nome: fornecedor }
+        });
+      }
     }
-  ];
+    
+    return mockData;
+  };
+
+  const allGarantias = generateMockGarantias();
+  
+  // Apply filters
+  const garantias = allGarantias.filter(item => {
+    const itemDate = new Date(item.data_registro);
+    
+    // Filter by date range
+    if (filter.startDate && itemDate < filter.startDate) return false;
+    if (filter.endDate && itemDate > filter.endDate) return false;
+    
+    // Filter by filial
+    if (filter.filial && item.filial !== filter.filial) return false;
+    
+    return true;
+  });
 
   // Process data for monthly warranties chart
   const getMonthlyWarrantiesData = () => {

@@ -10,11 +10,12 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface DateFilter {
-  type: 'day' | 'month' | 'year';
+  type: 'range' | 'month' | 'year';
   startDate?: Date;
   endDate?: Date;
   month?: number;
   year?: number;
+  filial?: string;
 }
 
 interface ChartFiltersProps {
