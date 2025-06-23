@@ -1,3 +1,4 @@
+
 import {
   FileText,
   BarChart3,
@@ -12,18 +13,24 @@ import {
   Users,
   Building2,
   Package,
-  Link
+  Link,
+  BarChart
 } from 'lucide-react';
 
 export const menuItems = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: BarChart,
+    page: 'dashboard'
+  },
   {
     id: 'retornados',
     label: 'Retornados',
     icon: Package,
     submenu: [
       { id: 'retornados-registro', label: 'Registro', page: 'retornados-registro' },
-      { id: 'retornados-consulta', label: 'Consulta', page: 'retornados-consulta' },
-      { id: 'retornados-graficos', label: 'Gráficos', page: 'retornados-graficos' }
+      { id: 'retornados-consulta', label: 'Consulta', page: 'retornados-consulta' }
     ]
   },
   {
@@ -42,7 +49,6 @@ export const menuItems = [
     submenu: [
       { id: 'garantias-registro', label: 'Registro', page: 'garantias-registro' },
       { id: 'garantias-consulta', label: 'Consulta', page: 'garantias-consulta' },
-      { id: 'garantias-graficos-gerais', label: 'Gráficos Gerais', page: 'garantias-graficos-gerais' },
       { id: 'garantias-toners', label: 'Garantias Toners', page: 'garantias-toners' }
     ]
   },
@@ -70,8 +76,7 @@ export const menuItems = [
     icon: AlertTriangle,
     submenu: [
       { id: 'nc-registro', label: 'Registro', page: 'nc-registro' },
-      { id: 'nc-consulta', label: 'Consulta', page: 'nc-consulta' },
-      { id: 'nc-graficos', label: 'Gráficos', page: 'nc-graficos' }
+      { id: 'nc-consulta', label: 'Consulta', page: 'nc-consulta' }
     ]
   },
   {

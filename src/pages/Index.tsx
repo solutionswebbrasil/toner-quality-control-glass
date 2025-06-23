@@ -1,23 +1,21 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
+import { Dashboard } from '@/components/Dashboard';
 import { RetornadoForm } from '@/components/RetornadoForm';
 import { RetornadoGrid } from '@/components/RetornadoGrid';
-import { RetornadoCharts } from '@/components/RetornadoCharts';
 import { FornecedorForm } from '@/components/FornecedorForm';
 import { FornecedorGrid } from '@/components/FornecedorGrid';
 import { GarantiaForm } from '@/components/GarantiaForm';
 import { GarantiaGrid } from '@/components/GarantiaGrid';
-import { GarantiaGeralCharts } from '@/components/GarantiaGeralCharts';
 import { GarantiaTonerGrid } from '@/components/GarantiaTonerGrid';
 import { TonerGrid } from '@/components/TonerGrid';
-import { GarantiaTonerCharts } from '@/components/GarantiaTonerCharts';
 import { TonerForm } from '@/components/TonerForm';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
 import { AuditoriaGrid } from '@/components/AuditoriaGrid';
 import { NaoConformidadeForm } from '@/components/NaoConformidadeForm';
 import { NaoConformidadeGrid } from '@/components/NaoConformidadeGrid';
-import { NaoConformidadeCharts } from '@/components/NaoConformidadeCharts';
 import { TituloItPopForm } from '@/components/TituloItPopForm';
 import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { RegistroItPopForm } from '@/components/RegistroItPopForm';
@@ -44,12 +42,12 @@ export default function Index() {
     switch (currentPage) {
       case 'welcome':
         return <WelcomeScreen />;
+      case 'dashboard':
+        return <Dashboard />;
       case 'retornados-registro':
         return <RetornadoForm />;
       case 'retornados-consulta':
         return <RetornadoGrid />;
-      case 'retornados-graficos':
-        return <RetornadoCharts />;
       case 'fornecedores-cadastro':
         return <FornecedorForm />;
       case 'fornecedores-consulta':
@@ -58,14 +56,8 @@ export default function Index() {
         return <GarantiaForm />;
       case 'garantias-consulta':
         return <GarantiaGrid />;
-      case 'garantias-graficos-gerais':
-        return <GarantiaGeralCharts />;
       case 'garantias-toners':
         return <GarantiaTonerGrid />;
-      case 'toners-consulta':
-        return <TonerGrid />;
-      case 'toners-graficos':
-        return <GarantiaTonerCharts />;
       case 'toners-cadastro':
         return <TonerForm />;
       case 'toners-consulta-principal':
@@ -78,8 +70,6 @@ export default function Index() {
         return <NaoConformidadeForm />;
       case 'nc-consulta':
         return <NaoConformidadeGrid />;
-      case 'nc-graficos':
-        return <NaoConformidadeCharts naoConformidades={[]} />;
       case 'titulo-itpop-cadastro':
         return <TituloItPopForm onSuccess={() => {}} />;
       case 'titulo-itpop-consulta':
