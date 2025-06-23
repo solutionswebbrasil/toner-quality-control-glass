@@ -1,3 +1,3 @@
 
-// Re-export the new user management component
-export { UserManagementNew as UserManagement } from './UserManagementNew';
+// Re-export the improved user management component
+export { UserManagementImproved as UserManagement } from './UserManagementImproved';
