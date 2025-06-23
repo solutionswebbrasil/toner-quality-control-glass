@@ -14,14 +14,49 @@ interface RetornadosChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const RetornadosCharts: React.FC<RetornadosChartsProps> = ({ filter }) => {
-  const { data: retornados = [], isLoading } = useQuery({
-    queryKey: ['/api/retornados'],
-    queryFn: retornadosApi.getAll
-  });
-
-  if (isLoading) {
-    return <div>Carregando dados...</div>;
-  }
+  // Mock data for demonstration - will be replaced with real API data
+  const retornados = [
+    {
+      id: 1,
+      data_registro: '2024-01-15',
+      peso: '500',
+      destino_final: 'Estoque',
+      valor_recuperado: 150.50,
+      toner: { modelo: 'HP CF280A', peso_vazio: '50', gramatura: '450', capacidade_folhas: 2700, valor_por_folha: 0.05, cor: 'Preto' }
+    },
+    {
+      id: 2,
+      data_registro: '2024-02-20',
+      peso: '600',
+      destino_final: 'Garantia',
+      valor_recuperado: 200.00,
+      toner: { modelo: 'Samsung MLT-D111S', peso_vazio: '60', gramatura: '540', capacidade_folhas: 1000, valor_por_folha: 0.08, cor: 'Preto' }
+    },
+    {
+      id: 3,
+      data_registro: '2024-03-10',
+      peso: '400',
+      destino_final: 'Descarte',
+      valor_recuperado: 0,
+      toner: { modelo: 'Canon 725', peso_vazio: '45', gramatura: '355', capacidade_folhas: 1600, valor_por_folha: 0.06, cor: 'Preto' }
+    },
+    {
+      id: 4,
+      data_registro: '2023-01-15',
+      peso: '450',
+      destino_final: 'Estoque Semi Novo',
+      valor_recuperado: 180.00,
+      toner: { modelo: 'HP CF280A', peso_vazio: '50', gramatura: '400', capacidade_folhas: 2700, valor_por_folha: 0.05, cor: 'Preto' }
+    },
+    {
+      id: 5,
+      data_registro: '2024-04-25',
+      peso: '520',
+      destino_final: 'Uso Interno',
+      valor_recuperado: 0,
+      toner: { modelo: 'Brother TN-2340', peso_vazio: '55', gramatura: '465', capacidade_folhas: 2600, valor_por_folha: 0.04, cor: 'Preto' }
+    }
+  ];
 
   // Process data for volumetry chart (monthly count)
   const getVolumetryData = () => {

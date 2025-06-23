@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { Dashboard } from '@/components/Dashboard';
+import { KpisPage } from '@/components/KpisPage';
+import { ConfiguracoesPage } from '@/components/ConfiguracoesPage';
 import { RetornadoForm } from '@/components/RetornadoForm';
 import { RetornadoGrid } from '@/components/RetornadoGrid';
 import { FornecedorForm } from '@/components/FornecedorForm';
@@ -36,14 +38,18 @@ import { UserManagement } from '@/components/UserManagement';
 import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 
 export default function Index() {
-  const [currentPage, setCurrentPage] = useState('welcome');
+  const [currentPage, setCurrentPage] = useState('inicio');
 
   const renderPage = () => {
     switch (currentPage) {
       case 'welcome':
         return <WelcomeScreen />;
-      case 'dashboard':
+      case 'inicio':
         return <Dashboard />;
+      case 'kpis':
+        return <KpisPage />;
+      case 'configuracoes':
+        return <ConfiguracoesPage />;
       case 'retornados-registro':
         return <RetornadoForm />;
       case 'retornados-consulta':

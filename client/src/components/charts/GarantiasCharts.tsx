@@ -14,14 +14,39 @@ interface GarantiasChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
 
 export const GarantiasCharts: React.FC<GarantiasChartsProps> = ({ filter }) => {
-  const { data: garantias = [], isLoading } = useQuery({
-    queryKey: ['/api/garantias'],
-    queryFn: garantiasApi.getAll
-  });
-
-  if (isLoading) {
-    return <div>Carregando dados...</div>;
-  }
+  // Mock data for demonstration - will be replaced with real API data
+  const garantias = [
+    {
+      id: 1,
+      data_registro: '2024-01-10',
+      valor_total: 350.00,
+      fornecedor: { nome: 'HP Inc.' }
+    },
+    {
+      id: 2,
+      data_registro: '2024-02-15',
+      valor_total: 280.00,
+      fornecedor: { nome: 'Samsung' }
+    },
+    {
+      id: 3,
+      data_registro: '2024-03-08',
+      valor_total: 420.00,
+      fornecedor: { nome: 'Canon' }
+    },
+    {
+      id: 4,
+      data_registro: '2023-01-10',
+      valor_total: 300.00,
+      fornecedor: { nome: 'HP Inc.' }
+    },
+    {
+      id: 5,
+      data_registro: '2024-04-20',
+      valor_total: 500.00,
+      fornecedor: { nome: 'Brother' }
+    }
+  ];
 
   // Process data for monthly warranties chart
   const getMonthlyWarrantiesData = () => {

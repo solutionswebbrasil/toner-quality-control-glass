@@ -19,10 +19,16 @@ import {
 
 export const menuItems = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    id: 'inicio',
+    label: 'Inicio',
     icon: BarChart,
-    page: 'dashboard'
+    page: 'inicio'
+  },
+  {
+    id: 'kpis',
+    label: 'KPIs',
+    icon: TrendingUp,
+    page: 'kpis'
   },
   {
     id: 'retornados',

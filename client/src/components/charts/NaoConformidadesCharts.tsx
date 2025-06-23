@@ -14,14 +14,29 @@ interface NaoConformidadesChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export const NaoConformidadesCharts: React.FC<NaoConformidadesChartsProps> = ({ filter }) => {
-  const { data: naoConformidades = [], isLoading } = useQuery({
-    queryKey: ['/api/nao-conformidades'],
-    queryFn: naoConformidadesApi.getAll
-  });
-
-  if (isLoading) {
-    return <div>Carregando dados...</div>;
-  }
+  // Mock data for demonstration - will be replaced with real API data
+  const naoConformidades = [
+    {
+      id: 1,
+      data_criacao: '2024-01-12',
+      descricao: 'Falha no processo de impressão'
+    },
+    {
+      id: 2,
+      data_criacao: '2024-02-18',
+      descricao: 'Peça defeituosa no equipamento'
+    },
+    {
+      id: 3,
+      data_criacao: '2024-03-05',
+      descricao: 'Toner com vazamento'
+    },
+    {
+      id: 4,
+      data_criacao: '2024-04-10',
+      descricao: 'Máquina apresentando ruído excessivo'
+    }
+  ];
 
   // Process data for monthly non-conformities chart
   const getMonthlyNaoConformidadesData = () => {
