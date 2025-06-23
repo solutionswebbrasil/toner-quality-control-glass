@@ -27,38 +27,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
   const filteredMenuItems = menuItems;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex">
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        expandedMenus={expandedMenus}
-        setExpandedMenus={setExpandedMenus}
-        currentPage={currentPage}
-        onPageChange={onPageChange}
-        filteredMenuItems={filteredMenuItems}
-      />
-
-      <div className="flex-1 flex flex-col">
-        <Header
-          sidebarOpen={sidebarOpen}
-          toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex">
+      {/* Sidebar - Fixed */}
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-r border-slate-200 dark:border-slate-700 shadow-xl">
+        <Sidebar
+          sidebarOpen={true}
+          setSidebarOpen={() => {}}
+          expandedMenus={expandedMenus}
+          setExpandedMenus={setExpandedMenus}
+          currentPage={currentPage}
+          onPageChange={onPageChange}
+          filteredMenuItems={filteredMenuItems}
         />
-        
-        {/* Main Content */}
-        <main className="flex-1 pt-16 overflow-auto">
-          <div className="p-4 max-w-full">
-            {children}
-          </div>
-        </main>
       </div>
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Main content */}
+      <div className="flex-1 ml-64">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

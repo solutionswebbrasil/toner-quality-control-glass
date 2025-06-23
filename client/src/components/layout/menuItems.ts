@@ -14,15 +14,22 @@ import {
   Building2,
   Package,
   Link,
-  BarChart
+  BarChart,
+  Home
 } from 'lucide-react';
 
 export const menuItems = [
   {
     id: 'inicio',
-    label: 'Inicio',
-    icon: BarChart,
+    label: 'Início',
+    icon: Home,
     page: 'inicio'
+  },
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: BarChart,
+    page: 'dashboard'
   },
   {
     id: 'kpis',

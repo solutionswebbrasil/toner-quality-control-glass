@@ -129,6 +129,8 @@ The system manages multiple entities:
 - June 23, 2025: Created Ishikawa and Pareto analysis modules with interactive diagrams
 - June 23, 2025: Implemented complete database storage layer with proper CRUD operations
 - June 23, 2025: Added custom favicon with "Q" logo for quality management branding
+- June 23, 2025: Restructured navigation - separated "Início" (welcome) from "Dashboard" (charts)
+- June 23, 2025: Fixed sidebar layout with improved styling and alignment
 
 ## User Preferences
 

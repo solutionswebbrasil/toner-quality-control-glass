@@ -47,6 +47,8 @@ export default function Index() {
       case 'welcome':
         return <WelcomeScreen />;
       case 'inicio':
+        return <WelcomeScreen />;
+      case 'dashboard':
         return <Dashboard />;
       case 'kpis':
         return <KpisPage />;
