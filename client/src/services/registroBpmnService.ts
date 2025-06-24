@@ -1,175 +1,146 @@
 
-
-import type { RegistroBpmn } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import type { RegistroBpmn, TituloBpmn } from '@/types';
 
 export const registroBpmnService = {
-  getAll: async (): Promise<RegistroBpmn[]> => {
-    console.log('🔍 Buscando todos os registros BPMN...');
+  async getAll(): Promise<RegistroBpmn[]> {
     const { data, error } = await supabase
       .from('registros_bpmn')
       .select(`
         *,
-        titulos_bpmn:titulo_id (
-          titulo
-        )
+        titulo:titulos_bpmn(id, titulo, descricao)
       `)
       .order('data_registro', { ascending: false });
-    
+
     if (error) {
-      console.error('❌ Erro ao buscar registros BPMN:', error);
-      throw error;
+      throw new Error(`Erro ao buscar registros BPMN: ${error.message}`);
     }
-    
-    console.log('✅ Registros BPMN encontrados:', data?.length || 0);
-    return (data || []).map(item => ({
-      ...item,
-      titulo: item.titulos_bpmn?.titulo || 'N/A'
+
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      titulo_id: item.titulo_id,
+      versao: item.versao,
+      arquivo_png: item.arquivo_png,
+      data_registro: item.data_registro,
+      registrado_por: item.registrado_por,
+      titulo: item.titulo
     }));
   },
 
-  getByTituloId: async (titulo_id: number): Promise<RegistroBpmn[]> => {
-    console.log('🔍 Buscando registros BPMN por título ID:', titulo_id);
+  async getAllByTitulo(tituloId: number): Promise<RegistroBpmn[]> {
     const { data, error } = await supabase
       .from('registros_bpmn')
       .select(`
         *,
-        titulos_bpmn:titulo_id (
-          titulo
-        )
+        titulo:titulos_bpmn(id, titulo, descricao)
       `)
-      .eq('titulo_id', titulo_id)
+      .eq('titulo_id', tituloId)
       .order('versao', { ascending: false });
-    
+
     if (error) {
-      console.error('❌ Erro ao buscar registros BPMN por título:', error);
-      throw error;
+      throw new Error(`Erro ao buscar registros por título: ${error.message}`);
     }
-    
-    console.log('✅ Registros encontrados para o título:', data?.length || 0);
-    return (data || []).map(item => ({
-      ...item,
-      titulo: item.titulos_bpmn?.titulo || 'N/A'
+
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      titulo_id: item.titulo_id,
+      versao: item.versao,
+      arquivo_png: item.arquivo_png,
+      data_registro: item.data_registro,
+      registrado_por: item.registrado_por,
+      titulo: item.titulo
     }));
   },
 
-  getNextVersion: async (titulo_id: number): Promise<number> => {
-    console.log('🔢 Calculando próxima versão para título ID:', titulo_id);
-    const { data, error } = await supabase
-      .from('registros_bpmn')
-      .select('versao')
-      .eq('titulo_id', titulo_id)
-      .order('versao', { ascending: false })
-      .limit(1);
-    
-    if (error) {
-      console.error('❌ Erro ao buscar versão:', error);
-      return 1;
-    }
-    
-    const nextVersion = data && data.length > 0 ? data[0].versao + 1 : 1;
-    console.log('✅ Próxima versão calculada:', nextVersion);
-    return nextVersion;
-  },
-
-  getById: async (id: number): Promise<RegistroBpmn | undefined> => {
-    console.log('🔍 Buscando registro BPMN por ID:', id);
+  async getById(id: number): Promise<RegistroBpmn | null> {
     const { data, error } = await supabase
       .from('registros_bpmn')
       .select(`
         *,
-        titulos_bpmn:titulo_id (
-          titulo
-        )
+        titulo:titulos_bpmn(id, titulo, descricao)
       `)
       .eq('id', id)
       .single();
-    
+
     if (error) {
-      console.error('❌ Erro ao buscar registro BPMN:', error);
-      return undefined;
+      console.error('Erro ao buscar registro BPMN:', error);
+      return null;
     }
-    
+
     return {
-      ...data,
-      titulo: data.titulos_bpmn?.titulo || 'N/A'
+      id: data.id,
+      titulo_id: data.titulo_id,
+      versao: data.versao,
+      arquivo_png: data.arquivo_png,
+      data_registro: data.data_registro,
+      registrado_por: data.registrado_por,
+      titulo: data.titulo
     };
   },
 
-  create: async (registro: Omit<RegistroBpmn, 'id' | 'versao'>): Promise<RegistroBpmn> => {
-    console.log('📝 Criando novo registro BPMN:', registro);
-    
-    // Garantir que apenas campos válidos sejam enviados
-    const registroLimpo = {
-      titulo_id: registro.titulo_id,
-      arquivo_png: registro.arquivo_png,
-      data_registro: registro.data_registro,
-      registrado_por: registro.registrado_por
-    };
-    
-    console.log('📝 Registro BPMN a ser criado:', registroLimpo);
-    
+  async create(registro: Omit<RegistroBpmn, 'id' | 'versao' | 'titulo'>): Promise<RegistroBpmn> {
     const { data, error } = await supabase
       .from('registros_bpmn')
-      .insert([registroLimpo])
+      .insert([registro])
       .select(`
         *,
-        titulos_bpmn:titulo_id (
-          titulo
-        )
+        titulo:titulos_bpmn(id, titulo, descricao)
       `)
       .single();
-    
+
     if (error) {
-      console.error('❌ Erro ao criar registro BPMN:', error);
-      throw error;
+      throw new Error(`Erro ao criar registro BPMN: ${error.message}`);
     }
-    
-    console.log('✅ Registro BPMN criado com sucesso:', data);
+
     return {
-      ...data,
-      titulo: data.titulos_bpmn?.titulo || 'N/A'
+      id: data.id,
+      titulo_id: data.titulo_id,
+      versao: data.versao,
+      arquivo_png: data.arquivo_png,
+      data_registro: data.data_registro,
+      registrado_por: data.registrado_por,
+      titulo: data.titulo
     };
   },
 
-  update: async (id: number, registro: Partial<RegistroBpmn>): Promise<RegistroBpmn | null> => {
-    console.log('📝 Atualizando registro BPMN:', id, registro);
-    
+  async update(id: number, registro: Partial<RegistroBpmn>): Promise<RegistroBpmn | null> {
     const { data, error } = await supabase
       .from('registros_bpmn')
       .update(registro)
       .eq('id', id)
       .select(`
         *,
-        titulos_bpmn:titulo_id (
-          titulo
-        )
+        titulo:titulos_bpmn(id, titulo, descricao)
       `)
       .single();
-    
+
     if (error) {
-      console.error('❌ Erro ao atualizar registro BPMN:', error);
+      console.error('Erro ao atualizar registro BPMN:', error);
       return null;
     }
-    
+
     return {
-      ...data,
-      titulo: data.titulos_bpmn?.titulo || 'N/A'
+      id: data.id,
+      titulo_id: data.titulo_id,
+      versao: data.versao,
+      arquivo_png: data.arquivo_png,
+      data_registro: data.data_registro,
+      registrado_por: data.registrado_por,
+      titulo: data.titulo
     };
   },
 
-  delete: async (id: number): Promise<boolean> => {
-    console.log('🗑️ Deletando registro BPMN:', id);
+  async delete(id: number): Promise<boolean> {
     const { error } = await supabase
       .from('registros_bpmn')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
-      console.error('❌ Erro ao deletar registro BPMN:', error);
+      console.error('Erro ao deletar registro BPMN:', error);
       return false;
     }
-    
-    console.log('✅ Registro BPMN deletado');
+
     return true;
   }
 };

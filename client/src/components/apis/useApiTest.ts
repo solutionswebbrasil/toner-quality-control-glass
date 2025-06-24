@@ -1,72 +1,85 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
-export const useApiTest = (apiUrl: string) => {
-  const { toast } = useToast();
-  const [isTestingApi, setIsTestingApi] = useState(false);
-  const [apiTestResult, setApiTestResult] = useState<any>(null);
+interface ApiTestResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  responseTime?: number;
+}
 
-  const testApi = async () => {
-    setIsTestingApi(true);
-    setApiTestResult(null);
+export const useApiTest = () => {
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<Record<string, ApiTestResult>>({});
+
+  const testEndpoint = async (name: string, url: string, method: 'GET' | 'POST' = 'GET') => {
+    setLoading(true);
+    const startTime = Date.now();
     
     try {
-      console.log('Testando API:', apiUrl);
-      
-      const response = await fetch(apiUrl, {
-        method: 'GET',
+      const response = await fetch(url, {
+        method,
         headers: {
-          'X-API-Key': 'powerbi-access-2024',
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
       
-      console.log('Status da resposta:', response.status);
+      const responseTime = Date.now() - startTime;
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('Dados recebidos:', data);
       
-      setApiTestResult({
-        success: true,
-        status: response.status,
-        data: data
-      });
-      
-      if (data.success) {
-        toast({
-          title: "API Funcionando!",
-          description: `API retornou ${data.total_registros} registros com sucesso.`,
-        });
-      } else {
-        throw new Error(data.message || 'Erro na resposta da API');
-      }
+      setResults(prev => ({
+        ...prev,
+        [name]: {
+          success: true,
+          data,
+          responseTime,
+        }
+      }));
     } catch (error) {
-      console.error('Erro no teste da API:', error);
+      const responseTime = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
-      setApiTestResult({
-        success: false,
-        error: error.message,
-        status: null
-      });
-      
-      toast({
-        title: "Erro no Teste",
-        description: `Erro: ${error.message}`,
-        variant: "destructive"
-      });
+      setResults(prev => ({
+        ...prev,
+        [name]: {
+          success: false,
+          error: errorMessage,
+          responseTime,
+        }
+      }));
     } finally {
-      setIsTestingApi(false);
+      setLoading(false);
     }
   };
 
+  const testAllEndpoints = async () => {
+    const endpoints = [
+      { name: 'Dashboard Data', url: '/api/dashboard' },
+      { name: 'Toners', url: '/api/toners' },
+      { name: 'Retornados', url: '/api/retornados' },
+      { name: 'Garantias', url: '/api/garantias' },
+      { name: 'Auditorias', url: '/api/auditorias' },
+    ];
+
+    for (const endpoint of endpoints) {
+      await testEndpoint(endpoint.name, endpoint.url);
+    }
+  };
+
+  const clearResults = () => {
+    setResults({});
+  };
+
   return {
-    isTestingApi,
-    apiTestResult,
-    testApi
+    loading,
+    results,
+    testEndpoint,
+    testAllEndpoints,
+    clearResults,
   };
 };

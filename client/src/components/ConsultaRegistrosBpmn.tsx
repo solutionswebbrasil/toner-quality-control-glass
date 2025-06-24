@@ -1,246 +1,217 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, Download, Image } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { toast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Eye, Download, Search, Image } from 'lucide-react';
 import { registroBpmnService } from '@/services/registroBpmnService';
-import type { RegistroBpmn } from '@/types';
+import { tituloBpmnService } from '@/services/tituloBpmnService';
+import type { RegistroBpmn, TituloBpmn } from '@/types';
 
-interface ConsultaRegistrosBpmnProps {
-  onSuccess: () => void;
-}
-
-export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ onSuccess }) => {
+export const ConsultaRegistrosBpmn: React.FC = () => {
   const [registros, setRegistros] = useState<RegistroBpmn[]>([]);
-  const [filteredRegistros, setFilteredRegistros] = useState<RegistroBpmn[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [titulos, setTitulos] = useState<TituloBpmn[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [filtros, setFiltros] = useState({
+    titulo_id: '',
+    data_inicio: '',
+    data_fim: ''
+  });
 
   useEffect(() => {
-    carregarRegistros();
+    carregarDados();
   }, []);
 
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = registros.filter(registro =>
-        registro.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (registro.registrado_por && registro.registrado_por.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-      setFilteredRegistros(filtered);
-    } else {
-      setFilteredRegistros(registros);
-    }
-  }, [searchTerm, registros]);
-
-  const carregarRegistros = async () => {
+  const carregarDados = async () => {
     try {
-      console.log('🔍 Carregando registros BPMN...');
       setLoading(true);
-      const data = await registroBpmnService.getAll();
-      setRegistros(data);
-      console.log('✅ Registros BPMN carregados:', data.length);
+      const [registrosData, titulosData] = await Promise.all([
+        registroBpmnService.getAll(),
+        tituloBpmnService.getAll()
+      ]);
+      
+      setRegistros(registrosData);
+      setTitulos(titulosData);
     } catch (error) {
-      console.error('❌ Erro ao carregar registros BPMN:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar registros BPMN. Tente recarregar a página.',
-        variant: 'destructive',
-      });
+      console.error('Erro ao carregar dados:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (registro: RegistroBpmn) => {
-    if (!registro.id) return;
+  const registrosFiltrados = registros.filter(registro => {
+    const matchTitulo = !filtros.titulo_id || registro.titulo_id.toString() === filtros.titulo_id;
+    const matchDataInicio = !filtros.data_inicio || new Date(registro.data_registro) >= new Date(filtros.data_inicio);
+    const matchDataFim = !filtros.data_fim || new Date(registro.data_registro) <= new Date(filtros.data_fim);
+    
+    return matchTitulo && matchDataInicio && matchDataFim;
+  });
 
-    try {
-      console.log('🗑️ Iniciando exclusão do registro:', registro.titulo, 'Versão:', registro.versao);
-      setDeletingId(registro.id);
-
-      const sucesso = await registroBpmnService.delete(registro.id);
-      
-      if (sucesso) {
-        console.log('✅ Registro excluído com sucesso');
-        toast({
-          title: 'Sucesso',
-          description: 'Registro BPMN excluído com sucesso!',
-        });
-        await carregarRegistros();
-        onSuccess();
-      } else {
-        throw new Error('Falha ao excluir registro');
-      }
-    } catch (error) {
-      console.error('❌ Erro ao excluir registro:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao excluir registro BPMN. Tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setDeletingId(null);
-    }
+  const getTituloNome = (tituloId: number) => {
+    const titulo = titulos.find(t => t.id === tituloId);
+    return titulo?.titulo || 'Título não encontrado';
   };
 
-  const handleDownload = (url: string, filename: string) => {
-    console.log('📥 Iniciando download:', filename);
+  const visualizarArquivo = (url: string) => {
+    window.open(url, '_blank');
+  };
+
+  const downloadArquivo = (url: string, nomeArquivo: string) => {
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename;
-    link.target = '_blank';
-    document.body.appendChild(link);
+    link.download = nomeArquivo;
     link.click();
-    document.body.removeChild(link);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            BPMNs Cadastrados
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Carregando registros...
-          </p>
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Carregando registros...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          BPMNs Cadastrados
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Consulte e gerencie todos os diagramas BPMN em formato PNG
-        </p>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Image className="h-6 w-6" />
+        <h1 className="text-2xl font-bold">Consulta de Registros BPMN</h1>
       </div>
 
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+      {/* Filtros */}
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Image className="h-5 w-5" />
-            Registros BPMN
+            <Search className="h-5 w-5" />
+            Filtros de Busca
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-slate-500" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="titulo-filter">Título</Label>
+              <Select 
+                value={filtros.titulo_id} 
+                onValueChange={(value) => setFiltros({...filtros, titulo_id: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os títulos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos os títulos</SelectItem>
+                  {titulos.map((titulo) => (
+                    <SelectItem key={titulo.id} value={titulo.id!.toString()}>
+                      {titulo.titulo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="data-inicio">Data Início</Label>
               <Input
-                placeholder="Buscar por título ou responsável..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
+                id="data-inicio"
+                type="date"
+                value={filtros.data_inicio}
+                onChange={(e) => setFiltros({...filtros, data_inicio: e.target.value})}
               />
             </div>
 
-            {filteredRegistros.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-slate-500 dark:text-slate-400">
-                  {searchTerm ? 'Nenhum registro encontrado com o termo pesquisado.' : 'Nenhum registro BPMN cadastrado.'}
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Título</TableHead>
-                      <TableHead>Versão</TableHead>
-                      <TableHead>Arquivo PNG</TableHead>
-                      <TableHead>Registrado por</TableHead>
-                      <TableHead>Data de Registro</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRegistros.map((registro) => (
-                      <TableRow key={registro.id}>
-                        <TableCell className="font-medium">{registro.titulo}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">v{registro.versao}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {registro.arquivo_png ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDownload(registro.arquivo_png!, `${registro.titulo}_v${registro.versao}.png`)}
-                              className="text-xs"
-                            >
-                              <Image className="h-4 w-4" />
-                              PNG
-                            </Button>
-                          ) : (
-                            <span className="text-slate-400">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{registro.registrado_por || '-'}</TableCell>
-                        <TableCell>{formatDate(registro.data_registro)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={deletingId === registro.id}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja excluir o registro "{registro.titulo}" versão {registro.versao}?
-                                    Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(registro)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            <div>
+              <Label htmlFor="data-fim">Data Fim</Label>
+              <Input
+                id="data-fim"
+                type="date"
+                value={filtros.data_fim}
+                onChange={(e) => setFiltros({...filtros, data_fim: e.target.value})}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <Button 
+                onClick={() => setFiltros({ titulo_id: '', data_inicio: '', data_fim: '' })}
+                variant="outline"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Lista de Registros */}
+      <div className="grid gap-4">
+        {registrosFiltrados.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">Nenhum registro encontrado</p>
+            </CardContent>
+          </Card>
+        ) : (
+          registrosFiltrados.map((registro) => (
+            <Card key={registro.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-lg">
+                        {getTituloNome(registro.titulo_id)}
+                      </h3>
+                      <Badge variant="secondary">
+                        Versão {registro.versao}
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Data de Registro: {new Date(registro.data_registro).toLocaleDateString('pt-BR')}</p>
+                      {registro.registrado_por && (
+                        <p>Registrado por: {registro.registrado_por}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {registro.arquivo_png && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => visualizarArquivo(registro.arquivo_png!)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Visualizar
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadArquivo(
+                            registro.arquivo_png!, 
+                            `BPMN_${getTituloNome(registro.titulo_id)}_v${registro.versao}.png`
+                          )}
+                          className="flex items-center gap-1"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 };

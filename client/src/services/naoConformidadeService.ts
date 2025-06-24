@@ -1,6 +1,6 @@
 
-
-import { NaoConformidade } from '@/types/naoConformidade';
+import { supabase } from '@/integrations/supabase/client';
+import type { NaoConformidade } from '@/types';
 
 export const naoConformidadeService = {
   async getAll(): Promise<NaoConformidade[]> {
@@ -10,14 +10,13 @@ export const naoConformidadeService = {
       .order('data_registro', { ascending: false });
 
     if (error) {
-      console.error('Erro ao buscar não conformidades:', error);
-      throw error;
+      throw new Error(`Erro ao buscar não conformidades: ${error.message}`);
     }
 
     return data || [];
   },
 
-  async getById(id: number): Promise<NaoConformidade | null> {
+  async getById(id: number): Promise<NaoConformidade | undefined> {
     const { data, error } = await supabase
       .from('nao_conformidades')
       .select('*')
@@ -26,7 +25,7 @@ export const naoConformidadeService = {
 
     if (error) {
       console.error('Erro ao buscar não conformidade:', error);
-      throw error;
+      return undefined;
     }
 
     return data;
@@ -48,43 +47,49 @@ export const naoConformidadeService = {
 
     const { data, error } = await supabase
       .from('nao_conformidades')
-      .insert([naoConformidadeData])
+      .insert(naoConformidadeData)
       .select()
       .single();
 
     if (error) {
-      console.error('Erro ao criar não conformidade:', error);
-      throw error;
+      throw new Error(`Erro ao criar não conformidade: ${error.message}`);
     }
 
     return data;
   },
 
-  async update(id: number, naoConformidade: Partial<NaoConformidade>): Promise<NaoConformidade> {
+  async update(id: number, naoConformidade: Partial<NaoConformidade>): Promise<NaoConformidade | null> {
+    const updateData = {
+      ...naoConformidade,
+      data_atualizacao: new Date().toISOString()
+    };
+
     const { data, error } = await supabase
       .from('nao_conformidades')
-      .update(naoConformidade)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
     if (error) {
       console.error('Erro ao atualizar não conformidade:', error);
-      throw error;
+      return null;
     }
 
     return data;
   },
 
-  async delete(id: number): Promise<void> {
+  async delete(id: number): Promise<boolean> {
     const { error } = await supabase
       .from('nao_conformidades')
       .delete()
       .eq('id', id);
 
     if (error) {
-      console.error('Erro ao excluir não conformidade:', error);
-      throw error;
+      console.error('Erro ao deletar não conformidade:', error);
+      return false;
     }
+
+    return true;
   }
 };

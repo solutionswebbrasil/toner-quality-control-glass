@@ -1,161 +1,92 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
 import { auditoriaService } from '@/services/auditoriaService';
-import { fileUploadService } from '@/services/fileUploadService';
 import type { Auditoria } from '@/types';
 
 export const useAuditorias = () => {
   const [auditorias, setAuditorias] = useState<Auditoria[]>([]);
-  const [filteredAuditorias, setFilteredAuditorias] = useState<Auditoria[]>([]);
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [unidadeSelecionada, setUnidadeSelecionada] = useState('Todas');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadAuditorias = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await auditoriaService.getAll();
+      setAuditorias(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar auditorias');
+      console.error('Erro ao carregar auditorias:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadAuditorias();
   }, []);
 
-  useEffect(() => {
-    filterAuditorias();
-  }, [auditorias, dataInicio, dataFim, unidadeSelecionada]);
-
-  const loadAuditorias = async () => {
+  const createAuditoria = async (auditoria: Omit<Auditoria, 'id' | 'data_registro'>) => {
     try {
-      setIsLoading(true);
-      const data = await auditoriaService.getAll();
-      setAuditorias(data);
-    } catch (error) {
-      console.error('Erro ao carregar auditorias:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar auditorias. Tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+      const newAuditoria = await auditoriaService.create(auditoria);
+      setAuditorias(prev => [newAuditoria, ...prev]);
+      return newAuditoria;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar auditoria');
+      throw err;
     }
   };
 
-  const filterAuditorias = () => {
-    let filtered = [...auditorias];
-
-    if (dataInicio) {
-      filtered = filtered.filter(auditoria => auditoria.data_inicio >= dataInicio);
-    }
-
-    if (dataFim) {
-      filtered = filtered.filter(auditoria => auditoria.data_fim <= dataFim);
-    }
-
-    if (unidadeSelecionada !== 'Todas') {
-      filtered = filtered.filter(auditoria => auditoria.unidade_auditada === unidadeSelecionada);
-    }
-
-    setFilteredAuditorias(filtered);
-  };
-
-  const handleDownloadPDF = async (auditoria: Auditoria) => {
-    if (!auditoria.formulario_pdf) {
-      toast({
-        title: 'Arquivo não disponível',
-        description: 'Esta auditoria não possui formulário anexado.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const updateAuditoria = async (id: number, auditoria: Partial<Auditoria>) => {
     try {
-      setIsLoading(true);
-      
-      if (auditoria.formulario_pdf.startsWith('http')) {
-        const response = await fetch(auditoria.formulario_pdf);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `auditoria_${auditoria.id}_formulario.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        window.URL.revokeObjectURL(url);
-        
-        toast({
-          title: 'Download concluído',
-          description: `Formulário da auditoria de ${auditoria.unidade_auditada} baixado com sucesso.`,
-        });
-      } else {
-        toast({
-          title: 'Erro no download',
-          description: 'URL do arquivo inválida.',
-          variant: 'destructive',
-        });
+      const updatedAuditoria = await auditoriaService.update(id, auditoria);
+      if (updatedAuditoria) {
+        setAuditorias(prev => 
+          prev.map(item => item.id === id ? updatedAuditoria : item)
+        );
       }
-    } catch (error) {
-      console.error('Erro ao baixar PDF:', error);
-      toast({
-        title: 'Erro no download',
-        description: 'Erro ao baixar o arquivo. Verifique sua conexão e tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+      return updatedAuditoria;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar auditoria');
+      throw err;
     }
   };
 
-  const handleDeleteAuditoria = async (auditoria: Auditoria) => {
+  const deleteAuditoria = async (id: number) => {
     try {
-      setIsLoading(true);
-      
-      if (auditoria.formulario_pdf && auditoria.formulario_pdf.startsWith('http')) {
-        await fileUploadService.deletePdf(auditoria.formulario_pdf);
-      }
-      
-      const success = await auditoriaService.delete(auditoria.id);
-      
+      const success = await auditoriaService.delete(id);
       if (success) {
-        setAuditorias(prev => prev.filter(a => a.id !== auditoria.id));
-        
-        toast({
-          title: 'Sucesso',
-          description: 'Auditoria excluída com sucesso.',
-        });
-      } else {
-        throw new Error('Falha ao excluir auditoria');
+        setAuditorias(prev => prev.filter(item => item.id !== id));
       }
-    } catch (error) {
-      console.error('Erro ao excluir auditoria:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao excluir auditoria. Tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+      return success;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao excluir auditoria');
+      throw err;
     }
   };
 
-  const clearFilters = () => {
-    setDataInicio('');
-    setDataFim('');
-    setUnidadeSelecionada('Todas');
+  const getAuditoriaById = async (id: number) => {
+    try {
+      const auditoria = await auditoriaService.getById(id);
+      return auditoria;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao buscar auditoria');
+      throw err;
+    }
+  };
+
+  const refreshAuditorias = () => {
+    loadAuditorias();
   };
 
   return {
     auditorias,
-    filteredAuditorias,
-    dataInicio,
-    dataFim,
-    unidadeSelecionada,
-    isLoading,
-    setDataInicio,
-    setDataFim,
-    setUnidadeSelecionada,
-    handleDownloadPDF,
-    handleDeleteAuditoria,
-    clearFilters,
+    loading,
+    error,
+    createAuditoria,
+    updateAuditoria,
+    deleteAuditoria,
+    getAuditoriaById,
+    refreshAuditorias,
   };
 };
