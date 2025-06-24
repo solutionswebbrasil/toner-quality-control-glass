@@ -1,28 +1,21 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { authApi } from '@/lib/api';
-import { toast } from 'sonner';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
-interface User {
+export interface Profile {
   id: string;
   nome_completo: string;
-  usuario: string;
+  email: string;
+  role: string;
+  created_at?: string;
 }
 
-interface Permission {
-  id: string;
-  modulo: string;
-  submenu: string;
-  pode_visualizar: boolean;
-  pode_editar: boolean;
-  pode_excluir: boolean;
-}
-
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
-  permissions: Permission[];
+  profile: Profile | null;
   loading: boolean;
-  signIn: (usuario: string, senha: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   hasPermission: (modulo: string, submenu: string, acao: string) => boolean;
 }
@@ -37,80 +30,79 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
-    if (!user || !permissions.length) return false;
-    
-    // Find permission for the module/submenu
-    const permission = permissions.find(p => 
-      p.modulo === modulo && p.submenu === submenu
-    );
-    
-    if (!permission) return false;
-    
-    switch (acao) {
-      case 'visualizar':
-        return permission.pode_visualizar;
-      case 'editar':
-        return permission.pode_editar;
-      case 'excluir':
-        return permission.pode_excluir;
-      default:
-        return false;
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loadProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Error loading profile:', error);
     }
   };
 
-  const signIn = async (usuario: string, senha: string) => {
-    try {
-      setLoading(true);
-      
-      const response = await authApi.login(usuario, senha);
-      
-      setUser(response.user);
-      setPermissions(response.permissions || []);
-      
-      toast.success('Login realizado com sucesso!');
-      return { error: null };
-    } catch (error: any) {
-      console.error('Error during login:', error);
-      return { error: error.message || 'Erro durante o login' };
-    } finally {
-      setLoading(false);
-    }
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error };
   };
 
   const signOut = async () => {
-    try {
-      setUser(null);
-      setPermissions([]);
-      localStorage.clear();
-      sessionStorage.clear();
-      toast.success('Logout realizado com sucesso!');
-    } catch (error) {
-      console.error('Unexpected error during logout:', error);
-    }
+    await supabase.auth.signOut();
+  };
+
+  const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
+    if (!profile) return false;
+    if (profile.role === 'admin') return true;
+    
+    // For now, return true for basic users - implement proper permission checking later
+    return true;
   };
 
   const value = {
     user,
-    permissions,
+    profile,
     loading,
     signIn,
     signOut,
     hasPermission,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

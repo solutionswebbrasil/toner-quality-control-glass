@@ -3,13 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './layout/Sidebar';
-import { Header } from './layout/Header';
-import { menuItems } from './layout/menuItems';
-import { LayoutProps } from './layout/types';
+
+export interface LayoutProps {
+  children: React.ReactNode;
+  currentPage: string;
+  onPageChange: (page: string) => void;
+}
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -24,20 +26,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
-  const filteredMenuItems = menuItems;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex">
       {/* Sidebar - Fixed */}
       <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-r border-slate-200 dark:border-slate-700 shadow-xl">
         <Sidebar
-          sidebarOpen={true}
-          setSidebarOpen={() => {}}
-          expandedMenus={expandedMenus}
-          setExpandedMenus={setExpandedMenus}
+          isOpen={true}
+          onNavigateTo={onPageChange}
           currentPage={currentPage}
-          onPageChange={onPageChange}
-          filteredMenuItems={filteredMenuItems}
         />
       </div>
 
