@@ -1,5 +1,5 @@
 
-
+import { supabase } from '@/integrations/supabase/client';
 import { Certificado } from '@/types/certificado';
 
 export const certificadoService = {

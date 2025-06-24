@@ -1,5 +1,5 @@
 
-
+import { supabase } from '@/integrations/supabase/client';
 
 export const fileUploadService = {
   uploadPdf: async (file: File, folder: string): Promise<string | null> => {

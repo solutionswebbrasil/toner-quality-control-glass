@@ -1,5 +1,5 @@
 
-
+import { supabase } from '@/integrations/supabase/client';
 import { Garantia } from '@/types';
 
 export class GarantiaService {
@@ -14,7 +14,7 @@ export class GarantiaService {
 
     if (error) throw error;
 
-    return data.map(item => ({
+    return data.map((item: any) => ({
       ...item,
       fornecedor: item.fornecedores.nome
     }));

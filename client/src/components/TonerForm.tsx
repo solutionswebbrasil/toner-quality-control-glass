@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Save, Calculator } from 'lucide-react';
 import { Toner } from '@/types';
 import { tonerService } from '@/services/tonerService';
 import { useToast } from '@/hooks/use-toast';
-import { tonersApi } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TonerFormProps {
   onSuccess?: () => void;

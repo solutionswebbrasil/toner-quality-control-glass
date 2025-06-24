@@ -1,5 +1,5 @@
 
-
+import { supabase } from '@/integrations/supabase/client';
 import type { Filial } from '@/types/filial';
 
 export const filialService = {
