@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,7 +68,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
       
       // Get current user ID
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.id) {
         toast({
           title: 'Erro',
           description: 'Usuário não autenticado.',
@@ -100,7 +99,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         data_fim: data.data_fim,
         unidade_auditada: data.unidade_auditada,
         formulario_pdf: formulario_pdf_url,
-        user_id: user.id || undefined,
+        user_id: user.id,
       };
 
       await auditoriaService.create(auditoria);

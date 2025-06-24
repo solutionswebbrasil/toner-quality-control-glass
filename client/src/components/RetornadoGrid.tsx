@@ -8,20 +8,32 @@ import { RetornadoActions } from './retornado/RetornadoActions';
 import { retornadoService } from '@/services/dataService';
 import { toast } from '@/hooks/use-toast';
 import { useRetornadoImportExport } from '@/hooks/useRetornadoImportExport';
+import { useRetornadoFilters } from '@/hooks/useRetornadoFilters';
 import { Retornado } from '@/types';
 
 export const RetornadoGrid: React.FC = () => {
   const [retornados, setRetornados] = useState<Retornado[]>([]);
-  const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+
+  const {
+    dataInicio,
+    setDataInicio,
+    dataFim,
+    setDataFim,
+    filialSelecionada,
+    setFilialSelecionada,
+    destinoSelecionado,
+    setDestinoSelecionado,
+    filteredRetornados,
+    clearFilters
+  } = useRetornadoFilters(retornados);
 
   const loadRetornados = async () => {
     try {
       setLoading(true);
       const data = await retornadoService.getAll();
       setRetornados(data);
-      setFilteredRetornados(data);
       setTotalCount(data.length);
     } catch (error) {
       console.error('Erro ao carregar retornados:', error);
@@ -71,6 +83,10 @@ export const RetornadoGrid: React.FC = () => {
     handleExportCSV(filteredRetornados);
   };
 
+  const handleZerarComplete = () => {
+    loadRetornados();
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -86,20 +102,24 @@ export const RetornadoGrid: React.FC = () => {
       </div>
 
       <RetornadoFilters
-        onFilteredChange={setFilteredRetornados}
-        allRetornados={retornados}
+        dataInicio={dataInicio}
+        setDataInicio={setDataInicio}
+        dataFim={dataFim}
+        setDataFim={setDataFim}
+        filialSelecionada={filialSelecionada}
+        setFilialSelecionada={setFilialSelecionada}
+        destinoSelecionado={destinoSelecionado}
+        setDestinoSelecionado={setDestinoSelecionado}
+        clearFilters={clearFilters}
+        resultCount={filteredRetornados.length}
       />
 
       <RetornadoActions
-        filteredRetornados={filteredRetornados}
         onExportCSV={handleExportClick}
         onDownloadTemplate={handleDownloadTemplate}
         onImportCSV={handleImportCSV}
         importing={importing}
-        importProgress={importProgress}
-        isImportModalOpen={isImportModalOpen}
-        setIsImportModalOpen={setIsImportModalOpen}
-        onImportUpload={handleImportUpload}
+        onZerarComplete={handleZerarComplete}
       />
 
       <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
