@@ -179,7 +179,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         destino_final: formData.destino_final,
         filial: formData.filial,
         valor_recuperado: valorRecuperado || 0,
-        user_id: user.id,
+        user_id: user.id || '',
         data_registro: new Date().toISOString()
       };
 

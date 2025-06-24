@@ -67,6 +67,10 @@ export const RetornadoGrid: React.FC = () => {
     handleImportCSV
   } = useRetornadoImportExport(loadRetornados);
 
+  const handleExportClick = () => {
+    handleExportCSV(filteredRetornados);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -82,13 +86,13 @@ export const RetornadoGrid: React.FC = () => {
       </div>
 
       <RetornadoFilters
-        retornados={retornados}
         onFilteredChange={setFilteredRetornados}
+        allRetornados={retornados}
       />
 
       <RetornadoActions
         filteredRetornados={filteredRetornados}
-        onExportCSV={handleExportCSV}
+        onExportCSV={handleExportClick}
         onDownloadTemplate={handleDownloadTemplate}
         onImportCSV={handleImportCSV}
         importing={importing}
