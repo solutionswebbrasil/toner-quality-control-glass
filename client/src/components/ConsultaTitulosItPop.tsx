@@ -46,7 +46,7 @@ export const ConsultaTitulosItPop: React.FC<ConsultaTitulosItPopProps> = ({ onSu
       console.log('🔍 Verificando se existem registros para o título:', titulo.id);
       
       // Verificar se existem registros para este título
-      const registrosDoTitulo = await registroItPopService.getByTituloId(titulo.id!);
+      const registrosDoTitulo = await registroItPopService.getAllByTitulo(titulo.id!);
       
       if (registrosDoTitulo.length > 0) {
         toast({

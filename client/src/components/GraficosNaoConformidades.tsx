@@ -28,7 +28,7 @@ export const GraficosNaoConformidades: React.FC = () => {
       const statusMap = new Map();
       
       naoConformidades.forEach(nc => {
-        const date = new Date(nc.data_registro);
+        const date = new Date(nc.data_registro || nc.data_ocorrencia);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         
         // Monthly data

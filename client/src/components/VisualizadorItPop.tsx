@@ -36,7 +36,7 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
       try {
         console.log('🔍 Carregando registros para título ID:', tituloSelecionado);
         setLoadingRegistros(true);
-        const registrosData = await registroItPopService.getByTituloId(parseInt(tituloSelecionado));
+        const registrosData = await registroItPopService.getAllByTitulo(parseInt(tituloSelecionado));
         setRegistros(registrosData);
         console.log('✅ Registros carregados:', registrosData.length);
       } catch (error) {

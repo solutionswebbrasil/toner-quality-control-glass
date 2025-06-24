@@ -60,7 +60,7 @@ export const ConsultaTitulosBpmn: React.FC<ConsultaTitulosBpmnProps> = ({ onSucc
   const verificarRegistrosAssociados = async (tituloId: number): Promise<boolean> => {
     try {
       console.log('🔍 Verificando registros associados ao título:', tituloId);
-      const registros = await registroBpmnService.getByTituloId(tituloId);
+      const registros = await registroBpmnService.getAllByTitulo(tituloId);
       console.log('📊 Registros encontrados:', registros.length);
       return registros.length > 0;
     } catch (error) {

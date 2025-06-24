@@ -29,7 +29,8 @@ export async function processImportData(data: any[]): Promise<ImportResult> {
   const processedItems: Retornado[] = [];
 
   // Process each row
-  for (const [index, row] of data.entries()) {
+  for (let index = 0; index < data.length; index++) {
+    const row = data[index];
     try {
       // Validate required fields
       if (!row.id_cliente || !row.id_modelo || !row.peso || !row.filial) {
@@ -44,7 +45,7 @@ export async function processImportData(data: any[]): Promise<ImportResult> {
         peso: Number(row.peso),
         destino_final: String(row.destino_final || ''),
         filial: String(row.filial),
-        valor_recuperado: row.valor_recuperado ? Number(row.valor_recuperado) : null
+        valor_recuperado: row.valor_recuperado ? Number(row.valor_recuperado) : undefined
       };
 
       // Validate numeric fields

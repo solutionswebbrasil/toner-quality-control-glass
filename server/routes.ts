@@ -1,5 +1,6 @@
+
 import express from 'express';
-import { supabase } from './supabase';
+import { supabase } from '../client/src/integrations/supabase/client';
 
 export function setupRoutes(app: any) {
   app.get('/api/filiais', async (req: any, res: any) => {

@@ -58,7 +58,7 @@ export const VisualizadorBpmn: React.FC<VisualizadorBpmnProps> = ({ onSuccess })
     try {
       console.log('🔍 Carregando registros para título:', tituloId);
       setLoadingRegistros(true);
-      const data = await registroBpmnService.getByTituloId(tituloId);
+      const data = await registroBpmnService.getAllByTitulo(tituloId);
       setRegistros(data);
       console.log('✅ Registros carregados:', data.length);
     } catch (error) {
