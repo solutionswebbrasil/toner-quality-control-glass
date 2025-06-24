@@ -6,11 +6,13 @@ interface ApiTestResult {
   data?: any;
   error?: string;
   responseTime?: number;
+  status?: number;
 }
 
-export const useApiTest = () => {
+export const useApiTest = (apiUrl?: string) => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Record<string, ApiTestResult>>({});
+  const [apiTestResult, setApiTestResult] = useState<ApiTestResult | null>(null);
 
   const testEndpoint = async (name: string, url: string, method: 'GET' | 'POST' = 'GET') => {
     setLoading(true);
@@ -32,28 +34,47 @@ export const useApiTest = () => {
       
       const data = await response.json();
       
+      const result = {
+        success: true,
+        data,
+        responseTime,
+        status: response.status,
+      };
+      
       setResults(prev => ({
         ...prev,
-        [name]: {
-          success: true,
-          data,
-          responseTime,
-        }
+        [name]: result
       }));
+
+      if (name === 'API Test' || url === apiUrl) {
+        setApiTestResult(result);
+      }
     } catch (error) {
       const responseTime = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
+      const result = {
+        success: false,
+        error: errorMessage,
+        responseTime,
+      };
+      
       setResults(prev => ({
         ...prev,
-        [name]: {
-          success: false,
-          error: errorMessage,
-          responseTime,
-        }
+        [name]: result
       }));
+
+      if (name === 'API Test' || url === apiUrl) {
+        setApiTestResult(result);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const testApi = () => {
+    if (apiUrl) {
+      testEndpoint('API Test', apiUrl);
     }
   };
 
@@ -73,6 +94,7 @@ export const useApiTest = () => {
 
   const clearResults = () => {
     setResults({});
+    setApiTestResult(null);
   };
 
   return {
@@ -81,5 +103,8 @@ export const useApiTest = () => {
     testEndpoint,
     testAllEndpoints,
     clearResults,
+    isTestingApi: loading,
+    apiTestResult,
+    testApi,
   };
 };

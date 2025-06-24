@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { auditoriaService } from '@/services/auditoriaService';
 import type { Auditoria } from '@/types';
 
@@ -7,6 +7,9 @@ export const useAuditorias = () => {
   const [auditorias, setAuditorias] = useState<Auditoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dataInicio, setDataInicio] = useState<string>('');
+  const [dataFim, setDataFim] = useState<string>('');
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<string>('');
 
   const loadAuditorias = async () => {
     try {
@@ -25,6 +28,16 @@ export const useAuditorias = () => {
   useEffect(() => {
     loadAuditorias();
   }, []);
+
+  const filteredAuditorias = useMemo(() => {
+    return auditorias.filter(auditoria => {
+      const matchDataInicio = !dataInicio || auditoria.data_inicio >= dataInicio;
+      const matchDataFim = !dataFim || auditoria.data_fim <= dataFim;
+      const matchUnidade = !unidadeSelecionada || auditoria.unidade_auditada.toLowerCase().includes(unidadeSelecionada.toLowerCase());
+      
+      return matchDataInicio && matchDataFim && matchUnidade;
+    });
+  }, [auditorias, dataInicio, dataFim, unidadeSelecionada]);
 
   const createAuditoria = async (auditoria: Omit<Auditoria, 'id' | 'data_registro'>) => {
     try {
@@ -75,18 +88,45 @@ export const useAuditorias = () => {
     }
   };
 
+  const handleDownloadPDF = (auditoria: Auditoria) => {
+    if (auditoria.formulario_pdf) {
+      window.open(auditoria.formulario_pdf, '_blank');
+    }
+  };
+
+  const handleDeleteAuditoria = async (id: number) => {
+    await deleteAuditoria(id);
+  };
+
+  const clearFilters = () => {
+    setDataInicio('');
+    setDataFim('');
+    setUnidadeSelecionada('');
+  };
+
   const refreshAuditorias = () => {
     loadAuditorias();
   };
 
   return {
     auditorias,
+    filteredAuditorias,
     loading,
+    isLoading: loading,
     error,
+    dataInicio,
+    dataFim,
+    unidadeSelecionada,
+    setDataInicio,
+    setDataFim,
+    setUnidadeSelecionada,
     createAuditoria,
     updateAuditoria,
     deleteAuditoria,
     getAuditoriaById,
+    handleDownloadPDF,
+    handleDeleteAuditoria,
+    clearFilters,
     refreshAuditorias,
   };
 };

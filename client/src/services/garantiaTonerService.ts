@@ -1,6 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { GarantiaToner } from '@/types';
+import type { GarantiaToner } from '@/types/garantiaToner';
+
+export type { GarantiaToner };
 
 export const garantiaTonerService = {
   async getAll(): Promise<GarantiaToner[]> {
@@ -14,6 +16,36 @@ export const garantiaTonerService = {
     }
 
     return data || [];
+  },
+
+  async getStats() {
+    const data = await this.getAll();
+    
+    // Basic stats calculation
+    const monthlyData: Record<string, { quantidade: number; valor: number }> = {};
+    const currentMonthByFornecedor: Record<string, number> = {};
+    
+    data.forEach(garantia => {
+      const date = new Date(garantia.data_registro || Date.now());
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { quantidade: 0, valor: 0 };
+      }
+      monthlyData[monthKey].quantidade += 1;
+      
+      // Current month stats
+      const currentMonth = new Date();
+      if (date.getMonth() === currentMonth.getMonth() && date.getFullYear() === currentMonth.getFullYear()) {
+        currentMonthByFornecedor[garantia.fornecedor] = (currentMonthByFornecedor[garantia.fornecedor] || 0) + 1;
+      }
+    });
+
+    return {
+      monthlyData,
+      currentMonthByFornecedor,
+      total: data.length
+    };
   },
 
   async create(garantia: Omit<GarantiaToner, 'id' | 'data_registro' | 'ticket_numero' | 'user_id'>): Promise<GarantiaToner> {

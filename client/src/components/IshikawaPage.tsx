@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,26 @@ import { useToast } from '@/hooks/use-toast';
 import { Maximize2, Plus, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+interface IshikawaAnalise {
+  id: number;
+  nome: string;
+  problema: string;
+  criado_por: string;
+  data_criacao: string;
+}
+
+interface IshikawaCategoria {
+  id: number;
+  analise_id: number;
+  nome: string;
+  causas: string[];
+}
+
+interface CategoriaLocal {
+  nome: string;
+  causas: string[];
+}
+
 export const IshikawaPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -21,7 +42,7 @@ export const IshikawaPage: React.FC = () => {
   const { toast } = useToast();
   
   const { register, handleSubmit, reset, setValue, watch } = useForm();
-  const [categorias, setCategorias] = useState([
+  const [categorias, setCategorias] = useState<CategoriaLocal[]>([
     { nome: 'Máquina/Equipamento', causas: [''] },
     { nome: 'Material', causas: [''] },
     { nome: 'Método', causas: [''] },
@@ -79,10 +100,10 @@ export const IshikawaPage: React.FC = () => {
       };
     }
 
-    const analise = analises.find(a => a.id === selectedAnalise);
+    const analise = (analises as IshikawaAnalise[]).find((a: IshikawaAnalise) => a.id === selectedAnalise);
     return {
       problema: analise?.problema || "Problema não definido",
-      categorias: categoriasData.map(cat => ({
+      categorias: (categoriasData as IshikawaCategoria[]).map((cat: IshikawaCategoria) => ({
         nome: cat.nome,
         causas: cat.causas || []
       }))
@@ -109,7 +130,7 @@ export const IshikawaPage: React.FC = () => {
           </text>
           
           {/* Categorias e causas */}
-          {ishikawaData.categorias.map((categoria, index) => {
+          {ishikawaData.categorias.map((categoria: { nome: string; causas: string[] }, index: number) => {
             const isTop = index < 3;
             const xPosition = 200 + (index % 3) * 280;
             const yPosition = isTop ? 150 : 450;
@@ -138,7 +159,7 @@ export const IshikawaPage: React.FC = () => {
                 </text>
                 
                 {/* Causas */}
-                {categoria.causas.map((causa, causaIndex) => {
+                {categoria.causas.map((causa: string, causaIndex: number) => {
                   const causaY = isTop 
                     ? lineY - 30 - (causaIndex * 25)
                     : lineY + 30 + (causaIndex * 25);
@@ -205,7 +226,7 @@ export const IshikawaPage: React.FC = () => {
       for (const categoria of categorias) {
         if (categoria.causas.some(c => c.trim())) {
           await createCategoriaMutation.mutateAsync({
-            analise_id: analise.id,
+            analise_id: (analise as IshikawaAnalise).id,
             nome: categoria.nome,
             causas: categoria.causas.filter(c => c.trim())
           });
@@ -246,7 +267,7 @@ export const IshikawaPage: React.FC = () => {
               <SelectValue placeholder="Selecione uma análise" />
             </SelectTrigger>
             <SelectContent>
-              {analises.map((analise: any) => (
+              {(analises as IshikawaAnalise[]).map((analise: IshikawaAnalise) => (
                 <SelectItem key={analise.id} value={analise.id.toString()}>
                   {analise.nome}
                 </SelectItem>
@@ -278,14 +299,14 @@ export const IshikawaPage: React.FC = () => {
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Categorias e Causas (6M)</h3>
-                  {categorias.map((categoria, catIndex) => (
+                  {categorias.map((categoria: CategoriaLocal, catIndex: number) => (
                     <Card key={catIndex}>
                       <CardHeader>
                         <CardTitle className="text-md">{categoria.nome}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          {categoria.causas.map((causa, causaIndex) => (
+                          {categoria.causas.map((causa: string, causaIndex: number) => (
                             <div key={causaIndex} className="flex gap-2">
                               <Input
                                 value={causa}
@@ -348,14 +369,14 @@ export const IshikawaPage: React.FC = () => {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {ishikawaData.categorias.map((categoria, index) => (
+        {ishikawaData.categorias.map((categoria: { nome: string; causas: string[] }, index: number) => (
           <Card key={categoria.nome}>
             <CardHeader>
               <CardTitle className="text-lg">{categoria.nome}</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {categoria.causas.map((causa, causaIndex) => (
+                {categoria.causas.map((causa: string, causaIndex: number) => (
                   <li key={causaIndex} className="text-sm text-slate-600 dark:text-slate-400 flex items-start">
                     <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
                     {causa}
