@@ -173,7 +173,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
       const retornado: Omit<Retornado, 'id'> = {
         id_modelo: parseInt(formData.id_modelo),
-        id_cliente: parseInt(formData.id_cliente) || 1,
+        id_cliente: formData.id_cliente ? parseInt(formData.id_cliente) : 1,
         peso: parseFloat(formData.peso),
         destino_final: formData.destino_final,
         filial: formData.filial,

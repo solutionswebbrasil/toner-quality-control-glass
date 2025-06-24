@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -83,7 +82,8 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
       // Upload do arquivo PDF se fornecido
       if (pdfFile) {
         try {
-          formulario_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'auditorias');
+          const uploadResult = await fileUploadService.uploadPdf(pdfFile, 'auditorias');
+          formulario_pdf_url = uploadResult || undefined;
         } catch (uploadError) {
           toast({
             title: 'Erro no Upload',
@@ -99,7 +99,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         data_inicio: data.data_inicio,
         data_fim: data.data_fim,
         unidade_auditada: data.unidade_auditada,
-        formulario_pdf: formulario_pdf_url || undefined,
+        formulario_pdf: formulario_pdf_url,
         user_id: user.id,
       };
 
