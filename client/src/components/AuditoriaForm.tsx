@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -99,7 +99,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         data_inicio: data.data_inicio,
         data_fim: data.data_fim,
         unidade_auditada: data.unidade_auditada,
-        formulario_pdf: formulario_pdf_url || undefined,
+        formulario_pdf: formulario_pdf_url,
         user_id: user.id,
       };
 

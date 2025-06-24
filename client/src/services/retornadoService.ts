@@ -1,362 +1,161 @@
 
-import type { Retornado } from '@/types';
-import { tonerService } from './tonerService';
+import { supabase } from '@/integrations/supabase/client';
+import type { Retornado, Toner, Filial } from '@/types';
+
+interface RetornadoWithDetails extends Retornado {
+  toner?: Toner;
+  filial_nome?: string;
+  peso_vazio?: number;
+}
 
 export const retornadoService = {
-  async getAll(): Promise<Retornado[]> {
-    console.log('🔄 Iniciando busca de TODOS os retornados no banco (sem limite)...');
-    
-    let allData: any[] = [];
-    const batchSize = 1000;
-    let offset = 0;
-    let hasMoreData = true;
+  async getAll(): Promise<RetornadoWithDetails[]> {
+    const { data, error } = await supabase
+      .from('retornados')
+      .select('*')
+      .order('data_registro', { ascending: false });
 
-    while (hasMoreData) {
-      console.log(`📊 Buscando lote ${offset / batchSize + 1} (offset: ${offset})...`);
-      
-      const { data, error, count } = await supabase
-        .from('retornados')
-        .select(`
-          *,
-          toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-        `, { count: 'exact' })
-        .range(offset, offset + batchSize - 1)
-        .order('data_registro', { ascending: false });
-
-      if (error) {
-        console.error('❌ Erro ao buscar retornados:', error);
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        allData = [...allData, ...data];
-        console.log(`✅ Lote carregado: ${data.length} registros. Total acumulado: ${allData.length}`);
-        
-        // Se retornou menos que o batch size, não há mais dados
-        if (data.length < batchSize) {
-          hasMoreData = false;
-        } else {
-          offset += batchSize;
-        }
-      } else {
-        hasMoreData = false;
-      }
-
-      // Log do total no banco na primeira consulta
-      if (offset === 0 && count !== null) {
-        console.log(`📈 Total de registros no banco: ${count}`);
-      }
+    if (error) {
+      throw new Error(`Erro ao buscar retornados: ${error.message}`);
     }
 
-    console.log(`🎯 CARREGAMENTO COMPLETO: ${allData.length} registros carregados`);
-
-    if (allData.length === 0) {
-      console.warn('⚠️ Nenhum dado foi retornado das consultas');
-      return [];
-    }
-
-    // Transform data to match Retornado interface with proper types and calculate valor_recuperado
-    const transformedData = allData.map(item => {
-      let valorRecuperadoCalculado = item.valor_recuperado;
-
-      // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
-      if (item.destino_final === 'Estoque' && !item.valor_recuperado) {
-        const gramaturaRestante = item.peso - item.toners.peso_vazio;
-        const percentualGramatura = (gramaturaRestante / item.toners.gramatura) * 100;
-        const folhasRestantes = (percentualGramatura / 100) * item.toners.capacidade_folhas;
-        valorRecuperadoCalculado = folhasRestantes * item.toners.valor_por_folha;
-      }
-
-      return {
-        ...item,
-        modelo: item.toners.modelo,
-        destino_final: item.destino_final as Retornado['destino_final'],
-        valor_recuperado: valorRecuperadoCalculado,
-        // Campos adicionais para cálculos
-        peso_vazio: item.toners.peso_vazio,
-        gramatura: item.toners.gramatura,
-        capacidade_folhas: item.toners.capacidade_folhas,
-        valor_por_folha: item.toners.valor_por_folha,
-      };
-    });
-
-    console.log(`🎯 Dados transformados com sucesso: ${transformedData.length} registros`);
-    return transformedData;
+    return data || [];
   },
 
-  async getAllForCharts(): Promise<Retornado[]> {
-    console.log('📈 Carregando TODOS os dados para gráficos (sem limite)...');
+  async getAllWithDetails(): Promise<RetornadoWithDetails[]> {
+    // Get retornados
+    const retornados = await this.getAll();
     
-    let allData: any[] = [];
-    const batchSize = 1000;
-    let offset = 0;
-    let hasMoreData = true;
-
-    while (hasMoreData) {
-      console.log(`📊 [Gráficos] Buscando lote ${offset / batchSize + 1} (offset: ${offset})...`);
+    // Get toners and filiais for details
+    const { data: toners } = await supabase.from('toners').select('*');
+    const { data: filiais } = await supabase.from('filiais').select('*');
+    
+    // Combine data
+    return retornados.map(retornado => {
+      const toner = toners?.find(t => t.id === retornado.id_modelo);
+      const filial = filiais?.find(f => f.id === parseInt(retornado.filial));
       
-      const { data, error, count } = await supabase
-        .from('retornados')
-        .select(`
-          *,
-          toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-        `, { count: 'exact' })
-        .range(offset, offset + batchSize - 1)
-        .order('data_registro', { ascending: false });
-
-      if (error) {
-        console.error('❌ Erro ao buscar dados para gráficos:', error);
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        allData = [...allData, ...data];
-        console.log(`✅ [Gráficos] Lote carregado: ${data.length} registros. Total acumulado: ${allData.length}`);
-        
-        if (data.length < batchSize) {
-          hasMoreData = false;
-        } else {
-          offset += batchSize;
-        }
-      } else {
-        hasMoreData = false;
-      }
-
-      if (offset === 0 && count !== null) {
-        console.log(`📈 [Gráficos] Total de registros no banco: ${count}`);
-      }
-    }
-
-    console.log(`🎯 [Gráficos] CARREGAMENTO COMPLETO: ${allData.length} registros para gráficos`);
-
-    if (!allData || allData.length === 0) return [];
-
-    return allData.map(item => {
-      let valorRecuperadoCalculado = item.valor_recuperado;
-
-      if ((item.destino_final === 'Estoque' || item.destino_final === 'Estoque Semi Novo') && !item.valor_recuperado) {
-        const gramaturaRestante = item.peso - item.toners.peso_vazio;
-        const percentualGramatura = (gramaturaRestante / item.toners.gramatura) * 100;
-        const folhasRestantes = (percentualGramatura / 100) * item.toners.capacidade_folhas;
-        valorRecuperadoCalculado = folhasRestantes * item.toners.valor_por_folha;
-      }
-
       return {
-        ...item,
-        modelo: item.toners.modelo,
-        destino_final: item.destino_final as Retornado['destino_final'],
-        valor_recuperado: valorRecuperadoCalculado,
-        peso_vazio: item.toners.peso_vazio,
-        gramatura: item.toners.gramatura,
-        capacidade_folhas: item.toners.capacidade_folhas,
-        valor_por_folha: item.toners.valor_por_folha,
+        ...retornado,
+        toner,
+        filial_nome: filial?.nome,
+        peso_vazio: toner?.peso_vazio
       };
     });
   },
 
-  async getById(id: number): Promise<Retornado> {
-    const { data, error } = await supabase
-      .from('retornados')
-      .select(`
-        *,
-        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching retornado:', error);
-      throw error;
-    }
-
-    let valorRecuperadoCalculado = data.valor_recuperado;
-
-    // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
-    if (data.destino_final === 'Estoque' && !data.valor_recuperado) {
-      const gramaturaRestante = data.peso - data.toners.peso_vazio;
-      const percentualGramatura = (gramaturaRestante / data.toners.gramatura) * 100;
-      const folhasRestantes = (percentualGramatura / 100) * data.toners.capacidade_folhas;
-      valorRecuperadoCalculado = folhasRestantes * data.toners.valor_por_folha;
-    }
-
-    // Transform data to match Retornado interface with proper types
-    return {
-      ...data,
-      modelo: data.toners.modelo,
-      destino_final: data.destino_final as Retornado['destino_final'],
-      valor_recuperado: valorRecuperadoCalculado,
-      peso_vazio: data.toners.peso_vazio,
-      gramatura: data.toners.gramatura,
-      capacidade_folhas: data.toners.capacidade_folhas,
-      valor_por_folha: data.toners.valor_por_folha,
-    };
-  },
-
-  async create(retornado: Omit<Retornado, 'id' | 'modelo'>): Promise<Retornado> {
-    // Buscar dados do toner para calcular valor recuperado se necessário
-    let valorRecuperado = retornado.valor_recuperado;
+  async getStats() {
+    const data = await this.getAll();
     
-    if (retornado.destino_final === 'Estoque' && !valorRecuperado) {
-      const toner = await tonerService.getById(retornado.id_modelo);
-      if (toner) {
-        const gramaturaRestante = retornado.peso - toner.peso_vazio;
-        const percentualGramatura = (gramaturaRestante / toner.gramatura) * 100;
-        const folhasRestantes = (percentualGramatura / 100) * toner.capacidade_folhas;
-        valorRecuperado = folhasRestantes * toner.valor_por_folha;
-      }
-    }
-
-    const { data, error } = await supabase
-      .from('retornados')
-      .insert([{ ...retornado, valor_recuperado: valorRecuperado }])
-      .select(`
-        *,
-        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `)
-      .single();
-
-    if (error) {
-      console.error('Error creating retornado:', error);
-      throw error;
-    }
-
-    // Transform data to match Retornado interface with proper types
-    return {
-      ...data,
-      modelo: data.toners.modelo,
-      destino_final: data.destino_final as Retornado['destino_final'],
-      valor_recuperado: data.valor_recuperado,
-      peso_vazio: data.toners.peso_vazio,
-      gramatura: data.toners.gramatura,
-      capacidade_folhas: data.toners.capacidade_folhas,
-      valor_por_folha: data.toners.valor_por_folha,
-    };
-  },
-
-  async update(id: number, updates: Partial<Retornado>): Promise<Retornado> {
-    // Se estiver atualizando para destino estoque, calcular valor recuperado
-    let valorRecuperado = updates.valor_recuperado;
+    const monthlyData: Record<string, { quantidade: number; peso: number }> = {};
+    const filialData: Record<string, number> = {};
     
-    if (updates.destino_final === 'Estoque' && !valorRecuperado && updates.peso && updates.id_modelo) {
-      const toner = await tonerService.getById(updates.id_modelo);
-      if (toner) {
-        const gramaturaRestante = updates.peso - toner.peso_vazio;
-        const percentualGramatura = (gramaturaRestante / toner.gramatura) * 100;
-        const folhasRestantes = (percentualGramatura / 100) * toner.capacidade_folhas;
-        valorRecuperado = folhasRestantes * toner.valor_por_folha;
+    data.forEach((retornado: any) => {
+      const date = new Date(retornado.data_registro);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { quantidade: 0, peso: 0 };
       }
-    }
+      monthlyData[monthKey].quantidade += 1;
+      monthlyData[monthKey].peso += Number(retornado.peso || 0);
+      
+      filialData[retornado.filial] = (filialData[retornado.filial] || 0) + 1;
+    });
 
-    const { data, error } = await supabase
-      .from('retornados')
-      .update({ ...updates, valor_recuperado: valorRecuperado })
-      .eq('id', id)
-      .select(`
-        *,
-        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `)
-      .single();
-
-    if (error) {
-      console.error('Error updating retornado:', error);
-      throw error;
-    }
-
-    // Transform data to match Retornado interface with proper types
     return {
-      ...data,
-      modelo: data.toners.modelo,
-      destino_final: data.destino_final as Retornado['destino_final'],
-      valor_recuperado: data.valor_recuperado,
-      peso_vazio: data.toners.peso_vazio,
-      gramatura: data.toners.gramatura,
-      capacidade_folhas: data.toners.capacidade_folhas,
-      valor_por_folha: data.toners.valor_por_folha,
+      monthlyData,
+      filialData,
+      total: data.length
     };
   },
 
-  async delete(id: number): Promise<void> {
+  async create(retornado: Omit<Retornado, 'id' | 'data_registro' | 'user_id'>): Promise<Retornado> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const retornadoData = {
+      ...retornado,
+      user_id: user.id,
+      data_registro: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('retornados')
+      .insert(retornadoData)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Erro ao criar retornado: ${error.message}`);
+    }
+
+    return data;
+  },
+
+  async update(id: number, retornado: Partial<Retornado>): Promise<Retornado | null> {
+    const { data, error } = await supabase
+      .from('retornados')
+      .update(retornado)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar retornado:', error);
+      return null;
+    }
+
+    return data;
+  },
+
+  async delete(id: number): Promise<boolean> {
     const { error } = await supabase
       .from('retornados')
       .delete()
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting retornado:', error);
-      throw error;
+      console.error('Erro ao deletar retornado:', error);
+      return false;
     }
+
+    return true;
   },
 
-  async deleteAll(): Promise<void> {
+  async deleteAll(): Promise<boolean> {
     const { error } = await supabase
       .from('retornados')
       .delete()
-      .neq('id', 0); // Deleta todos os registros (usando uma condição que sempre é verdadeira)
+      .neq('id', 0);
 
     if (error) {
-      console.error('Error deleting all retornados:', error);
-      throw error;
+      console.error('Erro ao deletar todos os retornados:', error);
+      return false;
     }
+
+    return true;
   },
 
-  async getByFilters(filters: {
-    dataInicio?: string;
-    dataFim?: string;
-    destino?: string;
-    filial?: string;
-  }): Promise<Retornado[]> {
-    let query = supabase
-      .from('retornados')
-      .select(`
-        *,
-        toners!inner(modelo, peso_vazio, gramatura, capacidade_folhas, valor_por_folha)
-      `);
+  async exportToCsv(): Promise<string> {
+    const data = await this.getAllWithDetails();
+    
+    const headers = ['ID', 'Modelo', 'Cliente', 'Peso', 'Filial', 'Destino Final', 'Data Registro'];
+    const csvContent = [
+      headers.join(','),
+      ...data.map((item: any) => [
+        item.id,
+        item.toner?.modelo || 'N/A',
+        item.id_cliente,
+        item.peso,
+        item.filial_nome || item.filial,
+        item.destino_final,
+        new Date(item.data_registro).toLocaleDateString('pt-BR')
+      ].join(','))
+    ].join('\n');
 
-    if (filters.dataInicio) {
-      query = query.gte('data_registro', filters.dataInicio);
-    }
-
-    if (filters.dataFim) {
-      query = query.lte('data_registro', filters.dataFim);
-    }
-
-    if (filters.destino && filters.destino !== 'Todos') {
-      query = query.eq('destino_final', filters.destino);
-    }
-
-    if (filters.filial && filters.filial !== 'Todas') {
-      query = query.eq('filial', filters.filial);
-    }
-
-    const { data, error } = await query.order('data_registro', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching filtered retornados:', error);
-      throw error;
-    }
-
-    // Transform data to match Retornado interface with proper types and calculate valor_recuperado
-    return data.map(item => {
-      let valorRecuperadoCalculado = item.valor_recuperado;
-
-      // Calcular valor recuperado se destino for estoque e não tiver valor já calculado
-      if ((item.destino_final === 'Estoque' || item.destino_final === 'Estoque Semi Novo') && !item.valor_recuperado) {
-        const gramaturaRestante = item.peso - item.toners.peso_vazio;
-        const percentualGramatura = (gramaturaRestante / item.toners.gramatura) * 100;
-        const folhasRestantes = (percentualGramatura / 100) * item.toners.capacidade_folhas;
-        valorRecuperadoCalculado = folhasRestantes * item.toners.valor_por_folha;
-      }
-
-      return {
-        ...item,
-        modelo: item.toners.modelo,
-        destino_final: item.destino_final as Retornado['destino_final'],
-        valor_recuperado: valorRecuperadoCalculado,
-        peso_vazio: item.toners.peso_vazio,
-        gramatura: item.toners.gramatura,
-        capacidade_folhas: item.toners.capacidade_folhas,
-        valor_por_folha: item.toners.valor_por_folha,
-      };
-    });
+    return csvContent;
   }
 };

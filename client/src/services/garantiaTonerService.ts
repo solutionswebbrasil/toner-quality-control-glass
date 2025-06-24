@@ -24,6 +24,7 @@ export const garantiaTonerService = {
     // Basic stats calculation
     const monthlyData: Record<string, { quantidade: number; valor: number }> = {};
     const currentMonthByFornecedor: Record<string, number> = {};
+    const statusData: Record<string, number> = {};
     
     data.forEach(garantia => {
       const date = new Date(garantia.data_registro || Date.now());
@@ -33,6 +34,9 @@ export const garantiaTonerService = {
         monthlyData[monthKey] = { quantidade: 0, valor: 0 };
       }
       monthlyData[monthKey].quantidade += 1;
+      
+      // Status stats
+      statusData[garantia.status] = (statusData[garantia.status] || 0) + 1;
       
       // Current month stats
       const currentMonth = new Date();
@@ -44,6 +48,7 @@ export const garantiaTonerService = {
     return {
       monthlyData,
       currentMonthByFornecedor,
+      statusData,
       total: data.length
     };
   },
