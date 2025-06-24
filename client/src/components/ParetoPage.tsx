@@ -32,10 +32,10 @@ export const ParetoPage: React.FC = () => {
     queryFn: paretoApi.getAnalises
   });
 
-  // Fetch itens da análise selecionada
+  // Fetch itens da análise selecionada - Fix method name
   const { data: itensData = [] } = useQuery({
     queryKey: ['itens-pareto', selectedAnalise],
-    queryFn: () => selectedAnalise ? paretoApi.getItens(selectedAnalise) : Promise.resolve([]),
+    queryFn: () => selectedAnalise ? paretoApi.getItems(selectedAnalise) : Promise.resolve([]),
     enabled: !!selectedAnalise
   });
 

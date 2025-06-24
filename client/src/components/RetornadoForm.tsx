@@ -174,7 +174,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
       const retornado: Omit<Retornado, 'id'> = {
         id_modelo: parseInt(formData.id_modelo),
-        id_cliente: parseInt(formData.id_cliente) || 1, // Default client
+        id_cliente: parseInt(formData.id_cliente) || 1,
         peso: parseFloat(formData.peso),
         destino_final: formData.destino_final,
         filial: formData.filial,
@@ -227,16 +227,20 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <TonerSelector
               toners={toners}
-              selectedValue={formData.id_modelo}
-              onSelectionChange={(value) => setFormData(prev => ({ ...prev, id_modelo: value }))}
+              value={formData.id_modelo}
+              onValueChange={(value: string) => setFormData(prev => ({ ...prev, id_modelo: value }))}
             />
 
             <RetornadoFormFields
-              formData={formData}
+              peso={formData.peso}
+              destino_final={formData.destino_final}
+              filial={formData.filial}
               filiais={filiais}
               selectedToner={selectedToner}
               destinoSelecionado={destinoSelecionado}
-              onFormChange={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+              onPesoChange={(peso: string) => setFormData(prev => ({ ...prev, peso }))}
+              onDestinoChange={(destino: string) => setFormData(prev => ({ ...prev, destino_final: destino }))}
+              onFilialChange={(filial: string) => setFormData(prev => ({ ...prev, filial }))}
               onDestinoSelecionado={setDestinoSelecionado}
             />
 
@@ -265,6 +269,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
         onClose={() => setIsGarantiaModalOpen(false)}
         onConfirm={handleGarantiaConfirm}
         selectedToner={selectedToner}
+        filial={formData.filial}
       />
     </div>
   );

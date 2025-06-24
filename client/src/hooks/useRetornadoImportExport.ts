@@ -56,15 +56,10 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
     try {
       console.log(`Iniciando importação de ${data.length} registros`);
       
-      const { importedCount, errorCount, errors } = await processImportData(
-        data,
-        (imported: number, errors: number) => {
-          const total = imported + errors;
-          const progress = Math.min((total / data.length) * 100, 100);
-          setImportProgress(progress);
-          console.log(`Progresso: ${imported} importados, ${errors} erros (${progress.toFixed(1)}%)`);
-        }
-      );
+      const result = await processImportData(data);
+      
+      const importedCount = result.processedCount || 0;
+      const errorCount = result.errors?.length || 0;
       
       console.log(`Importação concluída: ${importedCount} sucessos, ${errorCount} erros de ${data.length} registros`);
       
@@ -76,7 +71,7 @@ export const useRetornadoImportExport = (loadRetornados: () => void) => {
       }, 1000);
 
       if (errorCount > 0) {
-        console.log('Erros encontrados:', errors.slice(0, 10)); // Mostrar apenas os primeiros 10 erros
+        console.log('Erros encontrados:', result.errors?.slice(0, 10)); // Mostrar apenas os primeiros 10 erros
         toast({
           title: "Importação Parcial",
           description: `${importedCount} de ${data.length} registros importados. ${errorCount} erros encontrados.`,

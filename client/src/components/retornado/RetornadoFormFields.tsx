@@ -1,69 +1,108 @@
 
 import React from 'react';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Toner } from '@/types';
 import type { Filial } from '@/types/filial';
 
-interface RetornadoFormFieldsProps {
-  idCliente: string;
+export interface RetornadoFormFieldsProps {
   peso: string;
+  destino_final: string;
   filial: string;
   filiais: Filial[];
-  onFieldChange: (field: string, value: string) => void;
+  selectedToner: Toner | null;
+  destinoSelecionado: boolean;
+  onPesoChange: (peso: string) => void;
+  onDestinoChange: (destino: string) => void;
+  onFilialChange: (filial: string) => void;
+  onDestinoSelecionado: (selected: boolean) => void;
 }
 
 export const RetornadoFormFields: React.FC<RetornadoFormFieldsProps> = ({
-  idCliente,
   peso,
+  destino_final,
   filial,
   filiais,
-  onFieldChange
+  selectedToner,
+  destinoSelecionado,
+  onPesoChange,
+  onDestinoChange,
+  onFilialChange,
+  onDestinoSelecionado
 }) => {
-  return (
-    <>
-      <div className="space-y-2">
-        <Label htmlFor="id_cliente">ID do Cliente *</Label>
-        <Input
-          id="id_cliente"
-          type="number"
-          placeholder="123456"
-          value={idCliente}
-          onChange={(e) => onFieldChange('id_cliente', e.target.value)}
-          required
-          className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
-        />
-      </div>
+  const calculateDestino = () => {
+    if (!selectedToner || !peso) return;
+    
+    const pesoAtual = parseFloat(peso);
+    const pesoVazio = selectedToner.peso_vazio;
+    const gramaturaRestante = Math.max(0, pesoAtual - pesoVazio);
+    const percentualGramatura = (gramaturaRestante / selectedToner.gramatura) * 100;
+    
+    if (percentualGramatura >= 15) {
+      onDestinoChange('Estoque');
+    } else if (percentualGramatura >= 5) {
+      onDestinoChange('Garantia');
+    } else {
+      onDestinoChange('Descarte');
+    }
+    
+    onDestinoSelecionado(true);
+  };
 
-      <div className="space-y-2">
-        <Label htmlFor="peso">Peso Atual (g) *</Label>
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="peso">Peso Atual (kg)</Label>
         <Input
           id="peso"
           type="number"
           step="0.01"
-          placeholder="125.5"
           value={peso}
-          onChange={(e) => onFieldChange('peso', e.target.value)}
-          required
-          className="bg-white/50 dark:bg-slate-800/50 backdrop-blur"
+          onChange={(e) => onPesoChange(e.target.value)}
+          placeholder="Ex: 1.25"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="filial">Filial *</Label>
-        <Select value={filial} onValueChange={(value) => onFieldChange('filial', value)}>
-          <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 backdrop-blur">
+      {peso && selectedToner && (
+        <Button
+          type="button"
+          onClick={calculateDestino}
+          className="w-full"
+          variant="outline"
+        >
+          Calcular Destino Final
+        </Button>
+      )}
+
+      {destinoSelecionado && (
+        <div>
+          <Label htmlFor="destino">Destino Final</Label>
+          <Input
+            id="destino"
+            value={destino_final}
+            readOnly
+            className="bg-gray-100"
+          />
+        </div>
+      )}
+
+      <div>
+        <Label htmlFor="filial">Filial</Label>
+        <Select value={filial} onValueChange={onFilialChange}>
+          <SelectTrigger>
             <SelectValue placeholder="Selecione a filial" />
           </SelectTrigger>
           <SelectContent>
-            {filiais.map((filial) => (
-              <SelectItem key={filial.id} value={filial.nome}>
-                {filial.nome}
+            {filiais.map((filialItem) => (
+              <SelectItem key={filialItem.id} value={filialItem.nome}>
+                {filialItem.nome}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-    </>
+    </div>
   );
 };

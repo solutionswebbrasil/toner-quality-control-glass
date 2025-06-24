@@ -1,33 +1,60 @@
 
-import React from 'react';
-import { RetornadoFilters, RetornadoActions } from './retornado';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Package } from 'lucide-react';
+import { RetornadoFilters } from './retornado/RetornadoFilters';
 import { RetornadoTablePaginated } from './retornado/RetornadoTablePaginated';
-import { ImportModal } from './ImportModal';
-import { useRetornadoPagination } from '@/hooks/useRetornadoPagination';
-import { useRetornadoFilters } from '@/hooks/useRetornadoFilters';
+import { RetornadoActions } from './retornado/RetornadoActions';
+import { retornadoService } from '@/services/dataService';
+import { toast } from '@/hooks/use-toast';
 import { useRetornadoImportExport } from '@/hooks/useRetornadoImportExport';
+import { Retornado } from '@/types';
 
 export const RetornadoGrid: React.FC = () => {
-  const { 
-    allRetornados, 
-    loading, 
-    totalCount,
-    loadAllRetornados, 
-    handleDeleteRetornado 
-  } = useRetornadoPagination();
+  const [retornados, setRetornados] = useState<Retornado[]>([]);
+  const [filteredRetornados, setFilteredRetornados] = useState<Retornado[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const {
-    dataInicio,
-    setDataInicio,
-    dataFim,
-    setDataFim,
-    filialSelecionada,
-    setFilialSelecionada,
-    destinoSelecionado,
-    setDestinoSelecionado,
-    filteredRetornados,
-    clearFilters
-  } = useRetornadoFilters(allRetornados);
+  const loadRetornados = async () => {
+    try {
+      setLoading(true);
+      const data = await retornadoService.getAll();
+      setRetornados(data);
+      setFilteredRetornados(data);
+      setTotalCount(data.length);
+    } catch (error) {
+      console.error('Erro ao carregar retornados:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar dados dos retornados.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRetornados();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    try {
+      await retornadoService.delete(id);
+      toast({
+        title: "Sucesso",
+        description: "Retornado excluído com sucesso!",
+      });
+      loadRetornados();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir retornado.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const {
     importing,
@@ -38,20 +65,7 @@ export const RetornadoGrid: React.FC = () => {
     handleDownloadTemplate,
     handleImportUpload,
     handleImportCSV
-  } = useRetornadoImportExport(loadAllRetornados);
-
-  const handleZerarComplete = () => {
-    loadAllRetornados(); // Recarregar todos os dados após zerar
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50 rounded-lg p-8 text-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-        <p className="mt-4">Carregando todos os retornados...</p>
-      </div>
-    );
-  }
+  } = useRetornadoImportExport(loadRetornados);
 
   return (
     <div className="space-y-6">
@@ -68,45 +82,43 @@ export const RetornadoGrid: React.FC = () => {
       </div>
 
       <RetornadoFilters
-        dataInicio={dataInicio}
-        setDataInicio={setDataInicio}
-        dataFim={dataFim}
-        setDataFim={setDataFim}
-        filialSelecionada={filialSelecionada}
-        setFilialSelecionada={setFilialSelecionada}
-        destinoSelecionado={destinoSelecionado}
-        setDestinoSelecionado={setDestinoSelecionado}
-        clearFilters={clearFilters}
-        resultCount={filteredRetornados.length}
+        retornados={retornados}
+        onFilteredChange={setFilteredRetornados}
       />
 
-      <div className="flex justify-end">
-        <RetornadoActions
-          onExportCSV={() => handleExportCSV(filteredRetornados)}
-          onDownloadTemplate={handleDownloadTemplate}
-          onImportCSV={handleImportCSV}
-          importing={importing}
-          onZerarComplete={handleZerarComplete}
-        />
-      </div>
-
-      <RetornadoTablePaginated
-        retornados={filteredRetornados}
-        onDelete={handleDeleteRetornado}
-        totalCount={filteredRetornados.length}
-      />
-
-      <ImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onUpload={handleImportUpload}
+      <RetornadoActions
+        filteredRetornados={filteredRetornados}
+        onExportCSV={handleExportCSV}
         onDownloadTemplate={handleDownloadTemplate}
-        title="Importar Planilha de Retornados"
-        templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, valor_recuperado, data_registro"
-        requiredColumns={['id_cliente']}
+        onImportCSV={handleImportCSV}
         importing={importing}
-        progress={importProgress}
+        importProgress={importProgress}
+        isImportModalOpen={isImportModalOpen}
+        setIsImportModalOpen={setIsImportModalOpen}
+        onImportUpload={handleImportUpload}
       />
+
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Retornados Encontrados ({filteredRetornados.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <RetornadoTablePaginated
+              data={filteredRetornados}
+              onDelete={handleDelete}
+              totalCount={totalCount}
+            />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

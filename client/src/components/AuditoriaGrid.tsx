@@ -21,6 +21,13 @@ export const AuditoriaGrid: React.FC = () => {
     clearFilters,
   } = useAuditorias();
 
+  // Fix: Convert the ID-based delete handler to accept Auditoria object
+  const handleDelete = (auditoria: any) => {
+    if (auditoria.id) {
+      handleDeleteAuditoria(auditoria.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -59,7 +66,7 @@ export const AuditoriaGrid: React.FC = () => {
               auditorias={filteredAuditorias}
               isLoading={isLoading}
               onDownloadPDF={handleDownloadPDF}
-              onDelete={handleDeleteAuditoria}
+              onDelete={handleDelete}
             />
           )}
         </CardContent>

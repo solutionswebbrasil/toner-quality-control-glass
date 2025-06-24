@@ -99,7 +99,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
         data_inicio: data.data_inicio,
         data_fim: data.data_fim,
         unidade_auditada: data.unidade_auditada,
-        formulario_pdf: formulario_pdf_url,
+        formulario_pdf: formulario_pdf_url || undefined,
         user_id: user.id,
       };
 
