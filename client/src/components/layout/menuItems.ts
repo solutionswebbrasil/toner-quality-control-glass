@@ -1,5 +1,26 @@
 
-import { Home, FileText, Users, Wrench, ClipboardList, BarChart3, Settings, TrendingUp, PieChart, BarChart } from 'lucide-react';
+import { 
+  Home, 
+  FileText, 
+  Users, 
+  Wrench, 
+  ClipboardList, 
+  BarChart3, 
+  Settings, 
+  TrendingUp, 
+  PieChart, 
+  BarChart,
+  AlertTriangle,
+  Shield,
+  FileCheck,
+  Building,
+  Package,
+  Search,
+  Calendar,
+  Target,
+  Award,
+  Activity
+} from 'lucide-react';
 import type { MenuItem } from './types';
 
 export const menuItems: MenuItem[] = [
@@ -9,6 +30,48 @@ export const menuItems: MenuItem[] = [
     icon: Home,
     href: '#',
     onClick: 'dashboard',
+  },
+  {
+    id: 'qualidade',
+    label: 'Gestão da Qualidade',
+    icon: Shield,
+    children: [
+      {
+        id: 'nao-conformidades',
+        label: 'Não Conformidades',
+        icon: AlertTriangle,
+        href: '#',
+        onClick: 'nao-conformidades',
+      },
+      {
+        id: 'auditorias',
+        label: 'Auditorias',
+        icon: FileCheck,
+        href: '#',
+        onClick: 'auditorias',
+      },
+      {
+        id: 'certificados',
+        label: 'Certificados',
+        icon: Award,
+        href: '#',
+        onClick: 'certificados',
+      },
+    ],
+  },
+  {
+    id: 'retornados',
+    label: 'Retornados',
+    icon: Package,
+    href: '#',
+    onClick: 'retornados',
+  },
+  {
+    id: 'garantias',
+    label: 'Garantias',
+    icon: Shield,
+    href: '#',
+    onClick: 'garantias',
   },
   {
     id: 'graficos',
@@ -35,6 +98,76 @@ export const menuItems: MenuItem[] = [
         icon: TrendingUp,
         href: '#',
         onClick: 'graficos-nao-conformidades',
+      },
+    ],
+  },
+  {
+    id: 'relatorios',
+    label: 'Relatórios',
+    icon: FileText,
+    children: [
+      {
+        id: 'relatorio-qualidade',
+        label: 'Relatório de Qualidade',
+        icon: FileText,
+        href: '#',
+        onClick: 'relatorio-qualidade',
+      },
+      {
+        id: 'relatorio-mensal',
+        label: 'Relatório Mensal',
+        icon: Calendar,
+        href: '#',
+        onClick: 'relatorio-mensal',
+      },
+    ],
+  },
+  {
+    id: 'cadastros',
+    label: 'Cadastros',
+    icon: ClipboardList,
+    children: [
+      {
+        id: 'fornecedores',
+        label: 'Fornecedores',
+        icon: Building,
+        href: '#',
+        onClick: 'fornecedores',
+      },
+      {
+        id: 'filiais',
+        label: 'Filiais',
+        icon: Building,
+        href: '#',
+        onClick: 'filiais',
+      },
+      {
+        id: 'produtos',
+        label: 'Produtos',
+        icon: Package,
+        href: '#',
+        onClick: 'produtos',
+      },
+    ],
+  },
+  {
+    id: 'processos',
+    label: 'Processos',
+    icon: Activity,
+    children: [
+      {
+        id: 'bpmn',
+        label: 'BPMN',
+        icon: Activity,
+        href: '#',
+        onClick: 'bpmn',
+      },
+      {
+        id: 'itpop',
+        label: 'IT/POP',
+        icon: FileText,
+        href: '#',
+        onClick: 'itpop',
       },
     ],
   },
