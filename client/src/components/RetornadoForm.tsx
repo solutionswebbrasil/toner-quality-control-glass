@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -245,9 +244,9 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
             {selectedToner && formData.peso && (
               <RetornadoInfoDisplay
                 selectedToner={selectedToner}
-                peso={parseFloat(formData.peso)}
-                destino={formData.destino_final}
-                valorRecuperado={calculateValorRecuperado()}
+                peso={formData.peso}
+                destinoFinal={formData.destino_final}
+                onDestinoChange={(destino: string) => setFormData(prev => ({ ...prev, destino_final: destino }))}
               />
             )}
 
