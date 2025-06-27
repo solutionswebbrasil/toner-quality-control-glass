@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { MenuItem } from './menuItems';
+import { menuItems } from './menuItems';
+import type { MenuItem } from './types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -21,56 +22,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigateTo, currentP
     );
   };
 
-  const menuItems: MenuItem[] = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: ({ className }: { className?: string }) => <div className={className}>📊</div>
-    },
-    {
-      id: 'graficos',
-      label: 'Gráficos',
-      icon: ({ className }: { className?: string }) => <div className={className}>📈</div>,
-      subItems: [
-        {
-          id: 'graficos-retornados',
-          label: 'Retornados',
-          icon: ({ className }: { className?: string }) => <div className={className}>📦</div>
-        },
-        {
-          id: 'graficos-garantias',
-          label: 'Garantias',
-          icon: ({ className }: { className?: string }) => <div className={className}>🛡️</div>
-        },
-        {
-          id: 'graficos-nao-conformidades',
-          label: 'Não Conformidades',
-          icon: ({ className }: { className?: string }) => <div className={className}>⚠️</div>
-        }
-      ]
-    },
-    {
-      id: 'configuracoes',
-      label: 'Configurações',
-      icon: ({ className }: { className?: string }) => <div className={className}>⚙️</div>,
-      subItems: [
-        {
-          id: 'config-usuarios',
-          label: 'Usuários',
-          icon: ({ className }: { className?: string }) => <div className={className}>👥</div>
-        },
-        {
-          id: 'config-sistema',
-          label: 'Sistema',
-          icon: ({ className }: { className?: string }) => <div className={className}>🔧</div>
-        }
-      ]
-    }
-  ];
-
   const renderMenuItem = (item: MenuItem) => {
     const isExpanded = expandedItems.includes(item.id);
-    const hasSubItems = item.subItems && item.subItems.length > 0;
+    const hasChildren = item.children && item.children.length > 0;
     const IconComponent = item.icon;
     const isActive = currentPage === item.id;
 
@@ -78,10 +32,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigateTo, currentP
       <div key={item.id} className="mb-1">
         <button
           onClick={() => {
-            if (hasSubItems) {
+            if (hasChildren) {
               toggleItem(item.id);
             } else {
-              onNavigateTo(item.id);
+              onNavigateTo(item.onClick || item.id);
             }
           }}
           className={cn(
@@ -95,21 +49,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigateTo, currentP
             {IconComponent && <IconComponent className="w-4 h-4" />}
             {isOpen && <span className="text-sm">{item.label}</span>}
           </div>
-          {hasSubItems && isOpen && (
+          {hasChildren && isOpen && (
             isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
           )}
         </button>
 
-        {hasSubItems && isExpanded && isOpen && (
+        {hasChildren && isExpanded && isOpen && (
           <div className="ml-4 mt-1 border-l border-slate-200 dark:border-slate-700">
-            {item.subItems?.map((subItem) => {
+            {item.children?.map((subItem: MenuItem) => {
               const SubIconComponent = subItem.icon;
               const isSubActive = currentPage === subItem.id;
               
               return (
                 <button
                   key={subItem.id}
-                  onClick={() => onNavigateTo(subItem.id)}
+                  onClick={() => onNavigateTo(subItem.onClick || subItem.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 ml-4 text-left rounded-lg transition-colors text-sm",
                     isSubActive

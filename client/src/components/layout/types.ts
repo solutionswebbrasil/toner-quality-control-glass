@@ -5,8 +5,9 @@ export interface MenuItem {
   id: string;
   label: string;
   icon: LucideIcon;
-  page?: string;
-  submenu?: SubMenuItem[];
+  href?: string;
+  onClick?: string;
+  children?: MenuItem[];
 }
 
 export interface SubMenuItem {
