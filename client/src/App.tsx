@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { Suspense } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +30,8 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  console.log('App component rendering');
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -36,14 +40,16 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<LoadingScreen message="Carregando aplicação..." />}>
+                <Routes>
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>
