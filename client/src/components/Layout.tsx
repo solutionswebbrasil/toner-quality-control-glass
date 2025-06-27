@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './layout/Sidebar';
+import { Header } from './layout/Header';
 
 export interface LayoutProps {
   children: React.ReactNode;
@@ -16,7 +17,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setSidebarOpen(localStorage.getItem('sidebarOpen') === 'true');
+      const saved = localStorage.getItem('sidebarOpen');
+      setSidebarOpen(saved !== null ? saved === 'true' : true);
     }
   }, []);
 
@@ -26,35 +28,44 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
     }
   }, [sidebarOpen]);
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Classic Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 classic-header bg-gray-800 text-white">
-        <div className="flex items-center justify-between px-4 py-2">
-          <h1 className="text-lg font-semibold">Sistema de Gestão da Qualidade</h1>
-          <div className="text-sm">
-            Usuário: {user?.email || 'Não logado'}
-          </div>
-        </div>
-      </div>
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-      {/* Sidebar - Fixed */}
-      <div className="fixed inset-y-0 left-0 z-40 w-64 mt-12 classic-sidebar bg-gray-50 border-r border-gray-300">
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Header */}
+      <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-40 pt-16 transition-transform duration-300 ease-in-out",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
         <Sidebar
-          isOpen={true}
+          isOpen={sidebarOpen}
           onNavigateTo={onPageChange}
           currentPage={currentPage}
         />
       </div>
 
       {/* Main content */}
-      <div className="flex-1 ml-64 mt-12">
-        <main className="classic-container bg-gray-100 p-6">
-          <div className="classic-content bg-white border border-gray-300 p-6">
+      <div className={cn(
+        "flex-1 pt-16 transition-all duration-300 ease-in-out",
+        sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+      )}>
+        <main className="p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

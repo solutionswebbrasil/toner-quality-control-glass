@@ -31,8 +31,13 @@ export const Header: React.FC<HeaderProps> = ({ sidebarOpen, toggleSidebar }) =>
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
         
+        {/* Title */}
+        <div className="flex-1 text-center lg:text-left lg:ml-4">
+          <h1 className="text-lg font-semibold text-white">Sistema de Gestão da Qualidade</h1>
+        </div>
+        
         {/* Right side items */}
-        <div className="flex items-center space-x-4 ml-auto">
+        <div className="flex items-center space-x-4">
           <ModeToggle />
           <UserMenu />
         </div>
