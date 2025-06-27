@@ -15,7 +15,9 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  hasPermission: (modulo: string, submenu: string, acao: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,31 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
-          return;
-        }
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await loadProfile(session.user.id);
-        }
-      } catch (error) {
-        console.error('Error in getInitialSession:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event, session?.user?.email);
@@ -71,6 +49,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     );
+
+    // Then get initial session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await loadProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -119,6 +122,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
+    try {
+      // For demo purposes, check hardcoded credentials
+      if (email === 'admin.admin' && password === 'admin123') {
+        // Create a demo user session
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: 'admin@sgqpro.com',
+          password: 'admin123'
+        });
+
+        if (error) {
+          return { error: 'Credenciais inválidas' };
+        }
+
+        return { error: null };
+      } else {
+        // Try normal authentication
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          return { error: 'Credenciais inválidas' };
+        }
+
+        return { error: null };
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { error: 'Erro interno' };
+    }
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -126,12 +163,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const hasPermission = (modulo: string, submenu: string, acao: string): boolean => {
+    // If user is admin, allow everything
+    if (profile?.role === 'admin') {
+      return true;
+    }
+
+    // For now, allow basic access for logged-in users
+    // In a real implementation, you would check permissions table
+    if (user && profile) {
+      return true;
+    }
+
+    return false;
+  };
+
   const value = {
     user,
     profile,
     session,
     loading,
+    signIn,
     signOut,
+    hasPermission,
   };
 
   return (
