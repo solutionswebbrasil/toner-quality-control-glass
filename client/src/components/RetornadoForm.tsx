@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [formData, setFormData] = useState({
     id_modelo: '',
-    id_cliente: '1', // Changed to string with default value
+    id_cliente: 1, // Changed to number with default value
     peso: '',
     destino_final: '',
     filial: ''
@@ -118,7 +119,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
       // Reset form
       setFormData({
         id_modelo: '',
-        id_cliente: '1',
+        id_cliente: 1,
         peso: '',
         destino_final: '',
         filial: filiais.length > 0 ? filiais[0].nome : ''
@@ -171,7 +172,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
       const retornado: Omit<Retornado, 'id'> = {
         id_modelo: parseInt(formData.id_modelo),
-        id_cliente: parseInt(formData.id_cliente), // Parse string to number
+        id_cliente: formData.id_cliente, // Keep as number
         peso: parseFloat(formData.peso),
         destino_final: formData.destino_final,
         filial: formData.filial,
@@ -190,7 +191,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
       // Reset form
       setFormData({
         id_modelo: '',
-        id_cliente: '1',
+        id_cliente: 1,
         peso: '',
         destino_final: '',
         filial: filiais.length > 0 ? filiais[0].nome : ''
