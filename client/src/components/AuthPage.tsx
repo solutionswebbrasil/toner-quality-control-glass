@@ -1,38 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
-import { Loader2, LogIn, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
   const { signIn, loading } = useAuth();
   const [loginData, setLoginData] = useState({ usuario: '', senha: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Atualizar posição do mouse para efeitos interativos
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setMousePosition({
-          x: ((e.clientX - rect.left) / rect.width) * 100,
-          y: ((e.clientY - rect.top) / rect.height) * 100,
-        });
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('mousemove', handleMouseMove);
-      return () => container.removeEventListener('mousemove', handleMouseMove);
-    }
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,218 +26,106 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div 
-      ref={containerRef}
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"
-    >
-      {/* Fundo tecnológico interativo */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Grid dinâmico */}
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-            transform: `translate(${mousePosition.x * 0.1}px, ${mousePosition.y * 0.1}px)`,
-            transition: 'transform 0.3s ease-out'
-          }}
-        />
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 classic-reset">
+      <div className="classic-login">
+        <h1>Sistema de Gestão da Qualidade</h1>
         
-        {/* Círculos tecnológicos */}
-        <div 
-          className="absolute w-96 h-96 rounded-full border border-blue-400/20"
-          style={{
-            top: '10%',
-            left: '20%',
-            transform: `translate(${mousePosition.x * 0.05}px, ${mousePosition.y * 0.05}px) rotate(${mousePosition.x * 0.1}deg)`,
-            transition: 'transform 0.4s ease-out'
-          }}
-        />
-        <div 
-          className="absolute w-72 h-72 rounded-full border border-cyan-400/15"
-          style={{
-            top: '60%',
-            right: '15%',
-            transform: `translate(${mousePosition.x * -0.03}px, ${mousePosition.y * -0.03}px) rotate(${mousePosition.x * -0.08}deg)`,
-            transition: 'transform 0.5s ease-out'
-          }}
-        />
-        <div 
-          className="absolute w-64 h-64 rounded-full border border-purple-400/10"
-          style={{
-            bottom: '20%',
-            left: '10%',
-            transform: `translate(${mousePosition.x * 0.04}px, ${mousePosition.y * 0.04}px) rotate(${mousePosition.y * 0.1}deg)`,
-            transition: 'transform 0.6s ease-out'
-          }}
-        />
+        {error && (
+          <div style={{ 
+            background: '#f8d7da', 
+            border: '1px solid #f5c6cb', 
+            color: '#721c24', 
+            padding: '8px 12px', 
+            marginBottom: '15px',
+            fontSize: '12px'
+          }}>
+            {error}
+          </div>
+        )}
 
-        {/* Pontos flutuantes */}
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-blue-400/30 rounded-full"
-            style={{
-              top: `${20 + (i * 7)}%`,
-              left: `${10 + (i * 8)}%`,
-              transform: `translate(${mousePosition.x * (0.02 + i * 0.001)}px, ${mousePosition.y * (0.02 + i * 0.001)}px)`,
-              transition: `transform ${0.3 + i * 0.1}s ease-out`,
-              animationDelay: `${i * 0.1}s`
-            }}
-          />
-        ))}
-
-        {/* Linhas de conexão */}
-        <svg className="absolute inset-0 w-full h-full opacity-10">
-          <defs>
-            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#8b5cf6" />
-            </linearGradient>
-          </defs>
-          <line 
-            x1="20%" y1="30%" 
-            x2="80%" y2="70%" 
-            stroke="url(#lineGradient)" 
-            strokeWidth="1"
-            style={{
-              transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
-              transition: 'transform 0.4s ease-out'
-            }}
-          />
-          <line 
-            x1="10%" y1="80%" 
-            x2="70%" y2="20%" 
-            stroke="url(#lineGradient)" 
-            strokeWidth="1"
-            style={{
-              transform: `translate(${mousePosition.x * -0.015}px, ${mousePosition.y * -0.015}px)`,
-              transition: 'transform 0.5s ease-out'
-            }}
-          />
-        </svg>
-
-        {/* Efeito de brilho seguindo o mouse */}
-        <div 
-          className="absolute w-96 h-96 rounded-full"
-          style={{
-            background: `radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)`,
-            left: `${mousePosition.x}%`,
-            top: `${mousePosition.y}%`,
-            transform: 'translate(-50%, -50%)',
-            transition: 'all 0.3s ease-out',
-            pointerEvents: 'none'
-          }}
-        />
-      </div>
-      
-      <Card className="w-full max-w-md backdrop-blur-xl bg-black/40 border-white/10 shadow-2xl shadow-black/20 relative z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-blue-500/5 pointer-events-none" />
-        
-        <CardHeader className="text-center space-y-6 pb-8 relative z-10">
-          <div className="mx-auto w-20 h-20 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-3xl shadow-xl shadow-blue-500/30 flex items-center justify-center transform rotate-3">
-              <Shield className="w-10 h-10 text-white drop-shadow-sm" />
-            </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
-              <Sparkles className="w-2.5 h-2.5 text-white" />
-            </div>
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '12px' }}>
+            <Label htmlFor="login-usuario" style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600' }}>
+              Usuário
+            </Label>
+            <Input
+              id="login-usuario"
+              type="text"
+              value={loginData.usuario}
+              onChange={(e) => setLoginData(prev => ({ ...prev, usuario: e.target.value }))}
+              className="classic-input w-full"
+              style={{ width: '100%' }}
+              required
+            />
           </div>
           
-          <div>
-            <CardTitle className="text-3xl font-light text-white mb-2 tracking-wide">
-              SGQ PRO
-            </CardTitle>
-            <p className="text-slate-300 text-sm font-medium">
-              Sistema de Gestão da Qualidade
-            </p>
-            <div className="w-16 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-500 mx-auto mt-4 rounded-full" />
-          </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-6 px-8 pb-8 relative z-10">
-          {error && (
-            <Alert className="bg-red-900/20 border-red-500/30 text-red-300">
-              <AlertDescription className="text-sm">{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-usuario" className="text-white">Usuário</Label>
+          <div style={{ marginBottom: '15px' }}>
+            <Label htmlFor="login-senha" style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600' }}>
+              Senha
+            </Label>
+            <div style={{ position: 'relative' }}>
               <Input
-                id="login-usuario"
-                type="text"
-                placeholder="Digite seu usuário"
-                value={loginData.usuario}
-                onChange={(e) => setLoginData(prev => ({ ...prev, usuario: e.target.value }))}
-                className="h-12 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400"
+                id="login-senha"
+                type={showPassword ? "text" : "password"}
+                value={loginData.senha}
+                onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
+                className="classic-input w-full"
+                style={{ width: '100%', paddingRight: '30px' }}
                 required
               />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="login-senha" className="text-white">Senha</Label>
-              <div className="relative">
-                <Input
-                  id="login-senha"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Digite sua senha"
-                  value={loginData.senha}
-                  onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
-                  className="h-12 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 pr-12"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-slate-400 hover:text-white"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              </div>
-            </div>
-            
-            <Button
-              type="submit"
-              disabled={!loginData.usuario || !loginData.senha || loading}
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Entrando...
-                </>
-              ) : (
-                <>
-                  <LogIn className="mr-2 h-5 w-5" />
-                  Entrar
-                </>
-              )}
-            </Button>
-          </form>
-          
-          {/* Credenciais de demonstração */}
-          <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg">
-            <p className="text-xs text-slate-300 mb-2 font-medium">Credenciais de acesso:</p>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Usuário:</span>
-                <span className="text-white font-mono">admin.admin</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Senha:</span>
-                <span className="text-white font-mono">admin123</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '6px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  fontSize: '14px'
+                }}
+              >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          
+          <Button
+            type="submit"
+            disabled={!loginData.usuario || !loginData.senha || loading}
+            className="classic-btn-primary w-full"
+            style={{ width: '100%', padding: '6px 12px' }}
+          >
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Loader2 size={14} style={{ marginRight: '6px' }} />
+                Entrando...
+              </span>
+            ) : (
+              'Entrar'
+            )}
+          </Button>
+        </form>
+        
+        <div style={{ 
+          marginTop: '15px', 
+          padding: '10px', 
+          background: '#f8f9fa', 
+          border: '1px solid #dee2e6',
+          fontSize: '11px'
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '6px' }}>Credenciais de acesso:</div>
+          <div style={{ marginBottom: '2px' }}>
+            <strong>Usuário:</strong> admin.admin
+          </div>
+          <div>
+            <strong>Senha:</strong> admin123
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -30,7 +30,7 @@
     --chart-3: 249 115 22;
     --chart-4: 168 85 247;
     --chart-5: 236 72 153;
-    --radius: 4px;
+    --radius: 0px;
   }
 
   .dark {
@@ -64,13 +64,32 @@
 @layer base {
   * {
     @apply border-border;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
   }
   
   body {
     @apply bg-background text-foreground;
     font-family: 'Arial', 'Verdana', sans-serif;
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: 12px;
+    line-height: 1.3;
+    background: #f8f9fa;
+    color: #212529;
+  }
+
+  /* Reset all modern styling */
+  .classic-reset * {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+    backdrop-filter: none !important;
   }
 
   /* Classic table styles */
@@ -79,30 +98,32 @@
     width: 100%;
     background: white;
     border: 1px solid #cccccc;
+    font-size: 12px;
   }
 
   th {
     background: #f5f5f5;
     border: 1px solid #cccccc;
-    padding: 8px 12px;
+    padding: 6px 8px;
     text-align: left;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
     color: #333333;
   }
 
   td {
     border: 1px solid #e5e5e5;
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 6px 8px;
+    font-size: 12px;
     vertical-align: top;
+    background: white;
   }
 
-  tr:nth-child(even) {
+  tr:nth-child(even) td {
     background: #f9f9f9;
   }
 
-  tr:hover {
+  tr:hover td {
     background: #f0f8ff;
   }
 
@@ -110,16 +131,16 @@
   .classic-form {
     background: white;
     border: 1px solid #cccccc;
-    padding: 20px;
+    padding: 15px;
     margin: 10px 0;
   }
 
   .classic-form h2 {
     background: #f5f5f5;
-    margin: -20px -20px 20px -20px;
-    padding: 12px 20px;
+    margin: -15px -15px 15px -15px;
+    padding: 8px 15px;
     border-bottom: 1px solid #cccccc;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: #333333;
   }
@@ -128,12 +149,13 @@
   .classic-btn {
     background: #e6e6e6;
     border: 1px solid #cccccc;
-    padding: 6px 12px;
-    font-size: 13px;
+    padding: 4px 8px;
+    font-size: 12px;
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
     color: #333333;
+    font-family: inherit;
   }
 
   .classic-btn:hover {
@@ -155,8 +177,8 @@
   /* Classic input styles */
   .classic-input {
     border: 1px solid #cccccc;
-    padding: 4px 6px;
-    font-size: 13px;
+    padding: 3px 4px;
+    font-size: 12px;
     background: white;
     font-family: inherit;
   }
@@ -164,23 +186,76 @@
   .classic-input:focus {
     border-color: #0066cc;
     outline: none;
-    box-shadow: 0 0 3px rgba(0, 102, 204, 0.3);
   }
 
-  /* Remove modern effects */
-  * {
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    background-image: none !important;
-    text-shadow: none !important;
-    transition: none !important;
-    animation: none !important;
+  /* Classic select styles */
+  .classic-select {
+    border: 1px solid #cccccc;
+    padding: 3px 4px;
+    font-size: 12px;
+    background: white;
+    font-family: inherit;
   }
 
-  /* Override specific elements that need basic functionality */
-  .classic-input:focus,
-  .classic-btn:hover {
-    transition: all 0.1s ease !important;
+  /* Classic textarea styles */
+  .classic-textarea {
+    border: 1px solid #cccccc;
+    padding: 3px 4px;
+    font-size: 12px;
+    background: white;
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  /* Classic login form */
+  .classic-login {
+    background: white;
+    border: 2px solid #cccccc;
+    padding: 20px;
+    width: 320px;
+    margin: 50px auto;
+  }
+
+  .classic-login h1 {
+    background: #f5f5f5;
+    margin: -20px -20px 20px -20px;
+    padding: 10px 20px;
+    border-bottom: 1px solid #cccccc;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333333;
+    text-align: center;
+  }
+
+  /* Classic charts - remove all modern effects */
+  .recharts-wrapper {
+    background: white !important;
+    border: 1px solid #cccccc !important;
+  }
+
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: #cccccc !important;
+    stroke-width: 1 !important;
+  }
+
+  .recharts-cartesian-axis-tick-value {
+    font-size: 11px !important;
+    fill: #333333 !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  .recharts-legend-item-text {
+    font-size: 11px !important;
+    color: #333333 !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  .recharts-tooltip-wrapper {
+    background: white !important;
+    border: 1px solid #cccccc !important;
+    font-size: 11px !important;
+    font-family: Arial, sans-serif !important;
   }
 }
 
@@ -189,17 +264,19 @@
   .classic-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    background: #f8f8f8;
+    padding: 15px;
+    background: #f8f9fa;
     min-height: 100vh;
   }
 
   .classic-header {
     background: #333333;
     color: white;
-    padding: 10px 20px;
-    margin-bottom: 20px;
+    padding: 8px 15px;
+    margin-bottom: 15px;
     border-bottom: 2px solid #000000;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .classic-sidebar {
@@ -212,25 +289,42 @@
   .classic-content {
     background: white;
     border: 1px solid #cccccc;
-    padding: 20px;
+    padding: 15px;
     flex: 1;
   }
 
   .classic-section {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     background: white;
     border: 1px solid #cccccc;
   }
 
   .classic-section-header {
     background: #f5f5f5;
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-bottom: 1px solid #cccccc;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .classic-section-content {
+    padding: 12px;
+  }
+
+  .classic-chart {
+    background: white;
+    border: 1px solid #cccccc;
     padding: 15px;
+    margin: 10px 0;
+  }
+
+  .classic-chart h3 {
+    background: #f5f5f5;
+    margin: -15px -15px 15px -15px;
+    padding: 8px 15px;
+    border-bottom: 1px solid #cccccc;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333333;
   }
 }

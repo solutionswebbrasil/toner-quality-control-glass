@@ -140,7 +140,6 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Se o destino for garantia, abrir modal
     if (formData.destino_final === 'Garantia') {
       if (!destinoSelecionado) {
         toast({
@@ -158,7 +157,6 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      // Get current user ID
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) {
         toast({
@@ -215,14 +213,14 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
-        <CardHeader>
+      <Card className="classic-section">
+        <CardHeader className="classic-section-header">
           <CardTitle className="flex items-center gap-2">
             <Recycle className="w-5 h-5" />
             Registro de Retornado
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="classic-section-content">
           <form onSubmit={handleSubmit} className="space-y-6">
             <TonerSelector
               toners={toners}
@@ -255,7 +253,7 @@ export const RetornadoForm: React.FC<RetornadoFormProps> = ({ onSuccess }) => {
             <Button 
               type="submit" 
               disabled={isSubmitting || !formData.id_modelo || !formData.peso || !formData.destino_final}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+              className="classic-btn-primary w-full"
             >
               {isSubmitting ? 'Salvando...' : 'Registrar Retornado'}
             </Button>
