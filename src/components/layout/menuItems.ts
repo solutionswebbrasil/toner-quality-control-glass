@@ -1,3 +1,4 @@
+
 import {
   FileText,
   BarChart3,
@@ -12,7 +13,9 @@ import {
   Users,
   Building2,
   Package,
-  Link
+  Link,
+  UserPlus,
+  Key
 } from 'lucide-react';
 
 export const menuItems = [
@@ -117,7 +120,8 @@ export const menuItems = [
       { id: 'config-retornado', label: 'Retornado', page: 'config-retornado' },
       { id: 'status-cadastro', label: 'Cadastro de Status', page: 'status-cadastro' },
       { id: 'apis-integracoes', label: 'APIs de Integrações', page: 'apis-integracoes' },
-      { id: 'usuarios', label: 'Usuários', page: 'usuarios' }
+      { id: 'usuarios', label: 'Usuários', page: 'usuarios' },
+      { id: 'permissoes', label: 'Permissões', page: 'permissoes' }
     ]
   }
 ];
