@@ -1,120 +1,120 @@
-
-import React from 'react';
-import { RetornadoFilters, RetornadoActions } from './retornado';
-import { RetornadoTablePaginated } from './retornado/RetornadoTablePaginated';
-import { ImportModal } from './ImportModal';
-import { useRetornadoPagination } from '@/hooks/useRetornadoPagination';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Search, Download, Upload, FileText, Trash2, Edit, Plus } from 'lucide-react';
+import { Retornado } from '@/types';
+import { retornadoService } from '@/services/retornadoService';
+import { useToast } from '@/hooks/use-toast';
+import { RetornadoTable } from '@/components/retornado/RetornadoTable';
+import { RetornadoFilters } from '@/components/retornado/RetornadoFilters';
+import { RetornadoActions } from '@/components/retornado/RetornadoActions';
+import { ImportModal } from '@/components/ImportModal';
 import { useRetornadoFilters } from '@/hooks/useRetornadoFilters';
+import { useRetornadoPagination } from '@/hooks/useRetornadoPagination';
 import { useRetornadoImportExport } from '@/hooks/useRetornadoImportExport';
 
 export const RetornadoGrid: React.FC = () => {
-  const { 
-    allRetornados, 
-    loading, 
-    totalCount,
-    loadAllRetornados, 
-    handleDeleteRetornado 
-  } = useRetornadoPagination();
+  const { toast } = useToast();
+  const [retornados, setRetornados] = useState<Retornado[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const {
-    dataInicio,
-    setDataInicio,
-    dataFim,
-    setDataFim,
-    filialSelecionada,
-    setFilialSelecionada,
-    destinoSelecionado,
-    setDestinoSelecionado,
-    filteredRetornados,
-    clearFilters
-  } = useRetornadoFilters(allRetornados);
+    searchTerm,
+    setSearchTerm,
+    dateRange,
+    setDateRange,
+    selectedFilial,
+    setSelectedFilial,
+    filteredData: filteredRetornados
+  } = useRetornadoFilters(retornados);
 
   const {
-    importing,
-    importProgress,
-    isImportModalOpen,
-    setIsImportModalOpen,
-    handleExportCSV,
-    handleDownloadTemplate,
-    handleImportUpload,
-    handleImportCSV
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage
+  } = useRetornadoPagination(filteredRetornados, 10);
+
+  const {
+    isImporting,
+    isExporting,
+    handleImportExcel,
+    handleExportExcel
   } = useRetornadoImportExport();
 
-  const handleZerarComplete = () => {
-    loadAllRetornados(); // Recarregar todos os dados após zerar
+  useEffect(() => {
+    loadRetornados();
+  }, []);
+
+  const loadRetornados = async () => {
+    setLoading(true);
+    try {
+      const data = await retornadoService.getAll();
+      setRetornados(data);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar os dados de Retornados.",
+        variant: "destructive"
+      });
+    }
+    setLoading(false);
   };
 
-  const handleExportWithData = () => {
-    handleExportCSV();
+  const handleImportData = (data: any[]) => {
+    console.log('Import data:', data);
+    // Process imported data
   };
 
-  const handleImportCallback = () => {
-    loadAllRetornados();
+  const handleImportFile = (file: File) => {
+    console.log('Import file:', file);
+    // Process imported file
   };
-
-  if (loading) {
-    return (
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50 rounded-lg p-8 text-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-        <p className="mt-4">Carregando todos os retornados...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Consulta de Retornados
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Consulte e exporte dados dos toners retornados
-        </p>
-        <div className="mt-2 text-sm text-slate-500">
-          Total de registros no banco: {totalCount} | Exibindo após filtros: {filteredRetornados.length}
-        </div>
-      </div>
+      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Consulta de Retornados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RetornadoFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            selectedFilial={selectedFilial}
+            onFilialChange={setSelectedFilial}
+          />
 
-      <RetornadoFilters
-        dataInicio={dataInicio}
-        setDataInicio={setDataInicio}
-        dataFim={dataFim}
-        setDataFim={setDataFim}
-        filialSelecionada={filialSelecionada}
-        setFilialSelecionada={setFilialSelecionada}
-        destinoSelecionado={destinoSelecionado}
-        setDestinoSelecionado={setDestinoSelecionado}
-        clearFilters={clearFilters}
-        resultCount={filteredRetornados.length}
-      />
+          <RetornadoActions
+            onImportExcel={handleImportData}
+            onExportExcel={handleExportExcel}
+            onImportCSV={handleImportFile}
+            onExportCSV={() => console.log('Export CSV')}
+            onDownloadTemplate={() => console.log('Download template')}
+            isImporting={isImporting}
+            isExporting={isExporting}
+          />
 
-      <div className="flex justify-end">
-        <RetornadoActions
-          onExportCSV={handleExportWithData}
-          onDownloadTemplate={handleDownloadTemplate}
-          onImportCSV={handleImportCallback}
-          importing={importing}
-          onZerarComplete={handleZerarComplete}
-        />
-      </div>
-
-      <RetornadoTablePaginated
-        retornados={filteredRetornados}
-        onDelete={handleDeleteRetornado}
-        totalCount={filteredRetornados.length}
-      />
-
-      <ImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onUpload={handleImportUpload}
-        onDownloadTemplate={handleDownloadTemplate}
-        title="Importar Planilha de Retornados"
-        templateDescription="A planilha deve conter as colunas: id_cliente, modelo, filial, destino_final, valor_recuperado, data_registro"
-        requiredColumns={['id_cliente']}
-        importing={importing}
-        progress={importProgress}
-      />
+          <RetornadoTable
+            retornados={paginatedData}
+            loading={loading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+            onPrevPage={prevPage}
+            onNextPage={nextPage}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

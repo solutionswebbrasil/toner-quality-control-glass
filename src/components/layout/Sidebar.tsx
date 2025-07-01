@@ -13,7 +13,8 @@ import {
   FileCode, 
   Award, 
   Settings, 
-  User 
+  User,
+  FolderPlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -68,12 +69,12 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
-    id: 'toners',
-    label: 'Toners',
-    icon: Package,
+    id: 'cadastros',
+    label: 'Cadastros',
+    icon: FolderPlus,
     submenu: [
-      { id: 'toners-cadastro', label: 'Cadastro', icon: Package, page: 'toners-cadastro' },
-      { id: 'toners-consulta-principal', label: 'Consulta', icon: Package, page: 'toners-consulta-principal' }
+      { id: 'toners-cadastro', label: 'Cadastro de Toners', icon: Package, page: 'toners-cadastro' },
+      { id: 'toners-consulta-principal', label: 'Consulta de Toners', icon: Package, page: 'toners-consulta-principal' }
     ]
   },
   {

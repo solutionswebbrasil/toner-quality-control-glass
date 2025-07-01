@@ -39,6 +39,30 @@ export const retornadoService = {
         user_id: 'user1'
       }
     ];
+  },
+  create: async (data: any) => {
+    return { id: Date.now(), ...data };
+  },
+  update: async (id: number, data: any) => {
+    return { id, ...data };
+  },
+  delete: async (id: number) => {
+    return { success: true };
+  },
+  getAllForCharts: async () => {
+    return [
+      {
+        id: 1,
+        id_modelo: 1,
+        id_cliente: 'CLI001',
+        peso: 2.5,
+        destino_final: 'Reciclagem',
+        valor_recuperado: 25.00,
+        data_registro: '2024-01-01',
+        filial: 'São Paulo',
+        user_id: 'user1'
+      }
+    ];
   }
 };
 
@@ -62,5 +86,70 @@ export const filialService = {
         ativo: true
       }
     ];
+  }
+};
+
+export const fornecedorService = {
+  getAll: async () => {
+    return [
+      {
+        id: 1,
+        nome: 'Fornecedor A',
+        endereco: 'Rua A, 123',
+        telefone: '(11) 1234-5678',
+        data_cadastro: '2024-01-01',
+        ativo: true
+      }
+    ];
+  },
+  create: async (data: any) => {
+    return { id: Date.now(), ...data };
+  },
+  update: async (id: number, data: any) => {
+    return { id, ...data };
+  },
+  delete: async (id: number) => {
+    return { success: true, message: 'Fornecedor deletado com sucesso' };
+  }
+};
+
+export const garantiaService = {
+  getAll: async () => {
+    return [
+      {
+        id: 1,
+        item: 'Produto A',
+        quantidade: 10,
+        defeito: 'Defeito exemplo',
+        fornecedor_id: 1,
+        status: 'Pendente',
+        valor_unitario: 100.00,
+        valor_total: 1000.00,
+        data_registro: '2024-01-01',
+        user_id: 'user1'
+      }
+    ];
+  },
+  create: async (data: any) => {
+    return { id: Date.now(), ...data };
+  },
+  update: async (id: number, data: any) => {
+    return { id, ...data };
+  },
+  delete: async (id: number) => {
+    return { success: true };
+  },
+  uploadFile: async (file: File) => {
+    return { url: 'file-url' };
+  },
+  deleteFile: async (url: string) => {
+    return { success: true };
+  },
+  getStats: async () => {
+    return {
+      monthlyData: {},
+      statusData: {},
+      fornecedorData: {}
+    };
   }
 };
