@@ -40,7 +40,9 @@ export const RetornadoGrid: React.FC = () => {
     isImporting,
     isExporting,
     handleImportExcel,
-    handleExportExcel
+    handleExportExcel,
+    handleExportCSV,
+    handleDownloadTemplate
   } = useRetornadoImportExport();
 
   useEffect(() => {
@@ -62,14 +64,8 @@ export const RetornadoGrid: React.FC = () => {
     setLoading(false);
   };
 
-  const handleImportData = (data: any[]) => {
-    console.log('Import data:', data);
-    // Process imported data
-  };
-
-  const handleImportFile = (file: File) => {
-    console.log('Import file:', file);
-    // Process imported file
+  const handleImportData = () => {
+    console.log('Import data');
   };
 
   return (
@@ -97,13 +93,15 @@ export const RetornadoGrid: React.FC = () => {
           />
 
           <RetornadoActions
-            onImportExcel={handleImportData}
-            onExportExcel={() => handleExportExcel()}
-            onImportCSV={() => console.log('Import CSV')}
-            onExportCSV={() => console.log('Export CSV')}
-            onDownloadTemplate={() => console.log('Download template')}
+            onImportCSV={handleImportData}
+            onExportCSV={handleExportCSV}
+            onDownloadTemplate={handleDownloadTemplate}
+            importing={isImporting}
+            onZerarComplete={loadRetornados}
             isImporting={isImporting}
             isExporting={isExporting}
+            onImportExcel={handleImportData}
+            onExportExcel={handleExportExcel}
           />
 
           <RetornadoTable

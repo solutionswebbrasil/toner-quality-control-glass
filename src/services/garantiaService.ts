@@ -1,7 +1,8 @@
 
 export const garantiaService = {
   getAll: async () => {
-    return [
+    const data = localStorage.getItem('garantias');
+    return data ? JSON.parse(data) : [
       {
         id: 1,
         item: 'Produto A',
@@ -18,12 +19,25 @@ export const garantiaService = {
     ];
   },
   create: async (data: any) => {
-    return { id: Date.now(), ...data };
+    const garantias = await garantiaService.getAll();
+    const newGarantia = { id: Date.now(), ...data };
+    garantias.push(newGarantia);
+    localStorage.setItem('garantias', JSON.stringify(garantias));
+    return newGarantia;
   },
   update: async (id: number, data: any) => {
+    const garantias = await garantiaService.getAll();
+    const index = garantias.findIndex((g: any) => g.id === id);
+    if (index !== -1) {
+      garantias[index] = { ...garantias[index], ...data };
+      localStorage.setItem('garantias', JSON.stringify(garantias));
+    }
     return { id, ...data };
   },
   delete: async (id: number) => {
+    const garantias = await garantiaService.getAll();
+    const filtered = garantias.filter((g: any) => g.id !== id);
+    localStorage.setItem('garantias', JSON.stringify(filtered));
     return { success: true };
   },
   uploadFile: async (file: File) => {
@@ -36,7 +50,8 @@ export const garantiaService = {
     return {
       monthlyData: {},
       statusData: {},
-      fornecedorData: {}
+      fornecedorData: {},
+      currentMonthByFornecedor: {}
     };
   },
   getStatusConfiguracoes: async () => {

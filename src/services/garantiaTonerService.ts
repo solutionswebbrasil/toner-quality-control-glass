@@ -17,10 +17,10 @@ export interface GarantiaToner {
   observacoes?: string;
 }
 
-// Mock garantia toner service
 export const garantiaTonerService = {
   getAll: async () => {
-    return [
+    const data = localStorage.getItem('garantias_toner');
+    return data ? JSON.parse(data) : [
       {
         id: 1,
         modelo: 'HP 12A',
@@ -58,15 +58,34 @@ export const garantiaTonerService = {
     ];
   },
   create: async (data: any) => {
-    return { id: Date.now(), ...data };
+    const garantias = await garantiaTonerService.getAll();
+    const newGarantia = { id: Date.now(), ...data };
+    garantias.push(newGarantia);
+    localStorage.setItem('garantias_toner', JSON.stringify(garantias));
+    return newGarantia;
   },
   update: async (id: number, data: any) => {
+    const garantias = await garantiaTonerService.getAll();
+    const index = garantias.findIndex((g: any) => g.id === id);
+    if (index !== -1) {
+      garantias[index] = { ...garantias[index], ...data };
+      localStorage.setItem('garantias_toner', JSON.stringify(garantias));
+    }
     return { id, ...data };
   },
   updateStatus: async (id: number, status: string, observacoes?: string) => {
+    const garantias = await garantiaTonerService.getAll();
+    const index = garantias.findIndex((g: any) => g.id === id);
+    if (index !== -1) {
+      garantias[index] = { ...garantias[index], status, observacoes };
+      localStorage.setItem('garantias_toner', JSON.stringify(garantias));
+    }
     return { id, status, observacoes };
   },
   delete: async (id: number) => {
+    const garantias = await garantiaTonerService.getAll();
+    const filtered = garantias.filter((g: any) => g.id !== id);
+    localStorage.setItem('garantias_toner', JSON.stringify(filtered));
     return { success: true };
   },
   getStats: async () => {

@@ -1,8 +1,8 @@
 
-// Mock toner service
 export const tonerService = {
   getAll: async () => {
-    return [
+    const data = localStorage.getItem('toners');
+    return data ? JSON.parse(data) : [
       {
         id: 1,
         modelo: 'HP 12A',
@@ -24,12 +24,25 @@ export const tonerService = {
     ];
   },
   create: async (data: any) => {
-    return { id: Date.now(), ...data };
+    const toners = await tonerService.getAll();
+    const newToner = { id: Date.now(), ...data };
+    toners.push(newToner);
+    localStorage.setItem('toners', JSON.stringify(toners));
+    return newToner;
   },
   update: async (id: number, data: any) => {
+    const toners = await tonerService.getAll();
+    const index = toners.findIndex((t: any) => t.id === id);
+    if (index !== -1) {
+      toners[index] = { ...toners[index], ...data };
+      localStorage.setItem('toners', JSON.stringify(toners));
+    }
     return { id, ...data };
   },
   delete: async (id: number) => {
+    const toners = await tonerService.getAll();
+    const filtered = toners.filter((t: any) => t.id !== id);
+    localStorage.setItem('toners', JSON.stringify(filtered));
     return { success: true };
   }
 };

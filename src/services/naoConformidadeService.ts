@@ -1,8 +1,8 @@
 
-// Mock não conformidade service
 export const naoConformidadeService = {
   getAll: async () => {
-    return [
+    const data = localStorage.getItem('nao_conformidades');
+    return data ? JSON.parse(data) : [
       {
         id: 1,
         unidade_filial: 'São Paulo',
@@ -26,12 +26,25 @@ export const naoConformidadeService = {
     ];
   },
   create: async (data: any) => {
-    return { id: Date.now(), ...data };
+    const naoConformidades = await naoConformidadeService.getAll();
+    const newNC = { id: Date.now(), ...data };
+    naoConformidades.push(newNC);
+    localStorage.setItem('nao_conformidades', JSON.stringify(naoConformidades));
+    return newNC;
   },
   update: async (id: number, data: any) => {
+    const naoConformidades = await naoConformidadeService.getAll();
+    const index = naoConformidades.findIndex((nc: any) => nc.id === id);
+    if (index !== -1) {
+      naoConformidades[index] = { ...naoConformidades[index], ...data };
+      localStorage.setItem('nao_conformidades', JSON.stringify(naoConformidades));
+    }
     return { id, ...data };
   },
   delete: async (id: number) => {
+    const naoConformidades = await naoConformidadeService.getAll();
+    const filtered = naoConformidades.filter((nc: any) => nc.id !== id);
+    localStorage.setItem('nao_conformidades', JSON.stringify(naoConformidades));
     return { success: true };
   }
 };

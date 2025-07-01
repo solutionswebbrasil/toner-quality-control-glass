@@ -10,6 +10,10 @@ interface RetornadoActionsProps {
   onImportCSV: () => void;
   importing: boolean;
   onZerarComplete: () => void;
+  isImporting?: boolean;
+  isExporting?: boolean;
+  onImportExcel?: () => void;
+  onExportExcel?: () => void;
 }
 
 export const RetornadoActions: React.FC<RetornadoActionsProps> = ({
@@ -17,7 +21,11 @@ export const RetornadoActions: React.FC<RetornadoActionsProps> = ({
   onDownloadTemplate,
   onImportCSV,
   importing,
-  onZerarComplete
+  onZerarComplete,
+  isImporting = false,
+  isExporting = false,
+  onImportExcel,
+  onExportExcel
 }) => {
   return (
     <div className="flex gap-2 flex-wrap">
@@ -30,10 +38,10 @@ export const RetornadoActions: React.FC<RetornadoActionsProps> = ({
         onClick={onImportCSV}
         variant="outline" 
         className="flex items-center gap-2"
-        disabled={importing}
+        disabled={importing || isImporting}
       >
         <Upload className="h-4 w-4" />
-        {importing ? 'Importando...' : 'Importar Planilha'}
+        {(importing || isImporting) ? 'Importando...' : 'Importar Planilha'}
       </Button>
       
       <Button onClick={onExportCSV} className="flex items-center gap-2">
