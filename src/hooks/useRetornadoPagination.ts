@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data
 const mockRetornados = [
@@ -14,6 +15,7 @@ const mockRetornados = [
 ];
 
 export const useRetornadoPagination = () => {
+  const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [retornados] = useState(mockRetornados);
@@ -21,19 +23,36 @@ export const useRetornadoPagination = () => {
 
   const totalItems = retornados.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalCount = totalItems;
 
   const paginatedRetornados = retornados.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  const loadAllRetornados = async () => {
+    // Mock function for loading all data
+    console.log('Loading all retornados...');
+  };
+
+  const handleDeleteRetornado = (id: number) => {
+    toast({
+      title: "Sucesso",
+      description: "Retornado excluído com sucesso!",
+    });
+  };
+
   return {
     retornados: paginatedRetornados,
+    allRetornados: retornados,
     currentPage,
     totalPages,
     totalItems,
+    totalCount,
     itemsPerPage,
     loading,
     setCurrentPage,
+    loadAllRetornados,
+    handleDeleteRetornado,
   };
 };

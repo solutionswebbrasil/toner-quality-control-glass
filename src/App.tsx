@@ -84,31 +84,31 @@ function App() {
       case 'nc-graficos':
         return <NaoConformidadeCharts naoConformidades={[]} />;
       case 'titulo-itpop-cadastro':
-        return <TituloItPopForm />;
+        return <TituloItPopForm onSuccess={handleSuccess} />;
       case 'titulo-itpop-consulta':
-        return <ConsultaTitulosItPop />;
+        return <ConsultaTitulosItPop onSuccess={handleSuccess} />;
       case 'registro-itpop':
-        return <RegistroItPopForm />;
+        return <RegistroItPopForm onSuccess={handleSuccess} />;
       case 'registros-itpop-consulta':
-        return <ConsultaRegistrosItPop />;
+        return <ConsultaRegistrosItPop onSuccess={handleSuccess} />;
       case 'visualizar-itpop':
-        return <VisualizadorItPop />;
+        return <VisualizadorItPop onSuccess={handleSuccess} />;
       case 'titulo-bpmn-cadastro':
-        return <TituloBpmnForm />;
+        return <TituloBpmnForm onSuccess={handleSuccess} />;
       case 'titulo-bpmn-consulta':
-        return <ConsultaTitulosBpmn />;
+        return <ConsultaTitulosBpmn onSuccess={handleSuccess} />;
       case 'registro-bpmn':
-        return <RegistroBpmnForm />;
+        return <RegistroBpmnForm onSuccess={handleSuccess} />;
       case 'registros-bpmn-consulta':
-        return <ConsultaRegistrosBpmn />;
+        return <ConsultaRegistrosBpmn onSuccess={handleSuccess} />;
       case 'visualizar-bpmn':
-        return <VisualizadorBpmn />;
+        return <VisualizadorBpmn onSuccess={handleSuccess} />;
       case 'certificados-registro':
         return <CertificadoForm />;
       case 'certificados-consulta':
         return <CertificadoGrid />;
       case 'filiais-cadastro':
-        return <FilialForm />;
+        return <FilialForm onSuccess={handleSuccess} />;
       case 'filiais-consulta':
         return <FilialGrid />;
       case 'config-retornado':
