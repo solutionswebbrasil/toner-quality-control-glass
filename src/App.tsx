@@ -12,6 +12,7 @@ import { GarantiaForm } from '@/components/GarantiaForm';
 import { GarantiaGrid } from '@/components/GarantiaGrid';
 import { GarantiaGeralCharts } from '@/components/GarantiaGeralCharts';
 import { GarantiaTonerGrid } from '@/components/GarantiaTonerGrid';
+import { GarantiaTonerConsulta } from '@/components/GarantiaTonerConsulta';
 import { TonerForm } from '@/components/TonerForm';
 import { TonerGrid } from '@/components/TonerGrid';
 import { AuditoriaForm } from '@/components/AuditoriaForm';
@@ -39,6 +40,7 @@ import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 import UserManagement from '@/components/UserManagement';
 import UserPermissions from '@/components/UserPermissions';
 import NewUserRegistration from '@/components/NewUserRegistration';
+import { GarantiaTonerCharts } from '@/components/GarantiaTonerCharts';
 import { useNaoConformidades } from '@/hooks/useNaoConformidades';
 
 function App() {
@@ -71,6 +73,10 @@ function App() {
         return <GarantiaGeralCharts />;
       case 'garantias-toners':
         return <GarantiaTonerGrid />;
+      case 'garantias-toners-consulta':
+        return <GarantiaTonerConsulta />;
+      case 'garantias-toners-graficos':
+        return <GarantiaTonerCharts />;
       case 'toners-cadastro':
         return <TonerForm onSuccess={handleSuccess} />;
       case 'toners-consulta-principal':

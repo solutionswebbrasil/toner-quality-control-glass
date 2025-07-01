@@ -38,10 +38,18 @@ export const RetornadoGrid: React.FC = () => {
     handleDownloadTemplate,
     handleImportUpload,
     handleImportCSV
-  } = useRetornadoImportExport(loadAllRetornados);
+  } = useRetornadoImportExport();
 
   const handleZerarComplete = () => {
     loadAllRetornados(); // Recarregar todos os dados após zerar
+  };
+
+  const handleExportWithData = () => {
+    handleExportCSV();
+  };
+
+  const handleImportCallback = () => {
+    loadAllRetornados();
   };
 
   if (loading) {
@@ -82,9 +90,9 @@ export const RetornadoGrid: React.FC = () => {
 
       <div className="flex justify-end">
         <RetornadoActions
-          onExportCSV={() => handleExportCSV(filteredRetornados)}
+          onExportCSV={handleExportWithData}
           onDownloadTemplate={handleDownloadTemplate}
-          onImportCSV={handleImportCSV}
+          onImportCSV={handleImportCallback}
           importing={importing}
           onZerarComplete={handleZerarComplete}
         />

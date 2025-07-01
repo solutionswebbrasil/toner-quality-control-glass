@@ -3,12 +3,26 @@
 export const registroItPopService = {
   getAll: async () => {
     return [
-      { id: 1, titulo_id: 1, arquivo_pdf: 'manual.pdf', data_upload: '2024-01-01' }
+      { 
+        id: 1, 
+        titulo_id: 1, 
+        arquivo_pdf: 'manual.pdf', 
+        data_upload: '2024-01-01',
+        versao: 1,
+        data_registro: '2024-01-01'
+      }
     ];
   },
   getByTituloId: async (tituloId: number) => {
     return [
-      { id: 1, titulo_id: tituloId, arquivo_pdf: 'manual.pdf', data_upload: '2024-01-01' }
+      { 
+        id: 1, 
+        titulo_id: tituloId, 
+        arquivo_pdf: 'manual.pdf', 
+        data_upload: '2024-01-01',
+        versao: 1,
+        data_registro: '2024-01-01'
+      }
     ];
   },
   create: async (data: any) => {
