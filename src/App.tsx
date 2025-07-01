@@ -82,7 +82,7 @@ function App() {
       case 'nc-consulta':
         return <NaoConformidadeGrid />;
       case 'nc-graficos':
-        return <NaoConformidadeCharts naoConformidades={[]} />;
+        return <NaoConformidadeCharts />;
       case 'titulo-itpop-cadastro':
         return <TituloItPopForm onSuccess={handleSuccess} />;
       case 'titulo-itpop-consulta':

@@ -2,15 +2,17 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock data
+// Mock data with complete Retornado structure
 const mockRetornados = [
   {
     id: 1,
-    codigo_produto: 'HP001',
-    descricao: 'Toner HP LaserJet',
-    quantidade: 2,
-    data_retorno: '2024-01-15',
-    motivo: 'Defeito de fabricação'
+    id_modelo: 1,
+    id_cliente: 'CLI001',
+    peso: 2.5,
+    destino_final: 'Reciclagem',
+    valor_recuperado: 25.00,
+    data_registro: '2024-01-15',
+    filial: 'São Paulo'
   }
 ];
 
@@ -31,7 +33,6 @@ export const useRetornadoPagination = () => {
   );
 
   const loadAllRetornados = async () => {
-    // Mock function for loading all data
     console.log('Loading all retornados...');
   };
 
