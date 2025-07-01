@@ -1,121 +1,87 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
-import { tituloItPopService } from '@/services/tituloItPopService';
-import { registroItPopService } from '@/services/registroItPopService';
-import type { TituloItPop, RegistroItPop } from '@/types';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { tituloItPopService, TituloItPop } from '@/services/tituloItPopService';
+import { registroItPopService, RegistroItPop } from '@/services/registroItPopService';
+import { FileText } from 'lucide-react';
 
 interface VisualizadorItPopProps {
   onSuccess: () => void;
 }
 
 export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess }) => {
-  const [tituloSelecionado, setTituloSelecionado] = useState<string>('');
   const [titulos, setTitulos] = useState<TituloItPop[]>([]);
-  const [registros, setRegistros] = useState<RegistroItPop[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingRegistros, setLoadingRegistros] = useState(false);
+  const [tituloSelecionado, setTituloSelecionado] = useState('');
+  const [ultimaVersao, setUltimaVersao] = useState<RegistroItPop | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    carregarTitulos();
+    loadTitulos();
   }, []);
 
-  useEffect(() => {
-    const carregarRegistros = async () => {
-      if (!tituloSelecionado) {
-        setRegistros([]);
-        return;
-      }
-
-      try {
-        console.log('🔍 Carregando registros para título ID:', tituloSelecionado);
-        setLoadingRegistros(true);
-        const registrosData = await registroItPopService.getByTituloId(parseInt(tituloSelecionado));
-        setRegistros(registrosData);
-        console.log('✅ Registros carregados:', registrosData.length);
-      } catch (error) {
-        console.error('❌ Erro ao carregar registros:', error);
-      } finally {
-        setLoadingRegistros(false);
-      }
-    };
-
-    carregarRegistros();
-  }, [tituloSelecionado]);
-
-  const carregarTitulos = async () => {
+  const loadTitulos = async () => {
     try {
-      console.log('🔍 Carregando títulos IT/POP...');
-      setLoading(true);
-      const titulosData = await tituloItPopService.getAll();
-      setTitulos(titulosData);
-      console.log('✅ Títulos carregados:', titulosData.length);
+      const data = await tituloItPopService.getAll();
+      setTitulos(data);
     } catch (error) {
-      console.error('❌ Erro ao carregar títulos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar títulos.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleTituloChange = async (value: string) => {
+    setTituloSelecionado(value);
+    setLoading(true);
+    
+    try {
+      const tituloId = parseInt(value);
+      const versao = await registroItPopService.getLatestVersion(tituloId);
+      setUltimaVersao(versao);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar documento.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownload = (arquivo: string, tipo: string) => {
-    console.log(`📥 Iniciando download do arquivo ${tipo}:`, arquivo);
-    window.open(arquivo, '_blank');
+  const handleVisualizarPDF = () => {
+    if (ultimaVersao) {
+      toast({
+        title: "Visualizando PDF",
+        description: `Abrindo: ${ultimaVersao.arquivo_pdf}`,
+      });
+      // Aqui seria implementada a lógica para abrir o PDF
+    }
   };
-
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            Visualizar IT/POP
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Carregando dados...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Visualizar IT/POP
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Visualize os registros de IT/POP por título
-        </p>
-      </div>
-
-      {/* Seleção e Visualização de Registros */}
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+    <div className="container mx-auto p-6">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Visualizar Registros
-          </CardTitle>
+          <CardTitle>Visualizar POP/IT</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Selecione um Título</label>
-            <Select onValueChange={setTituloSelecionado} value={tituloSelecionado}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o título" />
+            <Label htmlFor="titulo">Selecione um Título</Label>
+            <Select value={tituloSelecionado} onValueChange={handleTituloChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Selecione um título para visualizar" />
               </SelectTrigger>
               <SelectContent>
                 {titulos.map((titulo) => (
-                  <SelectItem key={titulo.id} value={titulo.id!.toString()}>
+                  <SelectItem key={titulo.id} value={titulo.id.toString()}>
                     {titulo.titulo}
                   </SelectItem>
                 ))}
@@ -123,85 +89,56 @@ export const VisualizadorItPop: React.FC<VisualizadorItPopProps> = ({ onSuccess 
             </Select>
           </div>
 
-          {loadingRegistros && (
-            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
-              Carregando registros...
+          {loading && (
+            <div className="text-center py-4">
+              Carregando documento...
             </div>
           )}
 
-          {!loadingRegistros && registros.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  {registros[0]?.titulo} - {registros.length} versão(s) encontrada(s)
-                </h3>
-              </div>
-
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Versão</TableHead>
-                      <TableHead>Data do Registro</TableHead>
-                      <TableHead>Registrado por</TableHead>
-                      <TableHead>Arquivo</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {registros.map((registro) => (
-                      <TableRow key={registro.id}>
-                        <TableCell>
-                          <Badge variant={registro.versao === registros[0].versao ? "default" : "secondary"}>
-                            v{registro.versao}
-                            {registro.versao === registros[0].versao && " (Atual)"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(registro.data_registro)}
-                        </TableCell>
-                        <TableCell>
-                          {registro.registrado_por || 'Não informado'}
-                        </TableCell>
-                        <TableCell>
-                          {registro.arquivo_pdf ? (
-                            <div className="flex items-center gap-2 text-sm">
-                              <FileText className="h-3 w-3 text-red-500" />
-                              <span>PDF</span>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-slate-500">Sem arquivo</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {registro.arquivo_pdf && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDownload(registro.arquivo_pdf!, 'PDF')}
-                            >
-                              <Download className="h-3 w-3 mr-1" />
-                              Baixar PDF
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+          {ultimaVersao && !loading && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Última Versão Disponível</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label className="font-semibold">Título:</Label>
+                    <p>{ultimaVersao.titulo}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Versão:</Label>
+                    <p>v{ultimaVersao.versao}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Setor:</Label>
+                    <p>{ultimaVersao.setor_responsavel}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Data Upload:</Label>
+                    <p>{new Date(ultimaVersao.data_upload).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Arquivo:</Label>
+                    <p>{ultimaVersao.arquivo_pdf}</p>
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Permissão:</Label>
+                    <p>{ultimaVersao.permissao_visualizacao === 'qualquer_pessoa' ? 'Qualquer pessoa' : 'Apenas setor'}</p>
+                  </div>
+                </div>
+                
+                <Button onClick={handleVisualizarPDF} className="w-full">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Visualizar PDF
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
-          {!loadingRegistros && tituloSelecionado && registros.length === 0 && (
-            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
-              Nenhum registro encontrado para este título.
-            </div>
-          )}
-
-          {!tituloSelecionado && (
-            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
-              Selecione um título para visualizar os registros.
+          {tituloSelecionado && !ultimaVersao && !loading && (
+            <div className="text-center py-8 text-gray-500">
+              Nenhum documento encontrado para este título.
             </div>
           )}
         </CardContent>

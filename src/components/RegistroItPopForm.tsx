@@ -1,274 +1,214 @@
 
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Upload, FileText } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-import { tituloItPopService } from '@/services/tituloItPopService';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
+import { tituloItPopService, TituloItPop } from '@/services/tituloItPopService';
 import { registroItPopService } from '@/services/registroItPopService';
-import { fileUploadService } from '@/services/fileUploadService';
-import type { RegistroItPop, TituloItPop } from '@/types';
-
-const registroSchema = z.object({
-  titulo_id: z.string().min(1, 'Selecione um título'),
-  registrado_por: z.string().optional(),
-});
-
-type RegistroFormData = z.infer<typeof registroSchema>;
 
 interface RegistroItPopFormProps {
   onSuccess: () => void;
 }
 
 export const RegistroItPopForm: React.FC<RegistroItPopFormProps> = ({ onSuccess }) => {
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [titulos, setTitulos] = useState<TituloItPop[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const form = useForm<RegistroFormData>({
-    resolver: zodResolver(registroSchema),
-    defaultValues: {
-      titulo_id: '',
-      registrado_por: '',
-    },
+  const [formData, setFormData] = useState({
+    titulo_id: '',
+    titulo: '',
+    arquivo_pdf: '',
+    setor_responsavel: '',
+    permissao_visualizacao: 'qualquer_pessoa' as 'qualquer_pessoa' | 'apenas_setor',
+    data_upload: new Date().toISOString().split('T')[0]
   });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const setores = [
+    'Administrativo',
+    'Financeiro',
+    'Recursos Humanos',
+    'TI',
+    'Produção',
+    'Qualidade',
+    'Manutenção',
+    'Vendas',
+    'Marketing',
+    'Outros'
+  ];
 
   useEffect(() => {
-    const carregarTitulos = async () => {
-      try {
-        console.log('🔍 Carregando títulos IT/POP...');
-        setLoading(true);
-        const titulosData = await tituloItPopService.getAll();
-        setTitulos(titulosData);
-        console.log('✅ Títulos carregados:', titulosData.length);
-      } catch (error) {
-        console.error('❌ Erro ao carregar títulos:', error);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao carregar títulos. Tente recarregar a página.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    carregarTitulos();
+    loadTitulos();
   }, []);
 
-  const handlePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        toast({
-          title: 'Erro',
-          description: 'Apenas arquivos PDF são permitidos.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        toast({
-          title: 'Erro',
-          description: 'O arquivo PDF deve ter no máximo 10MB.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      console.log('📎 Arquivo PDF selecionado:', file.name, 'Tamanho:', file.size);
-      setPdfFile(file);
+  const loadTitulos = async () => {
+    try {
+      const data = await tituloItPopService.getAll();
+      setTitulos(data);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar títulos.",
+        variant: "destructive"
+      });
     }
   };
 
-  const onSubmit = async (data: RegistroFormData) => {
-    if (!pdfFile) {
+  const handleTituloChange = (value: string) => {
+    const tituloSelecionado = titulos.find(t => t.id.toString() === value);
+    setFormData(prev => ({
+      ...prev,
+      titulo_id: value,
+      titulo: tituloSelecionado?.titulo || ''
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.titulo_id || !formData.arquivo_pdf || !formData.setor_responsavel) {
       toast({
-        title: 'Erro',
-        description: 'Anexe um arquivo PDF.',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive"
       });
       return;
     }
 
+    setLoading(true);
     try {
-      setIsSubmitting(true);
-      console.log('🚀 Iniciando registro de IT/POP...', {
-        titulo_id: data.titulo_id,
-        registrado_por: data.registrado_por,
-        temPDF: !!pdfFile
+      await registroItPopService.create({
+        titulo_id: parseInt(formData.titulo_id),
+        titulo: formData.titulo,
+        arquivo_pdf: formData.arquivo_pdf,
+        setor_responsavel: formData.setor_responsavel,
+        permissao_visualizacao: formData.permissao_visualizacao,
+        data_upload: formData.data_upload
       });
-      
-      let arquivo_pdf_url = null;
-      
-      // Upload do arquivo PDF
-      console.log('📤 Fazendo upload do PDF...');
-      try {
-        arquivo_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'itpop');
-        console.log('✅ PDF uploaded com sucesso:', arquivo_pdf_url);
-      } catch (uploadError) {
-        console.error('❌ Erro no upload do PDF:', uploadError);
-        toast({
-          title: 'Erro no Upload',
-          description: 'Erro ao fazer upload do PDF. Tente novamente.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Criar objeto registro para salvar no banco
-      const registro: Omit<RegistroItPop, 'id' | 'versao' | 'titulo'> = {
-        titulo_id: parseInt(data.titulo_id),
-        arquivo_pdf: arquivo_pdf_url || undefined,
-        data_registro: new Date().toISOString(),
-        registrado_por: data.registrado_por || undefined,
-      };
-
-      console.log('💾 Salvando registro no banco:', registro);
-      const novoRegistro = await registroItPopService.create(registro);
-      console.log('✅ Registro salvo com sucesso:', novoRegistro);
 
       toast({
-        title: 'Sucesso',
-        description: `IT/POP registrado com sucesso! Versão ${novoRegistro.versao} criada.`,
+        title: "Sucesso",
+        description: "Documento POP/IT registrado com sucesso!"
       });
 
-      // Limpar formulário
-      form.reset();
-      setPdfFile(null);
+      setFormData({
+        titulo_id: '',
+        titulo: '',
+        arquivo_pdf: '',
+        setor_responsavel: '',
+        permissao_visualizacao: 'qualquer_pessoa',
+        data_upload: new Date().toISOString().split('T')[0]
+      });
+
       onSuccess();
     } catch (error) {
-      console.error('❌ Erro ao registrar IT/POP:', error);
       toast({
-        title: 'Erro',
-        description: 'Erro ao registrar IT/POP. Verifique os dados e tente novamente.',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Erro ao registrar documento POP/IT.",
+        variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            Registro de IT/POP
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Carregando títulos disponíveis...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Registro de IT/POP
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Registre uma nova versão de IT/POP
-        </p>
-      </div>
-
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+    <div className="container mx-auto p-6">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Dados do Registro
-          </CardTitle>
+          <CardTitle>Registro de POP/IT</CardTitle>
+          <CardDescription>
+            Registre documentos POP (Procedimento Operacional Padrão) e IT (Instrução de Trabalho)
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="titulo_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título IT/POP</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o título" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {titulos.map((titulo) => (
-                          <SelectItem key={titulo.id} value={titulo.id!.toString()}>
-                            {titulo.titulo}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="titulo">Título do Documento</Label>
+              <Select value={formData.titulo_id} onValueChange={handleTituloChange}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione um título" />
+                </SelectTrigger>
+                <SelectContent>
+                  {titulos.map((titulo) => (
+                    <SelectItem key={titulo.id} value={titulo.id.toString()}>
+                      {titulo.titulo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <FormField
-                control={form.control}
-                name="registrado_por"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Registrado por (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome de quem está registrando" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            <div>
+              <Label htmlFor="arquivo_pdf">Arquivo PDF</Label>
+              <Input
+                id="arquivo_pdf"
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  arquivo_pdf: e.target.files?.[0]?.name || '' 
+                }))}
+                className="mt-1"
               />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="arquivo_pdf">Arquivo PDF *</Label>
+            <div>
+              <Label htmlFor="setor">Setor Responsável</Label>
+              <Select value={formData.setor_responsavel} onValueChange={(value) => 
+                setFormData(prev => ({ ...prev, setor_responsavel: value }))
+              }>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione o setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {setores.map((setor) => (
+                    <SelectItem key={setor} value={setor}>
+                      {setor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Permissão de Visualização</Label>
+              <RadioGroup
+                value={formData.permissao_visualizacao}
+                onValueChange={(value: 'qualquer_pessoa' | 'apenas_setor') => 
+                  setFormData(prev => ({ ...prev, permissao_visualizacao: value }))
+                }
+                className="mt-2"
+              >
                 <div className="flex items-center space-x-2">
-                  <Input
-                    id="arquivo_pdf"
-                    type="file"
-                    accept=".pdf"
-                    onChange={handlePdfChange}
-                    className="flex-1"
-                  />
-                  <Button type="button" variant="outline" size="icon">
-                    <Upload className="h-4 w-4" />
-                  </Button>
+                  <RadioGroupItem value="qualquer_pessoa" id="qualquer_pessoa" />
+                  <Label htmlFor="qualquer_pessoa">Qualquer pessoa</Label>
                 </div>
-                {pdfFile && (
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    PDF selecionado: {pdfFile.name} ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
-                  </p>
-                )}
-              </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="apenas_setor" id="apenas_setor" />
+                  <Label htmlFor="apenas_setor">Apenas pessoas do setor correspondente</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-              <div className="flex justify-end space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    form.reset();
-                    setPdfFile(null);
-                  }}
-                >
-                  Limpar
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Registrando...' : 'Registrar IT/POP'}
-                </Button>
-              </div>
-            </form>
-          </Form>
+            <div>
+              <Label htmlFor="data_upload">Data de Upload</Label>
+              <Input
+                id="data_upload"
+                type="date"
+                value={formData.data_upload}
+                onChange={(e) => setFormData(prev => ({ ...prev, data_upload: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
+            
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Salvando...' : 'Registrar Documento'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

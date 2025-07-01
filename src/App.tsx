@@ -25,6 +25,8 @@ import { ConsultaTitulosItPop } from '@/components/ConsultaTitulosItPop';
 import { RegistroItPopForm } from '@/components/RegistroItPopForm';
 import { ConsultaRegistrosItPop } from '@/components/ConsultaRegistrosItPop';
 import { VisualizadorItPop } from '@/components/VisualizadorItPop';
+import { DocumentoVencimentoForm } from '@/components/DocumentoVencimentoForm';
+import { ConsultaDocumentosVencimento } from '@/components/ConsultaDocumentosVencimento';
 import { TituloBpmnForm } from '@/components/TituloBpmnForm';
 import { ConsultaTitulosBpmn } from '@/components/ConsultaTitulosBpmn';
 import { RegistroBpmnForm } from '@/components/RegistroBpmnForm';
@@ -101,6 +103,10 @@ function App() {
         return <ConsultaRegistrosItPop onSuccess={handleSuccess} />;
       case 'visualizar-itpop':
         return <VisualizadorItPop onSuccess={handleSuccess} />;
+      case 'documento-vencimento-cadastro':
+        return <DocumentoVencimentoForm onSuccess={handleSuccess} />;
+      case 'documento-vencimento-consulta':
+        return <ConsultaDocumentosVencimento onSuccess={handleSuccess} />;
       case 'titulo-bpmn-cadastro':
         return <TituloBpmnForm onSuccess={handleSuccess} />;
       case 'titulo-bpmn-consulta':

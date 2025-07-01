@@ -1,188 +1,161 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Trash2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { toast } from '@/hooks/use-toast';
-
-interface TituloItPop {
-  id?: number;
-  titulo: string;
-  descricao?: string;
-  data_cadastro: string;
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { tituloItPopService, TituloItPop } from '@/services/tituloItPopService';
+import { Trash2, Edit } from 'lucide-react';
 
 interface ConsultaTitulosItPopProps {
   onSuccess: () => void;
 }
 
-// Mock data
-const mockTitulos: TituloItPop[] = [
-  {
-    id: 1,
-    titulo: 'Procedimento de Calibração',
-    descricao: 'Procedimento para calibração de equipamentos',
-    data_cadastro: new Date().toISOString()
-  },
-  {
-    id: 2,
-    titulo: 'IT - Manutenção Preventiva',
-    descricao: 'Instrução técnica para manutenção preventiva',
-    data_cadastro: new Date().toISOString()
-  }
-];
-
 export const ConsultaTitulosItPop: React.FC<ConsultaTitulosItPopProps> = ({ onSuccess }) => {
   const [titulos, setTitulos] = useState<TituloItPop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingTitulo, setEditingTitulo] = useState<TituloItPop | null>(null);
+  const [editTitulo, setEditTitulo] = useState('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    carregarTitulos();
-  }, []);
-
-  const carregarTitulos = async () => {
+  const loadTitulos = async () => {
     try {
-      console.log('🔍 Carregando títulos IT/POP (mock data)...');
-      setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setTitulos(mockTitulos);
-      console.log('✅ Títulos carregados:', mockTitulos.length);
+      const data = await tituloItPopService.getAll();
+      setTitulos(data);
     } catch (error) {
-      console.error('❌ Erro ao carregar títulos:', error);
       toast({
-        title: 'Erro',
-        description: 'Erro ao carregar títulos. Tente recarregar a página.',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Erro ao carregar títulos.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExcluirTitulo = async (titulo: TituloItPop) => {
+  useEffect(() => {
+    loadTitulos();
+  }, []);
+
+  const handleEdit = (titulo: TituloItPop) => {
+    setEditingTitulo(titulo);
+    setEditTitulo(titulo.titulo);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingTitulo || !editTitulo.trim()) return;
+
     try {
-      console.log('🗑️ Excluindo título (simulado):', titulo.id);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await tituloItPopService.update(editingTitulo.id, { titulo: editTitulo.trim() });
       toast({
-        title: 'Sucesso',
-        description: 'Título excluído com sucesso!',
+        title: "Sucesso",
+        description: "Título atualizado com sucesso!"
       });
-      
-      // Remove from local state
-      setTitulos(prev => prev.filter(t => t.id !== titulo.id));
+      setIsEditDialogOpen(false);
+      setEditingTitulo(null);
+      setEditTitulo('');
+      loadTitulos();
       onSuccess();
     } catch (error) {
-      console.error('❌ Erro ao excluir título:', error);
       toast({
-        title: 'Erro',
-        description: 'Erro ao excluir título. Tente novamente.',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Erro ao atualizar título.",
+        variant: "destructive"
       });
     }
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  const handleDelete = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir este título?')) {
+      try {
+        await tituloItPopService.delete(id);
+        toast({
+          title: "Sucesso",
+          description: "Título excluído com sucesso!"
+        });
+        loadTitulos();
+        onSuccess();
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir título.",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            Consulta de Títulos IT/POP
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Carregando títulos...
-          </p>
-        </div>
-      </div>
-    );
+    return <div className="p-6">Carregando...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Consulta de Títulos IT/POP
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Consulte e gerencie os títulos cadastrados
-        </p>
-      </div>
-
-      <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/20 dark:border-slate-700/50">
+    <div className="container mx-auto p-6">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Títulos Cadastrados ({titulos.length})
-          </CardTitle>
+          <CardTitle>Consulta de Títulos POP/IT</CardTitle>
         </CardHeader>
         <CardContent>
-          {titulos.length === 0 ? (
-            <div className="text-center py-8 text-slate-600 dark:text-slate-400">
-              Nenhum título cadastrado ainda.
-            </div>
-          ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Data de Cadastro</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {titulos.map((titulo) => (
-                    <TableRow key={titulo.id}>
-                      <TableCell className="font-medium">{titulo.titulo}</TableCell>
-                      <TableCell>{titulo.descricao || 'Sem descrição'}</TableCell>
-                      <TableCell>{formatDate(titulo.data_cadastro)}</TableCell>
-                      <TableCell className="text-center">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Excluir
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="flex items-center gap-2">
-                                <AlertTriangle className="h-5 w-5 text-red-500" />
-                                Confirmar Exclusão
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja excluir o título "{titulo.titulo}"? 
-                                Esta ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleExcluirTitulo(titulo)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Código</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Data Cadastro</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {titulos.map((titulo) => (
+                <TableRow key={titulo.id}>
+                  <TableCell>{titulo.id}</TableCell>
+                  <TableCell>{titulo.titulo}</TableCell>
+                  <TableCell>{new Date(titulo.data_cadastro).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(titulo)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(titulo.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Editar Título</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-titulo">Título</Label>
+                  <Input
+                    id="edit-titulo"
+                    value={editTitulo}
+                    onChange={(e) => setEditTitulo(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSaveEdit}>
+                    Salvar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>

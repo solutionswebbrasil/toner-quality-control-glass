@@ -17,7 +17,8 @@ import {
   FolderPlus,
   Mail,
   Key,
-  Cog
+  Cog,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -87,6 +88,27 @@ const menuItems: MenuItem[] = [
     submenu: [
       { id: 'auditorias-registro', label: 'Registro', icon: ClipboardCheck, page: 'auditorias-registro' },
       { id: 'auditorias-consulta', label: 'Consulta', icon: ClipboardCheck, page: 'auditorias-consulta' }
+    ]
+  },
+  {
+    id: 'pops-its',
+    label: 'POPs / ITs',
+    icon: BookOpen,
+    submenu: [
+      { id: 'titulo-itpop-cadastro', label: 'Cadastro de Títulos', icon: FileText, page: 'titulo-itpop-cadastro' },
+      { id: 'titulo-itpop-consulta', label: 'Consulta de Títulos', icon: FileText, page: 'titulo-itpop-consulta' },
+      { id: 'registro-itpop', label: 'Registro de Documentos', icon: FileCode, page: 'registro-itpop' },
+      { id: 'registros-itpop-consulta', label: 'Consulta de Registros', icon: FileCode, page: 'registros-itpop-consulta' },
+      { id: 'visualizar-itpop', label: 'Visualizar Documentos', icon: FileText, page: 'visualizar-itpop' }
+    ]
+  },
+  {
+    id: 'documentos-vencimento',
+    label: 'Docs. c/ Vencimento',
+    icon: Calendar,
+    submenu: [
+      { id: 'documento-vencimento-cadastro', label: 'Cadastro', icon: Calendar, page: 'documento-vencimento-cadastro' },
+      { id: 'documento-vencimento-consulta', label: 'Consulta', icon: Calendar, page: 'documento-vencimento-consulta' }
     ]
   },
   {
