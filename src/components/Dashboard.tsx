@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, FileText, TrendingUp, DollarSign } from 'lucide-react';
-import { tonerService, retornadoService } from '@/services/dataService';
 
 interface DashboardStats {
   totalToners: number;
@@ -24,28 +24,15 @@ export const Dashboard: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const [toners, retornados] = await Promise.all([
-        tonerService.getAll(),
-        retornadoService.getAll()
-      ]);
+      // Mock data for frontend-only version
+      const mockStats = {
+        totalToners: 45,
+        totalRetornados: 128,
+        valorRecuperado: 15420.50,
+        mesAtual: 23
+      };
 
-      const valorRecuperado = retornados
-        .filter(r => r.valor_recuperado)
-        .reduce((sum, r) => sum + (r.valor_recuperado || 0), 0);
-
-      // Calcular retornados do mês atual
-      const agora = new Date();
-      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
-      const retornadosMesAtual = retornados.filter(r => 
-        new Date(r.data_registro) >= inicioMes
-      );
-
-      setStats({
-        totalToners: toners.length,
-        totalRetornados: retornados.length,
-        valorRecuperado,
-        mesAtual: retornadosMesAtual.length
-      });
+      setStats(mockStats);
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     }

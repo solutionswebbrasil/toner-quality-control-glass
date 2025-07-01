@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { filialService } from '@/services/filialService';
 import { useToast } from '@/hooks/use-toast';
 
 interface FilialFormProps {
@@ -37,14 +36,8 @@ export const FilialForm: React.FC<FilialFormProps> = ({ onSuccess }) => {
     setLoading(true);
     
     try {
-      await filialService.create({
-        nome: formData.nome.trim(),
-        codigo: formData.codigo.trim() || undefined,
-        endereco: formData.endereco.trim() || undefined,
-        telefone: formData.telefone.trim() || undefined,
-        email: formData.email.trim() || undefined,
-        ativo: true
-      });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       toast({
         title: "Sucesso",

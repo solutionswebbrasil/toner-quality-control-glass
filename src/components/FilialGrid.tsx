@@ -15,9 +15,42 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { filialService } from '@/services/filialService';
 import { useToast } from '@/hooks/use-toast';
-import type { Filial } from '@/types/filial';
+
+interface Filial {
+  id: number;
+  nome: string;
+  codigo?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+  data_cadastro: string;
+  ativo: boolean;
+}
+
+// Mock data
+const mockFiliais: Filial[] = [
+  {
+    id: 1,
+    nome: 'Filial São Paulo',
+    codigo: 'SP',
+    endereco: 'Rua das Flores, 123 - SP',
+    telefone: '(11) 99999-9999',
+    email: 'sp@empresa.com',
+    data_cadastro: new Date().toISOString(),
+    ativo: true
+  },
+  {
+    id: 2,
+    nome: 'Filial Rio de Janeiro',
+    codigo: 'RJ',
+    endereco: 'Av. Copacabana, 456 - RJ',
+    telefone: '(21) 88888-8888',
+    email: 'rj@empresa.com',
+    data_cadastro: new Date().toISOString(),
+    ativo: true
+  }
+];
 
 export const FilialGrid: React.FC = () => {
   const { toast } = useToast();
@@ -30,8 +63,9 @@ export const FilialGrid: React.FC = () => {
 
   const loadFiliais = async () => {
     try {
-      const data = await filialService.getAll();
-      setFiliais(data);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setFiliais(mockFiliais);
     } catch (error) {
       toast({
         title: "Erro",
@@ -45,7 +79,8 @@ export const FilialGrid: React.FC = () => {
 
   const handleDeleteFilial = async (id: number, nome: string) => {
     try {
-      await filialService.delete(id);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Atualizar lista removendo o item excluído
       setFiliais(prev => prev.filter(item => item.id !== id));

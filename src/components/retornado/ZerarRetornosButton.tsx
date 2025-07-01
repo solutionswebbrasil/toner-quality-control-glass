@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { retornadoService } from '@/services/retornadoService';
 
 interface ZerarRetornosButtonProps {
   onZerarComplete: () => void;
@@ -35,7 +34,8 @@ export const ZerarRetornosButton: React.FC<ZerarRetornosButtonProps> = ({ onZera
     setIsProcessing(true);
     
     try {
-      await retornadoService.deleteAll();
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "Sucesso",
