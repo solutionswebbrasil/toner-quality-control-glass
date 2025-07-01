@@ -1,59 +1,36 @@
 
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useMemo } from 'react';
+import { Retornado } from '@/types';
 
-// Mock data with complete Retornado structure
-const mockRetornados = [
-  {
-    id: 1,
-    id_modelo: 1,
-    id_cliente: 'CLI001',
-    peso: 2.5,
-    destino_final: 'Reciclagem',
-    valor_recuperado: 25.00,
-    data_registro: '2024-01-15',
-    filial: 'São Paulo'
-  }
-];
-
-export const useRetornadoPagination = () => {
-  const { toast } = useToast();
+export const useRetornadoPagination = (data: Retornado[], itemsPerPage: number = 10) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-  const [retornados] = useState(mockRetornados);
-  const [loading] = useState(false);
 
-  const totalItems = retornados.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const totalCount = totalItems;
+  const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  const paginatedRetornados = retornados.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return data.slice(startIndex, endIndex);
+  }, [data, currentPage, itemsPerPage]);
 
-  const loadAllRetornados = async () => {
-    console.log('Loading all retornados...');
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const handleDeleteRetornado = (id: number) => {
-    toast({
-      title: "Sucesso",
-      description: "Retornado excluído com sucesso!",
-    });
+  const nextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const prevPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
   };
 
   return {
-    retornados: paginatedRetornados,
-    allRetornados: retornados,
     currentPage,
     totalPages,
-    totalItems,
-    totalCount,
-    itemsPerPage,
-    loading,
-    setCurrentPage,
-    loadAllRetornados,
-    handleDeleteRetornado,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage
   };
 };

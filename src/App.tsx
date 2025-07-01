@@ -131,6 +131,8 @@ function App() {
         return <UserPermissions />;
       case 'novo-usuario':
         return <NewUserRegistration />;
+      case 'smtp-config':
+        return <div className="p-6"><h1 className="text-2xl font-bold">Configurações SMTP</h1><p className="mt-4 text-gray-600">Configurações de email em desenvolvimento.</p></div>;
       default:
         return <Dashboard />;
     }

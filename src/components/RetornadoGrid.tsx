@@ -1,16 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Search, Download, Upload, FileText, Trash2, Edit, Plus } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Retornado } from '@/types';
 import { retornadoService } from '@/services/retornadoService';
 import { useToast } from '@/hooks/use-toast';
 import { RetornadoTable } from '@/components/retornado/RetornadoTable';
 import { RetornadoFilters } from '@/components/retornado/RetornadoFilters';
 import { RetornadoActions } from '@/components/retornado/RetornadoActions';
-import { ImportModal } from '@/components/ImportModal';
 import { useRetornadoFilters } from '@/hooks/useRetornadoFilters';
 import { useRetornadoPagination } from '@/hooks/useRetornadoPagination';
 import { useRetornadoImportExport } from '@/hooks/useRetornadoImportExport';
@@ -86,18 +83,23 @@ export const RetornadoGrid: React.FC = () => {
         </CardHeader>
         <CardContent>
           <RetornadoFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-            selectedFilial={selectedFilial}
+            dataInicio={dateRange.from}
+            onDataInicioChange={(value) => setDateRange(prev => ({ ...prev, from: value }))}
+            dataFim={dateRange.to}
+            onDataFimChange={(value) => setDateRange(prev => ({ ...prev, to: value }))}
+            filial={selectedFilial}
             onFilialChange={setSelectedFilial}
+            clearFilters={() => {
+              setSearchTerm('');
+              setDateRange({ from: '', to: '' });
+              setSelectedFilial('');
+            }}
           />
 
           <RetornadoActions
             onImportExcel={handleImportData}
-            onExportExcel={handleExportExcel}
-            onImportCSV={handleImportFile}
+            onExportExcel={() => handleExportExcel()}
+            onImportCSV={() => console.log('Import CSV')}
             onExportCSV={() => console.log('Export CSV')}
             onDownloadTemplate={() => console.log('Download template')}
             isImporting={isImporting}
@@ -106,7 +108,6 @@ export const RetornadoGrid: React.FC = () => {
 
           <RetornadoTable
             retornados={paginatedData}
-            loading={loading}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={goToPage}

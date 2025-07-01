@@ -30,7 +30,7 @@ export const retornadoService = {
       {
         id: 1,
         id_modelo: 1,
-        id_cliente: 'CLI001',
+        id_cliente: 1,
         peso: 2.5,
         destino_final: 'Reciclagem',
         valor_recuperado: 25.00,
@@ -54,7 +54,7 @@ export const retornadoService = {
       {
         id: 1,
         id_modelo: 1,
-        id_cliente: 'CLI001',
+        id_cliente: 1,
         peso: 2.5,
         destino_final: 'Reciclagem',
         valor_recuperado: 25.00,
@@ -122,6 +122,7 @@ export const garantiaService = {
         quantidade: 10,
         defeito: 'Defeito exemplo',
         fornecedor_id: 1,
+        fornecedor: 'Fornecedor A',
         status: 'Pendente',
         valor_unitario: 100.00,
         valor_total: 1000.00,

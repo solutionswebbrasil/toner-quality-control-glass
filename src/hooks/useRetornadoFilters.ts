@@ -1,40 +1,34 @@
 
 import { useState, useMemo } from 'react';
+import { Retornado } from '@/types';
 
-export const useRetornadoFilters = (retornados: any[]) => {
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [filialSelecionada, setFilialSelecionada] = useState('');
-  const [destinoSelecionado, setDestinoSelecionado] = useState('');
+export const useRetornadoFilters = (retornados: Retornado[]) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [selectedFilial, setSelectedFilial] = useState('');
 
-  const filteredRetornados = useMemo(() => {
-    return retornados.filter(retornado => {
-      const matchDataInicio = !dataInicio || retornado.data_registro >= dataInicio;
-      const matchDataFim = !dataFim || retornado.data_registro <= dataFim;
-      const matchFilial = !filialSelecionada || retornado.filial === filialSelecionada;
-      const matchDestino = !destinoSelecionado || retornado.destino_final === destinoSelecionado;
-
-      return matchDataInicio && matchDataFim && matchFilial && matchDestino;
+  const filteredData = useMemo(() => {
+    return retornados.filter(item => {
+      const matchesSearch = !searchTerm || 
+        item.id_cliente.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.filial.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesFilial = !selectedFilial || item.filial === selectedFilial;
+      
+      const matchesDate = !dateRange.from || !dateRange.to || 
+        (item.data_registro >= dateRange.from && item.data_registro <= dateRange.to);
+      
+      return matchesSearch && matchesFilial && matchesDate;
     });
-  }, [retornados, dataInicio, dataFim, filialSelecionada, destinoSelecionado]);
-
-  const clearFilters = () => {
-    setDataInicio('');
-    setDataFim('');
-    setFilialSelecionada('');
-    setDestinoSelecionado('');
-  };
+  }, [retornados, searchTerm, selectedFilial, dateRange]);
 
   return {
-    dataInicio,
-    setDataInicio,
-    dataFim,
-    setDataFim,
-    filialSelecionada,
-    setFilialSelecionada,
-    destinoSelecionado,
-    setDestinoSelecionado,
-    filteredRetornados,
-    clearFilters
+    searchTerm,
+    setSearchTerm,
+    dateRange,
+    setDateRange,
+    selectedFilial,
+    setSelectedFilial,
+    filteredData
   };
 };
