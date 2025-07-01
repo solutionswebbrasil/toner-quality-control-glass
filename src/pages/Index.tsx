@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
@@ -34,7 +35,7 @@ import { FilialForm } from '@/components/FilialForm';
 import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
 import { StatusCadastro } from '@/components/StatusCadastro';
-import { UserManagement } from '@/components/UserManagement';
+import UserManagement from '@/components/UserManagement';
 import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 
 export default function Index() {
