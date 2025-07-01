@@ -1,36 +1,113 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { 
+  Home, 
+  Package, 
+  FileText, 
+  Shield, 
+  Building2, 
+  Users, 
+  ClipboardCheck, 
+  AlertTriangle, 
+  BookOpen, 
+  FileCode, 
+  Award, 
+  Settings, 
+  User 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SidebarProps } from './types';
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  sidebarOpen, 
-  setSidebarOpen, 
-  expandedMenus, 
-  setExpandedMenus, 
-  currentPage, 
-  onPageChange, 
-  filteredMenuItems 
-}) => {
+interface SidebarProps {
+  currentPage: string;
+  onPageChange: (page: string) => void;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: any;
+  page?: string;
+  submenu?: MenuItem[];
+}
+
+const menuItems: MenuItem[] = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: Home,
+    page: 'dashboard'
+  },
+  {
+    id: 'retornados',
+    label: 'Retornados',
+    icon: Package,
+    submenu: [
+      { id: 'retornados-registro', label: 'Registro', icon: FileText, page: 'retornados-registro' },
+      { id: 'retornados-consulta', label: 'Consulta', icon: FileText, page: 'retornados-consulta' },
+      { id: 'retornados-graficos', label: 'Gráficos', icon: FileText, page: 'retornados-graficos' }
+    ]
+  },
+  {
+    id: 'fornecedores',
+    label: 'Fornecedores',
+    icon: Building2,
+    submenu: [
+      { id: 'fornecedores-cadastro', label: 'Cadastro', icon: Building2, page: 'fornecedores-cadastro' },
+      { id: 'fornecedores-consulta', label: 'Consulta', icon: Building2, page: 'fornecedores-consulta' }
+    ]
+  },
+  {
+    id: 'garantias',
+    label: 'Garantias',
+    icon: Shield,
+    submenu: [
+      { id: 'garantias-registro', label: 'Registro', icon: Shield, page: 'garantias-registro' },
+      { id: 'garantias-consulta', label: 'Consulta', icon: Shield, page: 'garantias-consulta' },
+      { id: 'garantias-graficos-gerais', label: 'Gráficos Gerais', icon: Shield, page: 'garantias-graficos-gerais' },
+      { id: 'garantias-toners', label: 'Garantias Toners', icon: Shield, page: 'garantias-toners' }
+    ]
+  },
+  {
+    id: 'toners',
+    label: 'Toners',
+    icon: Package,
+    submenu: [
+      { id: 'toners-cadastro', label: 'Cadastro', icon: Package, page: 'toners-cadastro' },
+      { id: 'toners-consulta-principal', label: 'Consulta', icon: Package, page: 'toners-consulta-principal' }
+    ]
+  },
+  {
+    id: 'auditorias',
+    label: 'Auditorias',
+    icon: ClipboardCheck,
+    submenu: [
+      { id: 'auditorias-registro', label: 'Registro', icon: ClipboardCheck, page: 'auditorias-registro' },
+      { id: 'auditorias-consulta', label: 'Consulta', icon: ClipboardCheck, page: 'auditorias-consulta' }
+    ]
+  },
+  {
+    id: 'usuarios',
+    label: 'Usuários',
+    icon: Users,
+    page: 'usuarios'
+  }
+];
+
+export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) => {
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['dashboard']);
+
   const toggleMenu = (menuId: string) => {
-    setExpandedMenus((prev) => {
-      if (prev.includes(menuId)) {
-        return prev.filter((id) => id !== menuId);
-      } else {
-        return [...prev, menuId];
-      }
-    });
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
   };
 
   const isActive = (page: string) => currentPage === page;
 
   return (
-    <aside
-      className={cn(
-        "fixed lg:static inset-y-0 left-0 z-20 w-72 bg-blue-600 dark:bg-gray-800 border-r border-blue-700 dark:border-gray-700 transition-transform duration-300 ease-in-out flex flex-col",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}
-    >
+    <aside className="w-72 bg-blue-600 dark:bg-gray-800 border-r border-blue-700 dark:border-gray-700 flex flex-col">
       <div className="flex items-center justify-center h-16 border-b border-blue-700 dark:border-gray-700 flex-shrink-0 px-3">
         <span className="text-lg font-semibold text-center leading-tight text-white dark:text-white">
           Menu Principal
@@ -38,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-3">
-          {filteredMenuItems.map((item) => (
+          {menuItems.map((item) => (
             item.submenu ? (
               <li key={item.id}>
                 <button
@@ -47,7 +124,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 text-white hover:bg-blue-700 dark:hover:bg-gray-700",
                     expandedMenus.includes(item.id) && "bg-blue-700 dark:bg-gray-700"
                   )}
-                  aria-expanded={expandedMenus.includes(item.id)}
                 >
                   <item.icon className="w-5 h-5 mr-3 flex-shrink-0 text-white" />
                   <span className="flex-1 text-left leading-tight break-words text-xs text-white">
@@ -79,15 +155,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {item.submenu.map((subItem) => (
                     <li key={subItem.id}>
                       <button
-                        onClick={() => {
-                          onPageChange(subItem.page);
-                          if (window.innerWidth < 1024) {
-                            setSidebarOpen(false);
-                          }
-                        }}
+                        onClick={() => onPageChange(subItem.page!)}
                         className={cn(
                           "flex items-center w-full px-3 py-2 ml-6 text-xs rounded-lg transition-colors duration-200 hover:bg-blue-700 dark:hover:bg-gray-700",
-                          isActive(subItem.page) 
+                          isActive(subItem.page!) 
                             ? "bg-blue-500 text-white font-medium"
                             : "text-white"
                         )}
@@ -101,12 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             ) : (
               <li key={item.id}>
                 <button
-                  onClick={() => {
-                    onPageChange(item.page!);
-                    if (window.innerWidth < 1024) {
-                      setSidebarOpen(false);
-                    }
-                  }}
+                  onClick={() => onPageChange(item.page!)}
                   className={cn(
                     "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 hover:bg-blue-700 dark:hover:bg-gray-700",
                     isActive(item.page!) 

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { UserMenu } from '../UserMenu';
 import { ModeToggle } from '../ModeToggle';
 import { Menu, X } from 'lucide-react';
 import { HeaderProps } from './types';
@@ -34,7 +33,9 @@ export const Header: React.FC<HeaderProps> = ({ sidebarOpen, toggleSidebar }) =>
         {/* Right side items */}
         <div className="flex items-center space-x-4 ml-auto">
           <ModeToggle />
-          <UserMenu />
+          <div className="flex items-center space-x-2">
+            <span className="text-white text-sm">Admin</span>
+          </div>
         </div>
       </div>
     </header>

@@ -78,37 +78,37 @@ function App() {
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
       case 'nc-registro':
-        return <NaoConformidadeForm onSuccess={handleSuccess} />;
+        return <NaoConformidadeForm />;
       case 'nc-consulta':
         return <NaoConformidadeGrid />;
       case 'nc-graficos':
         return <NaoConformidadeCharts naoConformidades={[]} />;
       case 'titulo-itpop-cadastro':
-        return <TituloItPopForm onSuccess={handleSuccess} />;
+        return <TituloItPopForm />;
       case 'titulo-itpop-consulta':
-        return <ConsultaTitulosItPop onSuccess={handleSuccess} />;
+        return <ConsultaTitulosItPop />;
       case 'registro-itpop':
-        return <RegistroItPopForm onSuccess={handleSuccess} />;
+        return <RegistroItPopForm />;
       case 'registros-itpop-consulta':
-        return <ConsultaRegistrosItPop onSuccess={handleSuccess} />;
+        return <ConsultaRegistrosItPop />;
       case 'visualizar-itpop':
-        return <VisualizadorItPop onSuccess={handleSuccess} />;
+        return <VisualizadorItPop />;
       case 'titulo-bpmn-cadastro':
-        return <TituloBpmnForm onSuccess={handleSuccess} />;
+        return <TituloBpmnForm />;
       case 'titulo-bpmn-consulta':
-        return <ConsultaTitulosBpmn onSuccess={handleSuccess} />;
+        return <ConsultaTitulosBpmn />;
       case 'registro-bpmn':
-        return <RegistroBpmnForm onSuccess={handleSuccess} />;
+        return <RegistroBpmnForm />;
       case 'registros-bpmn-consulta':
-        return <ConsultaRegistrosBpmn onSuccess={handleSuccess} />;
+        return <ConsultaRegistrosBpmn />;
       case 'visualizar-bpmn':
-        return <VisualizadorBpmn onSuccess={handleSuccess} />;
+        return <VisualizadorBpmn />;
       case 'certificados-registro':
-        return <CertificadoForm onSuccess={handleSuccess} />;
+        return <CertificadoForm />;
       case 'certificados-consulta':
         return <CertificadoGrid />;
       case 'filiais-cadastro':
-        return <FilialForm onSuccess={handleSuccess} />;
+        return <FilialForm />;
       case 'filiais-consulta':
         return <FilialGrid />;
       case 'config-retornado':
