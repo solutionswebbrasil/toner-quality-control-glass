@@ -9,9 +9,12 @@ export const garantiaService = {
         quantidade: 2,
         defeito: 'Não imprime',
         fornecedor_id: 1,
+        fornecedor: 'HP Brasil',
         status: 'aberta',
         valor_unitario: 150,
-        data_registro: '2024-01-01'
+        valor_total: 300,
+        data_registro: '2024-01-01',
+        user_id: 'user1'
       }
     ];
   },
@@ -23,6 +26,19 @@ export const garantiaService = {
   },
   delete: async (id: number) => {
     return { success: true };
+  },
+  getStats: async () => {
+    return {
+      monthlyData: {
+        '2024-01': { quantidade: 5, valor: 1500 },
+        '2024-02': { quantidade: 3, valor: 900 },
+        '2024-03': { quantidade: 7, valor: 2100 }
+      },
+      currentMonthByFornecedor: {
+        'HP Brasil': 3,
+        'Canon Brasil': 2
+      }
+    };
   },
   getStatusConfiguracoes: async (tipo: string) => {
     return [

@@ -39,9 +39,11 @@ import { ApisIntegracoes } from '@/components/ApisIntegracoes';
 import UserManagement from '@/components/UserManagement';
 import UserPermissions from '@/components/UserPermissions';
 import NewUserRegistration from '@/components/NewUserRegistration';
+import { useNaoConformidades } from '@/hooks/useNaoConformidades';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const { naoConformidades } = useNaoConformidades();
 
   const handleSuccess = () => {
     console.log('Action completed successfully');
@@ -82,7 +84,7 @@ function App() {
       case 'nc-consulta':
         return <NaoConformidadeGrid />;
       case 'nc-graficos':
-        return <NaoConformidadeCharts />;
+        return <NaoConformidadeCharts naoConformidades={naoConformidades} />;
       case 'titulo-itpop-cadastro':
         return <TituloItPopForm onSuccess={handleSuccess} />;
       case 'titulo-itpop-consulta':

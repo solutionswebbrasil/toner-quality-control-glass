@@ -13,12 +13,15 @@ export const useRetornadoImportExport = () => {
   const handleImportExcel = async (file: File) => {
     setIsImporting(true);
     setImporting(true);
+    setImportProgress(0);
+    
     try {
-      // Simulate import process
+      // Simulate import progress
       for (let i = 0; i <= 100; i += 10) {
         setImportProgress(i);
         await new Promise(resolve => setTimeout(resolve, 100));
       }
+      
       toast({
         title: "Sucesso",
         description: "Dados importados com sucesso!",
@@ -39,7 +42,7 @@ export const useRetornadoImportExport = () => {
   const handleExportExcel = async () => {
     setIsExporting(true);
     try {
-      // Simulate export process
+      // Simulate export
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: "Sucesso",
@@ -56,23 +59,35 @@ export const useRetornadoImportExport = () => {
     }
   };
 
-  const handleExportCSV = async (data: any[]) => {
-    await handleExportExcel();
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast({
+        title: "Sucesso",
+        description: "CSV exportado com sucesso!",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleDownloadTemplate = () => {
     toast({
-      title: "Download",
+      title: "Sucesso",
       description: "Template baixado com sucesso!",
     });
   };
 
-  const handleImportUpload = async (file: File) => {
-    await handleImportExcel(file);
+  const handleImportUpload = (file: File) => {
+    handleImportExcel(file);
   };
 
-  const handleImportCSV = () => {
-    setIsImportModalOpen(true);
+  const handleImportCSV = (data: any[]) => {
+    toast({
+      title: "Sucesso",
+      description: `${data.length} registros importados!`,
+    });
   };
 
   return {
