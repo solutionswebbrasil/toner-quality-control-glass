@@ -6,13 +6,33 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { tituloItPopService } from '@/services/tituloItPopService';
-import { registroItPopService } from '@/services/registroItPopService';
-import type { TituloItPop } from '@/types';
+
+interface TituloItPop {
+  id?: number;
+  titulo: string;
+  descricao?: string;
+  data_cadastro: string;
+}
 
 interface ConsultaTitulosItPopProps {
   onSuccess: () => void;
 }
+
+// Mock data
+const mockTitulos: TituloItPop[] = [
+  {
+    id: 1,
+    titulo: 'Procedimento de Calibração',
+    descricao: 'Procedimento para calibração de equipamentos',
+    data_cadastro: new Date().toISOString()
+  },
+  {
+    id: 2,
+    titulo: 'IT - Manutenção Preventiva',
+    descricao: 'Instrução técnica para manutenção preventiva',
+    data_cadastro: new Date().toISOString()
+  }
+];
 
 export const ConsultaTitulosItPop: React.FC<ConsultaTitulosItPopProps> = ({ onSuccess }) => {
   const [titulos, setTitulos] = useState<TituloItPop[]>([]);
@@ -24,11 +44,12 @@ export const ConsultaTitulosItPop: React.FC<ConsultaTitulosItPopProps> = ({ onSu
 
   const carregarTitulos = async () => {
     try {
-      console.log('🔍 Carregando títulos IT/POP...');
+      console.log('🔍 Carregando títulos IT/POP (mock data)...');
       setLoading(true);
-      const titulosData = await tituloItPopService.getAll();
-      setTitulos(titulosData);
-      console.log('✅ Títulos carregados:', titulosData.length);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setTitulos(mockTitulos);
+      console.log('✅ Títulos carregados:', mockTitulos.length);
     } catch (error) {
       console.error('❌ Erro ao carregar títulos:', error);
       toast({
@@ -43,39 +64,19 @@ export const ConsultaTitulosItPop: React.FC<ConsultaTitulosItPopProps> = ({ onSu
 
   const handleExcluirTitulo = async (titulo: TituloItPop) => {
     try {
-      console.log('🔍 Verificando se existem registros para o título:', titulo.id);
+      console.log('🗑️ Excluindo título (simulado):', titulo.id);
       
-      // Verificar se existem registros para este título
-      const registrosDoTitulo = await registroItPopService.getByTituloId(titulo.id!);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (registrosDoTitulo.length > 0) {
-        toast({
-          title: 'Não é possível excluir',
-          description: `Este título possui ${registrosDoTitulo.length} registro(s) de IT/POP. Exclua primeiro os registros antes de excluir o título.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      console.log('🗑️ Excluindo título:', titulo.id);
-      const sucesso = await tituloItPopService.delete(titulo.id!);
+      toast({
+        title: 'Sucesso',
+        description: 'Título excluído com sucesso!',
+      });
       
-      if (sucesso) {
-        toast({
-          title: 'Sucesso',
-          description: 'Título excluído com sucesso!',
-        });
-        
-        // Recarregar a lista de títulos
-        await carregarTitulos();
-        onSuccess();
-      } else {
-        toast({
-          title: 'Erro',
-          description: 'Erro ao excluir título. Tente novamente.',
-          variant: 'destructive',
-        });
-      }
+      // Remove from local state
+      setTitulos(prev => prev.filter(t => t.id !== titulo.id));
+      onSuccess();
     } catch (error) {
       console.error('❌ Erro ao excluir título:', error);
       toast({
@@ -162,9 +163,6 @@ export const ConsultaTitulosItPop: React.FC<ConsultaTitulosItPopProps> = ({ onSu
                               <AlertDialogDescription>
                                 Tem certeza que deseja excluir o título "{titulo.titulo}"? 
                                 Esta ação não pode ser desfeita.
-                                <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-yellow-700 dark:text-yellow-300">
-                                  ⚠️ Só é possível excluir títulos que não possuem registros de IT/POP associados.
-                                </div>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

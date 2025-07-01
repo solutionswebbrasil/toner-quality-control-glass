@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,12 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { certificadoService } from '@/services/certificadoService';
-import { Certificado } from '@/types/certificado';
-import { fileUploadService } from '@/services/fileUploadService';
 
 interface CertificadoFormProps {
   onSuccess?: () => void;
+}
+
+interface CertificadoData {
+  nome_certificado: string;
+  data_emissao: string;
+  arquivo_pdf?: string;
 }
 
 export const CertificadoForm: React.FC<CertificadoFormProps> = ({ onSuccess }) => {
@@ -23,16 +27,18 @@ export const CertificadoForm: React.FC<CertificadoFormProps> = ({ onSuccess }) =
     handleSubmit,
     reset,
     formState: { errors }
-  } = useForm<Omit<Certificado, 'id' | 'data_registro'>>();
+  } = useForm<CertificadoData>();
 
   const handleFileUpload = async (file: File): Promise<string | null> => {
     if (!file) return null;
 
     setUploadingFile(true);
     try {
+      // Simulate file upload
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const fileName = `certificado_${Date.now()}_${file.name}`;
-      const filePath = await fileUploadService.uploadFile(file, fileName);
-      return filePath;
+      console.log('Arquivo simulado uploaded:', fileName);
+      return fileName;
     } catch (error) {
       console.error('Erro ao fazer upload do arquivo:', error);
       toast({
@@ -46,7 +52,7 @@ export const CertificadoForm: React.FC<CertificadoFormProps> = ({ onSuccess }) =
     }
   };
 
-  const onSubmit = async (data: Omit<Certificado, 'id' | 'data_registro'>) => {
+  const onSubmit = async (data: CertificadoData) => {
     setLoading(true);
     try {
       let arquivoPdf = data.arquivo_pdf;
@@ -65,7 +71,10 @@ export const CertificadoForm: React.FC<CertificadoFormProps> = ({ onSuccess }) =
         arquivo_pdf: arquivoPdf
       };
 
-      await certificadoService.create(certificadoData);
+      console.log('Registrando certificado (frontend only):', certificadoData);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "Sucesso",

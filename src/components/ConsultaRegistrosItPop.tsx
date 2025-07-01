@@ -7,12 +7,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { registroItPopService } from '@/services/registroItPopService';
-import type { RegistroItPop } from '@/types';
+
+interface RegistroItPop {
+  id?: number;
+  titulo: string;
+  versao: string;
+  data_registro: string;
+  registrado_por?: string;
+  arquivo_pdf?: string;
+}
 
 interface ConsultaRegistrosItPopProps {
   onSuccess: () => void;
 }
+
+// Mock data
+const mockRegistros: RegistroItPop[] = [
+  {
+    id: 1,
+    titulo: 'Procedimento de Calibração',
+    versao: '1.0',
+    data_registro: new Date().toISOString(),
+    registrado_por: 'João Silva',
+    arquivo_pdf: '#'
+  }
+];
 
 export const ConsultaRegistrosItPop: React.FC<ConsultaRegistrosItPopProps> = ({ onSuccess }) => {
   const [registros, setRegistros] = useState<RegistroItPop[]>([]);
@@ -24,11 +43,11 @@ export const ConsultaRegistrosItPop: React.FC<ConsultaRegistrosItPopProps> = ({ 
 
   const carregarRegistros = async () => {
     try {
-      console.log('🔍 Carregando todos os registros IT/POP...');
+      console.log('🔍 Carregando registros IT/POP (mock data)...');
       setLoading(true);
-      const registrosData = await registroItPopService.getAll();
-      setRegistros(registrosData);
-      console.log('✅ Registros carregados:', registrosData.length);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setRegistros(mockRegistros);
+      console.log('✅ Registros carregados:', mockRegistros.length);
     } catch (error) {
       console.error('❌ Erro ao carregar registros:', error);
       toast({
@@ -43,25 +62,16 @@ export const ConsultaRegistrosItPop: React.FC<ConsultaRegistrosItPopProps> = ({ 
 
   const handleExcluirRegistro = async (registro: RegistroItPop) => {
     try {
-      console.log('🗑️ Excluindo registro IT/POP:', registro.id);
-      const sucesso = await registroItPopService.delete(registro.id!);
+      console.log('🗑️ Excluindo registro IT/POP (simulado):', registro.id);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (sucesso) {
-        toast({
-          title: 'Sucesso',
-          description: 'Registro IT/POP excluído com sucesso!',
-        });
-        
-        // Recarregar a lista de registros
-        await carregarRegistros();
-        onSuccess();
-      } else {
-        toast({
-          title: 'Erro',
-          description: 'Erro ao excluir registro. Tente novamente.',
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Sucesso',
+        description: 'Registro IT/POP excluído com sucesso!',
+      });
+      
+      setRegistros(prev => prev.filter(r => r.id !== registro.id));
+      onSuccess();
     } catch (error) {
       console.error('❌ Erro ao excluir registro:', error);
       toast({
@@ -73,8 +83,11 @@ export const ConsultaRegistrosItPop: React.FC<ConsultaRegistrosItPopProps> = ({ 
   };
 
   const handleDownload = (arquivo: string) => {
-    console.log('📥 Iniciando download do arquivo PDF:', arquivo);
-    window.open(arquivo, '_blank');
+    console.log('📥 Download simulado do arquivo PDF:', arquivo);
+    toast({
+      title: 'Info',
+      description: 'Download simulado - funcionalidade não implementada no frontend.',
+    });
   };
 
   const formatDate = (dateString: string): string => {
@@ -100,7 +113,7 @@ export const ConsultaRegistrosItPop: React.FC<ConsultaRegistrosItPopProps> = ({ 
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          POP/ITs Cadastrados
+          POP/ITs Cadastrados  
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
           Consulte e gerencie todos os registros de IT/POP cadastrados

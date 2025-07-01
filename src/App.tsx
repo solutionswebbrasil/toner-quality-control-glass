@@ -36,15 +36,15 @@ import { FilialGrid } from '@/components/FilialGrid';
 import { ConfiguracoesRetornado } from '@/components/ConfiguracoesRetornado';
 import { StatusCadastro } from '@/components/StatusCadastro';
 import { ApisIntegracoes } from '@/components/ApisIntegracoes';
-import { UserManagement } from '@/components/UserManagement';
+import UserManagement from '@/components/UserManagement';
 import UserPermissions from '@/components/UserPermissions';
 import NewUserRegistration from '@/components/NewUserRegistration';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  const handleSuccess = (message: string) => {
-    console.log('Success:', message);
+  const handleSuccess = () => {
+    console.log('Action completed successfully');
   };
 
   const renderContent = () => {

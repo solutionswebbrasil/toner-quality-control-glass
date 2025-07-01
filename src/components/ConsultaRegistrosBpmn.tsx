@@ -8,12 +8,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { registroBpmnService } from '@/services/registroBpmnService';
-import type { RegistroBpmn } from '@/types';
+
+interface RegistroBpmn {
+  id?: number;
+  titulo: string;
+  versao: string;
+  data_registro: string;
+  registrado_por?: string;
+  arquivo_png?: string;
+}
 
 interface ConsultaRegistrosBpmnProps {
   onSuccess: () => void;
 }
+
+// Mock data
+const mockRegistros: RegistroBpmn[] = [
+  {
+    id: 1,
+    titulo: 'Processo de Vendas',
+    versao: '1.0',
+    data_registro: new Date().toISOString(),
+    registrado_por: 'João Silva',
+    arquivo_png: '#'
+  }
+];
 
 export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ onSuccess }) => {
   const [registros, setRegistros] = useState<RegistroBpmn[]>([]);
@@ -40,11 +59,11 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
 
   const carregarRegistros = async () => {
     try {
-      console.log('🔍 Carregando registros BPMN...');
+      console.log('🔍 Carregando registros BPMN (mock data)...');
       setLoading(true);
-      const data = await registroBpmnService.getAll();
-      setRegistros(data);
-      console.log('✅ Registros BPMN carregados:', data.length);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setRegistros(mockRegistros);
+      console.log('✅ Registros BPMN carregados:', mockRegistros.length);
     } catch (error) {
       console.error('❌ Erro ao carregar registros BPMN:', error);
       toast({
@@ -61,22 +80,18 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
     if (!registro.id) return;
 
     try {
-      console.log('🗑️ Iniciando exclusão do registro:', registro.titulo, 'Versão:', registro.versao);
+      console.log('🗑️ Excluindo registro BPMN (simulado):', registro.titulo, 'Versão:', registro.versao);
       setDeletingId(registro.id);
 
-      const sucesso = await registroBpmnService.delete(registro.id);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (sucesso) {
-        console.log('✅ Registro excluído com sucesso');
-        toast({
-          title: 'Sucesso',
-          description: 'Registro BPMN excluído com sucesso!',
-        });
-        await carregarRegistros();
-        onSuccess();
-      } else {
-        throw new Error('Falha ao excluir registro');
-      }
+      toast({
+        title: 'Sucesso',
+        description: 'Registro BPMN excluído com sucesso!',
+      });
+      
+      setRegistros(prev => prev.filter(r => r.id !== registro.id));
+      onSuccess();
     } catch (error) {
       console.error('❌ Erro ao excluir registro:', error);
       toast({
@@ -90,14 +105,11 @@ export const ConsultaRegistrosBpmn: React.FC<ConsultaRegistrosBpmnProps> = ({ on
   };
 
   const handleDownload = (url: string, filename: string) => {
-    console.log('📥 Iniciando download:', filename);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    console.log('📥 Download simulado:', filename);
+    toast({
+      title: 'Info',
+      description: 'Download simulado - funcionalidade não implementada no frontend.',
+    });
   };
 
   const formatDate = (dateString: string) => {

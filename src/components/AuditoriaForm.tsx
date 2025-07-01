@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,11 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { auditoriaService } from '@/services/auditoriaService';
-import { fileUploadService } from '@/services/fileUploadService';
-import { filialService } from '@/services/filialService';
-import { supabase } from '@/integrations/supabase/client';
-import type { Filial } from '@/types/filial';
 
 const auditoriaSchema = z.object({
   data_inicio: z.date({
@@ -41,10 +37,16 @@ interface AuditoriaFormProps {
   onSuccess: () => void;
 }
 
+// Mock filiais data
+const mockFiliais = [
+  { id: '1', nome: 'Filial São Paulo' },
+  { id: '2', nome: 'Filial Rio de Janeiro' },
+  { id: '3', nome: 'Filial Belo Horizonte' },
+];
+
 export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [filiais, setFiliais] = useState<Filial[]>([]);
 
   const form = useForm<AuditoriaFormData>({
     resolver: zodResolver(auditoriaSchema),
@@ -52,19 +54,6 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
       unidade_auditada: '',
     },
   });
-
-  useEffect(() => {
-    loadFiliais();
-  }, []);
-
-  const loadFiliais = async () => {
-    try {
-      const data = await filialService.getAll();
-      setFiliais(data);
-    } catch (error) {
-      console.error('Erro ao carregar filiais:', error);
-    }
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -94,66 +83,19 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
   const onSubmit = async (data: AuditoriaFormData) => {
     try {
       setIsSubmitting(true);
-      console.log('🚀 Iniciando registro de auditoria...', { 
+      console.log('🚀 Registrando auditoria (frontend only):', { 
         dataInicio: data.data_inicio, 
         dataFim: data.data_fim, 
         unidade: data.unidade_auditada,
         temPDF: !!pdfFile 
       });
       
-      // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: 'Erro',
-          description: 'Usuário não autenticado.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      let formulario_pdf_url = null;
-      
-      // Upload do arquivo PDF se existir
-      if (pdfFile) {
-        console.log('📤 Fazendo upload do PDF...');
-        try {
-          formulario_pdf_url = await fileUploadService.uploadPdf(pdfFile, 'auditoria');
-          console.log('✅ PDF uploaded com sucesso:', formulario_pdf_url);
-          
-          if (!formulario_pdf_url) {
-            throw new Error('URL do arquivo não foi retornada');
-          }
-        } catch (uploadError) {
-          console.error('❌ Erro no upload do PDF:', uploadError);
-          toast({
-            title: 'Erro no Upload',
-            description: 'Erro ao fazer upload do PDF. Tente novamente.',
-            variant: 'destructive',
-          });
-          return;
-        }
-      }
-
-      // Criar objeto auditoria para salvar no banco
-      const auditoriaData = {
-        data_inicio: data.data_inicio.toISOString().split('T')[0], // YYYY-MM-DD format
-        data_fim: data.data_fim.toISOString().split('T')[0], // YYYY-MM-DD format
-        unidade_auditada: data.unidade_auditada,
-        formulario_pdf: formulario_pdf_url,
-        user_id: user.id
-      };
-
-      console.log('💾 Salvando auditoria no banco:', auditoriaData);
-
-      // Salvar no banco de dados
-      const savedAuditoria = await auditoriaService.create(auditoriaData);
-      
-      console.log('✅ Auditoria salva com sucesso:', savedAuditoria);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       toast({
         title: 'Sucesso',
-        description: formulario_pdf_url 
+        description: pdfFile 
           ? 'Auditoria registrada com sucesso e PDF anexado!' 
           : 'Auditoria registrada com sucesso!',
       });
@@ -301,7 +243,7 @@ export const AuditoriaForm: React.FC<AuditoriaFormProps> = ({ onSuccess }) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {filiais.map((filial) => (
+                        {mockFiliais.map((filial) => (
                           <SelectItem key={filial.id} value={filial.nome}>
                             {filial.nome}
                           </SelectItem>

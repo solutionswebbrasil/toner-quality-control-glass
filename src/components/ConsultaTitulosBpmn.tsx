@@ -7,13 +7,27 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { tituloBpmnService } from '@/services/tituloBpmnService';
-import { registroBpmnService } from '@/services/registroBpmnService';
-import type { TituloBpmn } from '@/types';
+
+interface TituloBpmn {
+  id?: number;
+  titulo: string;
+  descricao?: string;
+  data_cadastro: string;
+}
 
 interface ConsultaTitulosBpmnProps {
   onSuccess: () => void;
 }
+
+// Mock data
+const mockTitulos: TituloBpmn[] = [
+  {
+    id: 1,
+    titulo: 'Processo de Vendas',
+    descricao: 'Fluxo completo do processo de vendas',
+    data_cadastro: new Date().toISOString()
+  }
+];
 
 export const ConsultaTitulosBpmn: React.FC<ConsultaTitulosBpmnProps> = ({ onSuccess }) => {
   const [titulos, setTitulos] = useState<TituloBpmn[]>([]);
@@ -40,11 +54,11 @@ export const ConsultaTitulosBpmn: React.FC<ConsultaTitulosBpmnProps> = ({ onSucc
 
   const carregarTitulos = async () => {
     try {
-      console.log('🔍 Carregando títulos BPMN...');
+      console.log('🔍 Carregando títulos BPMN (mock data)...');
       setLoading(true);
-      const data = await tituloBpmnService.getAll();
-      setTitulos(data);
-      console.log('✅ Títulos BPMN carregados:', data.length);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setTitulos(mockTitulos);
+      console.log('✅ Títulos BPMN carregados:', mockTitulos.length);
     } catch (error) {
       console.error('❌ Erro ao carregar títulos BPMN:', error);
       toast({
@@ -57,50 +71,22 @@ export const ConsultaTitulosBpmn: React.FC<ConsultaTitulosBpmnProps> = ({ onSucc
     }
   };
 
-  const verificarRegistrosAssociados = async (tituloId: number): Promise<boolean> => {
-    try {
-      console.log('🔍 Verificando registros associados ao título:', tituloId);
-      const registros = await registroBpmnService.getByTituloId(tituloId);
-      console.log('📊 Registros encontrados:', registros.length);
-      return registros.length > 0;
-    } catch (error) {
-      console.error('❌ Erro ao verificar registros:', error);
-      return false;
-    }
-  };
-
   const handleDelete = async (titulo: TituloBpmn) => {
     if (!titulo.id) return;
 
     try {
-      console.log('🗑️ Iniciando exclusão do título:', titulo.titulo);
+      console.log('🗑️ Excluindo título BPMN (simulado):', titulo.titulo);
       setDeletingId(titulo.id);
 
-      // Verificar se existem registros associados
-      const temRegistros = await verificarRegistrosAssociados(titulo.id);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (temRegistros) {
-        toast({
-          title: 'Não é possível excluir',
-          description: 'Este título possui registros BPMN associados. Exclua os registros primeiro.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const sucesso = await tituloBpmnService.delete(titulo.id);
+      toast({
+        title: 'Sucesso',
+        description: 'Título BPMN excluído com sucesso!',
+      });
       
-      if (sucesso) {
-        console.log('✅ Título excluído com sucesso');
-        toast({
-          title: 'Sucesso',
-          description: 'Título BPMN excluído com sucesso!',
-        });
-        await carregarTitulos();
-        onSuccess();
-      } else {
-        throw new Error('Falha ao excluir título');
-      }
+      setTitulos(prev => prev.filter(t => t.id !== titulo.id));
+      onSuccess();
     } catch (error) {
       console.error('❌ Erro ao excluir título:', error);
       toast({
