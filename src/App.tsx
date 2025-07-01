@@ -1,9 +1,7 @@
+
 import React, { useState } from 'react';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Layout } from '@/components/Layout';
-import { AuthPage } from '@/components/AuthPage';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Dashboard } from '@/components/Dashboard';
 import { RetornadoForm } from '@/components/RetornadoForm';
 import { RetornadoGrid } from '@/components/RetornadoGrid';
@@ -45,22 +43,26 @@ import NewUserRegistration from '@/components/NewUserRegistration';
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
+  const handleSuccess = (message: string) => {
+    console.log('Success:', message);
+  };
+
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
       case 'retornados-registro':
-        return <RetornadoForm />;
+        return <RetornadoForm onSuccess={handleSuccess} />;
       case 'retornados-consulta':
         return <RetornadoGrid />;
       case 'retornados-graficos':
         return <RetornadoCharts />;
       case 'fornecedores-cadastro':
-        return <FornecedorForm />;
+        return <FornecedorForm onSuccess={handleSuccess} />;
       case 'fornecedores-consulta':
         return <FornecedorGrid />;
       case 'garantias-registro':
-        return <GarantiaForm />;
+        return <GarantiaForm onSuccess={handleSuccess} />;
       case 'garantias-consulta':
         return <GarantiaGrid />;
       case 'garantias-graficos-gerais':
@@ -68,45 +70,45 @@ function App() {
       case 'garantias-toners':
         return <GarantiaTonerGrid />;
       case 'toners-cadastro':
-        return <TonerForm />;
+        return <TonerForm onSuccess={handleSuccess} />;
       case 'toners-consulta-principal':
         return <TonerGrid />;
       case 'auditorias-registro':
-        return <AuditoriaForm />;
+        return <AuditoriaForm onSuccess={handleSuccess} />;
       case 'auditorias-consulta':
         return <AuditoriaGrid />;
       case 'nc-registro':
-        return <NaoConformidadeForm />;
+        return <NaoConformidadeForm onSuccess={handleSuccess} />;
       case 'nc-consulta':
         return <NaoConformidadeGrid />;
       case 'nc-graficos':
-        return <NaoConformidadeCharts />;
+        return <NaoConformidadeCharts naoConformidades={[]} />;
       case 'titulo-itpop-cadastro':
-        return <TituloItPopForm />;
+        return <TituloItPopForm onSuccess={handleSuccess} />;
       case 'titulo-itpop-consulta':
-        return <ConsultaTitulosItPop />;
+        return <ConsultaTitulosItPop onSuccess={handleSuccess} />;
       case 'registro-itpop':
-        return <RegistroItPopForm />;
+        return <RegistroItPopForm onSuccess={handleSuccess} />;
       case 'registros-itpop-consulta':
-        return <ConsultaRegistrosItPop />;
+        return <ConsultaRegistrosItPop onSuccess={handleSuccess} />;
       case 'visualizar-itpop':
-        return <VisualizadorItPop />;
+        return <VisualizadorItPop onSuccess={handleSuccess} />;
       case 'titulo-bpmn-cadastro':
-        return <TituloBpmnForm />;
+        return <TituloBpmnForm onSuccess={handleSuccess} />;
       case 'titulo-bpmn-consulta':
-        return <ConsultaTitulosBpmn />;
+        return <ConsultaTitulosBpmn onSuccess={handleSuccess} />;
       case 'registro-bpmn':
-        return <RegistroBpmnForm />;
+        return <RegistroBpmnForm onSuccess={handleSuccess} />;
       case 'registros-bpmn-consulta':
-        return <ConsultaRegistrosBpmn />;
+        return <ConsultaRegistrosBpmn onSuccess={handleSuccess} />;
       case 'visualizar-bpmn':
-        return <VisualizadorBpmn />;
+        return <VisualizadorBpmn onSuccess={handleSuccess} />;
       case 'certificados-registro':
-        return <CertificadoForm />;
+        return <CertificadoForm onSuccess={handleSuccess} />;
       case 'certificados-consulta':
         return <CertificadoGrid />;
       case 'filiais-cadastro':
-        return <FilialForm />;
+        return <FilialForm onSuccess={handleSuccess} />;
       case 'filiais-consulta':
         return <FilialGrid />;
       case 'config-retornado':
@@ -121,8 +123,6 @@ function App() {
         return <UserPermissions />;
       case 'novo-usuario':
         return <NewUserRegistration />;
-      case 'auth':
-        return <AuthPage />;
       default:
         return <Dashboard />;
     }
@@ -130,15 +130,11 @@ function App() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <div className="min-h-screen">
-          <ProtectedRoute>
-            <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-              {renderContent()}
-            </Layout>
-          </ProtectedRoute>
-        </div>
-      </AuthProvider>
+      <div className="min-h-screen">
+        <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+          {renderContent()}
+        </Layout>
+      </div>
     </ThemeProvider>
   );
 }
